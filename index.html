@@ -1,4 +1,4 @@
-<!-- 20261113 v16 - Dependency OK -->
+<!-- 20261113 v17 - Try Visio Tree drag -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -377,12 +377,12 @@
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
           <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="visioTier">Visio Tier Level (Tier 1 - Root, Tier 2 - Downstream)</option>
             <option value="wave">Migration Wave</option>
             <option value="cutoverStatus">Cutover Status</option>
             <option value="domain">AD Domain</option>
             <option value="dept">Department</option>
             <option value="system">System / Application Group</option>
-            <option value="owner">Task Owner</option>
             <option value="drProtected">Zerto DR Protected</option>
             <option value="veeamJob">Veeam Backup Job</option>
           </select>
@@ -399,7 +399,7 @@
     </div>
   </div>
 
-  <!-- SERVER MODAL (WITH AUTOCOMPLETE DEPENDENCY PICKER) -->
+  <!-- SERVER MODAL (WITH EXPLICIT VISIO TIER SELECTOR & AUTOCOMPLETE) -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
@@ -411,6 +411,14 @@
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
           <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Visio Tree Tier Level:</label>
+          <select id="modalVisioTier" class="w-full bg-slate-900 border border-cyan-700 rounded-xl px-3 py-2 text-cyan-300 font-bold">
+            <option value="Auto">Auto (Detect DC / SQL)</option>
+            <option value="Tier 1">Tier 1 - Root / Core (Top)</option>
+            <option value="Tier 2">Tier 2 - Downstream App (Bottom)</option>
+          </select>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Migration Wave:</label>
@@ -542,28 +550,17 @@
     function onDependencyInput(val) {
       const dropdown = document.getElementById('dependencyDropdown');
       const currentInputName = document.getElementById('modalServerName').value.trim();
-      
-      // Get the currently typed token after the last comma
       const parts = val.split(',');
       const currentTerm = parts[parts.length - 1].trim().toLowerCase();
 
       if (!currentTerm && val.endsWith(',')) {
-        // Show all available servers if user just typed a comma
         showDependencyDropdown(servers.filter(s => s.serverName !== currentInputName));
         return;
       }
-
-      if (!currentTerm) {
-        dropdown.classList.add('hidden');
-        return;
-      }
+      if (!currentTerm) { dropdown.classList.add('hidden'); return; }
 
       const matches = servers.filter(s => s.serverName.toLowerCase().includes(currentTerm) && s.serverName !== currentInputName);
-      if (matches.length > 0) {
-        showDependencyDropdown(matches);
-      } else {
-        dropdown.classList.add('hidden');
-      }
+      if (matches.length > 0) { showDependencyDropdown(matches); } else { dropdown.classList.add('hidden'); }
     }
 
     function showDependencyDropdown(matches) {
@@ -583,7 +580,7 @@
       const input = document.getElementById('modalDependencies');
       let val = input.value;
       let parts = val.split(',');
-      parts.pop(); // remove current partial term
+      parts.pop();
       parts.push(serverName);
       input.value = parts.map(p => p.trim()).filter(Boolean).join(', ') + ', ';
       document.getElementById('dependencyDropdown').classList.add('hidden');
@@ -739,14 +736,28 @@
       container.innerHTML = '';
       svg.innerHTML = '';
 
-      let tier1 = filtered.filter(s => {
-        let name = s.serverName.toUpperCase();
-        let sys = (s.system || '').toUpperCase();
-        return name.includes('DC') || name.includes('SQL') || name.includes('AD') || sys.includes('DATABASE') || sys.includes('ACTIVE DIRECTORY');
-      });
-      let tier2 = filtered.filter(s => !tier1.includes(s));
+      let tier1 = [];
+      let tier2 = [];
 
-      let html = `<div class="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2"><i class="fas fa-crown mr-1.5 text-amber-400"></i> Tier 1: Domain Controllers & Core Databases (Root)</div>`;
+      filtered.forEach(s => {
+        let explicitTier = s.visioTier || 'Auto';
+        if (explicitTier === 'Tier 1') {
+          tier1.push(s);
+        } else if (explicitTier === 'Tier 2') {
+          tier2.push(s);
+        } else {
+          // Auto rule
+          let name = s.serverName.toUpperCase();
+          let sys = (s.system || '').toUpperCase();
+          if (name.includes('DC') || name.includes('SQL') || name.includes('AD') || name.includes('MGMT') || name.includes('MANAGEMENT') || sys.includes('DATABASE') || sys.includes('ACTIVE DIRECTORY')) {
+            tier1.push(s);
+          } else {
+            tier2.push(s);
+          }
+        }
+      });
+
+      let html = `<div class="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2"><i class="fas fa-crown mr-1.5 text-amber-400"></i> Tier 1: Domain Controllers, Management & Core Databases (Root)</div>`;
       html += `<div class="flex flex-wrap gap-6 mb-12" id="tier1Row">`;
       tier1.forEach(s => { html += renderTreeNodeCard(s, 'border-amber-500/80 bg-slate-800'); });
       html += `</div>`;
@@ -1101,6 +1112,7 @@
         document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
         document.getElementById('editOriginalName').value = serverName;
         document.getElementById('modalServerName').value = s.serverName;
+        document.getElementById('modalVisioTier').value = s.visioTier || 'Auto';
         document.getElementById('modalWave').value = s.wave || 'Wave 1 - Pilot';
         document.getElementById('modalDept').value = s.dept || 'INF';
         document.getElementById('modalSystem').value = s.system || '';
@@ -1111,6 +1123,7 @@
         document.getElementById('serverModalTitle').innerText = "Add New Server";
         document.getElementById('editOriginalName').value = '';
         ['modalServerName','modalDept','modalSystem','modalIP','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('modalVisioTier').value = 'Auto';
         document.getElementById('modalWave').value = 'Wave 1 - Pilot';
         document.getElementById('modalDomain').value = 'Becketts';
       }
@@ -1122,6 +1135,7 @@
       const origName = document.getElementById('editOriginalName').value;
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
+        visioTier: document.getElementById('modalVisioTier').value,
         wave: document.getElementById('modalWave').value,
         dept: document.getElementById('modalDept').value.trim() || 'INF',
         system: document.getElementById('modalSystem').value.trim() || 'General',
@@ -1171,8 +1185,8 @@
     }
 
     function exportToCSV() {
-      let csv = "Server Name,Migration Wave,Department,System Group,Current IP Address,Current Domain,Cutover Status,Dependencies\n";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.wave||''}","${s.dept||''}","${s.system||''}","${s.ip||''}","${s.domain||''}","${s.cutoverStatus||''}","${s.dependencies||''}"\n`; });
+      let csv = "Server Name,Visio Tier,Migration Wave,Department,System Group,Current IP Address,Current Domain,Cutover Status,Dependencies\n";
+      servers.forEach(s => { csv += `"${s.serverName}","${s.visioTier||'Auto'}","${s.wave||''}","${s.dept||''}","${s.system||''}","${s.ip||''}","${s.domain||''}","${s.cutoverStatus||''}","${s.dependencies||''}"\n`; });
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `ca-migration-waves.csv`; a.click();
     }
 
@@ -1199,7 +1213,7 @@
           const cols = parseCSVRow(line);
           if (!cols[0] && !cols[1]) continue;
           const candidate = {
-            serverName: cols[1] || cols[0], wave: cols[15] || 'Wave 1 - Pilot', dept: cols[14] || cols[3] || 'INF',
+            serverName: cols[1] || cols[0], visioTier: 'Auto', wave: 'Wave 1 - Pilot', dept: cols[14] || cols[3] || 'INF',
             system: cols[3] || 'General', ip: cols[4] || '', domain: cols[7] || cols[5] || 'Becketts', cutoverStatus: 'Not Started', dependencies: ''
           };
           const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
