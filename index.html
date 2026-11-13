@@ -1,4 +1,4 @@
-<!-- 20261113 v7 - InfOps Master Command Center (All Features & Calculator) -->
+<!-- 20261113 v9 - InfOps Master Command Center (Compact Topology Density + All Features) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .canvas-grid { background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px; }
-    .node-card { cursor: grab; transition: transform 0.1s ease, box-shadow 0.1s ease; }
+    .node-card { cursor: grab; transition: transform 0.05s ease, box-shadow 0.05s ease; }
     .node-card:active { cursor: grabbing; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -28,7 +28,7 @@
           <span id="brandName">InfOps</span> 
           <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Migration & Operations Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Backup & Storage Planner</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Backup & Bulk Ops</p>
       </div>
     </div>
 
@@ -50,7 +50,7 @@
         <i class="fas fa-calculator mr-1.5"></i> Storage Calc
       </button>
       <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-stethoscope mr-1.5"></i> IP Health Check
+        <i class="fas fa-stethoscope mr-1.5"></i> IP Health
       </button>
     </div>
 
@@ -62,11 +62,11 @@
       <button onclick="openEncryptionModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition flex items-center gap-1.5">
         <i class="fas fa-key"></i> Key
       </button>
-      <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition flex items-center gap-1.5" title="Import Encrypted JSON">
+      <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition flex items-center gap-1.5" title="Import JSON">
         <i class="fas fa-upload"></i> Import JSON
         <input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)">
       </label>
-      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON">
+      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export JSON">
         <i class="fas fa-download"></i> Export JSON
       </button>
     </div>
@@ -81,7 +81,7 @@
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="filterDomain" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <select id="filterDomain" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Domains</option>
               <option value="Becketts">Becketts</option>
               <option value="UK">UK (uk.toennies.net)</option>
@@ -90,19 +90,34 @@
           </div>
 
           <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System / App:</label>
-            <select id="filterSystem" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <label class="text-xs font-semibold text-slate-300">System:</label>
+            <select id="filterSystem" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Systems</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
+            <select id="filterSubnet" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Subnets</option>
             </select>
           </div>
 
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
             <input type="checkbox" id="filterShowDeps" checked onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
-            <span>🔗 Include Upstream Dependencies (DC/SQL)</span>
+            <span>🔗 Include Upstream (DC/SQL)</span>
           </label>
         </div>
 
         <div class="flex items-center space-x-2">
+          <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+            <label class="text-[11px] font-semibold text-slate-400">Density:</label>
+            <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
+              <option value="compact">Compact (Tighter)</option>
+              <option value="normal" selected>Normal</option>
+              <option value="spacious">Spacious</option>
+            </select>
+          </div>
           <button onclick="autoLayoutCanvas()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
             <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange Tidy
           </button>
@@ -110,9 +125,9 @@
         </div>
       </div>
 
-      <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-8 select-none">
-        <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
-        <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
+      <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-6 select-none">
+        <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3000px] min-h-[2000px]"></svg>
+        <div id="nodesContainer" class="absolute inset-0 w-[3000px] h-[2000px] pointer-events-auto z-10"></div>
       </div>
     </section>
 
@@ -120,16 +135,19 @@
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Server Inventory & Master Excel Sync</h2>
-          <p class="text-xs text-slate-400">Upload your master Excel/CSV anytime. Smart Upsert prevents duplicates and preserves custom edits.</p>
+          <h2 class="text-lg font-bold text-white">Server Inventory Matrix & Mass Bulk Edit</h2>
+          <p class="text-xs text-slate-400">Click any server name to edit. Select multiple servers using checkboxes for bulk mass updates.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search ID, name, owner..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
-          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
-            <i class="fas fa-file-csv mr-1"></i> Export Master CSV
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search ID, name, dept..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-44">
+          <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition">
+            <i class="fas fa-edit mr-1"></i> Bulk Update Selected (<span id="selectedCountBadge">0</span>)
           </button>
-          <label class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow">
-            <i class="fas fa-file-excel mr-1"></i> Smart Import Master Excel/CSV
+          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
+            <i class="fas fa-file-csv mr-1"></i> Export CSV
+          </button>
+          <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow">
+            <i class="fas fa-file-excel mr-1"></i> Smart Import
             <input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)">
           </label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -140,15 +158,16 @@
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
-            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
+            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
               <tr>
+                <th class="p-3 w-10"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600"></th>
                 <th class="p-3">Server ID</th>
                 <th class="p-3">Server Name</th>
-                <th class="p-3">System / App Group</th>
+                <th class="p-3">Department / Entity</th>
+                <th class="p-3">System / App</th>
                 <th class="p-3">Domain</th>
-                <th class="p-3">Current IP</th>
+                <th class="p-3">IP Address</th>
                 <th class="p-3">Task Owner</th>
-                <th class="p-3">Disk (GB)</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -163,7 +182,7 @@
       <div class="flex flex-wrap justify-between items-center mb-4">
         <div>
           <h2 class="text-lg font-bold text-white">Zerto Disaster Recovery (DR) Control Panel</h2>
-          <p class="text-xs text-slate-400">Manage your DR servers (easily toggle replication and set VPG assignments).</p>
+          <p class="text-xs text-slate-400">Manage your 32 DR servers manually below.</p>
         </div>
         <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
           <i class="fas fa-save mr-1"></i> Save DR Changes
@@ -175,8 +194,7 @@
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
                 <th class="p-3">DR Protected?</th>
-                <th class="p-3">Server ID</th>
-                <th class="p-3">Server Name</th>
+                <th class="p-3">Server ID & Name</th>
                 <th class="p-3">VPG Name</th>
                 <th class="p-3">Target Site / Notes</th>
                 <th class="p-3">Current IP</th>
@@ -192,8 +210,8 @@
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4">
         <div>
-          <h2 class="text-lg font-bold text-white">Veeam Backup Job & Retention Management</h2>
-          <p class="text-xs text-slate-400">Configure backup jobs, schedule times, and retention periods per server.</p>
+          <h2 class="text-lg font-bold text-white">Veeam Backup Job, Schedule & Retention Management</h2>
+          <p class="text-xs text-slate-400">Manually configure backup job names, times, and retention periods per server.</p>
         </div>
         <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">
           <i class="fas fa-save mr-1"></i> Save Backup Changes
@@ -222,24 +240,21 @@
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
           <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
-          <p class="text-xs text-slate-400">Calculates total primary VM disk capacity and required Veeam backup repository storage based on retention periods and daily change rates.</p>
+          <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage based on retention periods.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
             <div class="text-xs font-semibold text-slate-400 uppercase">Total Servers Tracked</div>
             <div id="calcTotalServers" class="text-3xl font-extrabold text-white mt-1">0</div>
-            <div class="text-[11px] text-cyan-400 mt-2">Inventory count with disk assigned</div>
           </div>
           <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
             <div class="text-xs font-semibold text-slate-400 uppercase">Total Primary VM Disk Size</div>
             <div id="calcTotalPrimaryDisk" class="text-3xl font-extrabold text-cyan-400 mt-1">0 GB</div>
-            <div class="text-[11px] text-slate-400 mt-2">Combined raw capacity</div>
           </div>
           <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
             <div class="text-xs font-semibold text-slate-400 uppercase">Est. Veeam Repository Storage</div>
             <div id="calcTotalBackupStorage" class="text-3xl font-extrabold text-emerald-400 mt-1">0 GB</div>
-            <div class="text-[11px] text-slate-400 mt-2">Includes retention & incremental delta</div>
           </div>
         </div>
 
@@ -262,24 +277,22 @@
       </div>
     </section>
 
-    <!-- TAB 6: IP HEALTH CHECK & DUPLICATES -->
+    <!-- TAB 6: IP HEALTH CHECK -->
     <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
           <h2 class="text-xl font-bold text-white">Data Health & IP Address Validator</h2>
-          <p class="text-xs text-slate-400">Automatically inspects your master inventory for duplicate IP addresses, missing IPs, or formatting errors.</p>
+          <p class="text-xs text-slate-400">Inspects inventory for duplicate IP addresses or missing entries.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="bg-slate-800 border border-amber-800/60 rounded-2xl p-5 shadow-lg">
             <div class="text-xs font-semibold text-amber-400 uppercase">Duplicate IP Collisions</div>
             <div id="healthDupCount" class="text-3xl font-extrabold text-amber-300 mt-1">0</div>
-            <div class="text-[11px] text-slate-400 mt-2">Servers sharing the exact same IP address</div>
           </div>
           <div class="bg-slate-800 border border-red-800/60 rounded-2xl p-5 shadow-lg">
             <div class="text-xs font-semibold text-red-400 uppercase">Missing / Unknown IPs</div>
             <div id="healthMissingCount" class="text-3xl font-extrabold text-red-300 mt-1">0</div>
-            <div class="text-[11px] text-slate-400 mt-2">Servers without valid IP assignments</div>
           </div>
         </div>
 
@@ -292,47 +305,30 @@
 
   </div>
 
-  <!-- SMART IMPORT PREVIEW & DUPLICATE INSPECTOR MODAL -->
-  <div id="importPreviewModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 w-full max-w-3xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[85vh]">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+  <!-- BULK MASS EDIT MODAL -->
+  <div id="bulkEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Bulk Mass Update Selected Servers</h3>
+      <p class="text-xs text-slate-400">Choose the field you want to update across all checked servers. Leave blank to keep existing values.</p>
+      <div class="flex flex-col gap-3 text-xs">
         <div>
-          <h3 class="font-bold text-white text-base flex items-center gap-2">
-            <i class="fas fa-filter text-amber-400"></i> Smart Master Upsert & Duplicate Inspector
-          </h3>
-          <p class="text-xs text-slate-400">Review changes against existing inventory before merging.</p>
+          <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
+          <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="domain">AD Domain</option>
+            <option value="system">System / Application Group</option>
+            <option value="owner">Task Owner</option>
+            <option value="dept">Department / Entity</option>
+            <option value="veeamJob">Veeam Backup Job</option>
+          </select>
         </div>
-        <button onclick="closeImportPreview()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
-      </div>
-
-      <div class="grid grid-cols-3 gap-3 text-center">
-        <div class="bg-emerald-950/60 border border-emerald-800 rounded-xl p-3">
-          <div id="countNew" class="text-xl font-extrabold text-emerald-400">0</div>
-          <div class="text-[11px] text-emerald-200 font-semibold">New Servers to Add</div>
-        </div>
-        <div class="bg-amber-950/60 border border-amber-800 rounded-xl p-3">
-          <div id="countUpdated" class="text-xl font-extrabold text-amber-400">0</div>
-          <div class="text-[11px] text-amber-200 font-semibold">Modified Servers to Update</div>
-        </div>
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-3">
-          <div id="countDuplicate" class="text-xl font-extrabold text-slate-400">0</div>
-          <div class="text-[11px] text-slate-400 font-semibold">Exact Duplicates (Skipped)</div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">New Value:</label>
+          <input type="text" id="bulkValue" placeholder="e.g. uk.toennies.net" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
       </div>
-
-      <div class="flex-1 overflow-y-auto bg-slate-900 rounded-xl border border-slate-700 p-3 text-xs space-y-2" id="importDiffList"></div>
-
-      <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-700">
-        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-          <input type="checkbox" id="chkOnlyNew" class="rounded text-cyan-600">
-          <span>Only add <strong>New</strong> servers (ignore updates)</span>
-        </label>
-        <div class="flex gap-2">
-          <button onclick="closeImportPreview()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-          <button onclick="commitSmartImport()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow">
-            <i class="fas fa-check mr-1"></i> Apply Smart Upsert
-          </button>
-        </div>
+      <div class="flex gap-2 justify-end mt-2">
+        <button onclick="closeBulkEditModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button onclick="commitBulkEdit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow">Apply Bulk Update</button>
       </div>
     </div>
   </div>
@@ -341,7 +337,7 @@
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-        <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add Server</h3>
+        <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add / Edit Server</h3>
         <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
       </div>
       <input type="hidden" id="editOriginalId">
@@ -359,7 +355,11 @@
           <input type="text" id="modalDescription" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
-          <label class="font-semibold text-slate-300 mb-1 block">System / Application Group:</label>
+          <label class="font-semibold text-slate-300 mb-1 block">Department / Entity:</label>
+          <input type="text" id="modalDept" placeholder="e.g. CS - IT Infrastructure, Becketts" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
           <input type="text" id="modalSystem" placeholder="e.g. Sage X3, Active Directory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
@@ -404,7 +404,7 @@
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Save</button>
+        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Save Record</button>
       </div>
     </div>
   </div>
@@ -428,7 +428,6 @@
   <div id="encryptionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Encryption Passphrase</h3>
-      <p class="text-xs text-slate-400">Used to encrypt and decrypt your server inventory JSON files.</p>
       <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -442,7 +441,7 @@
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
     let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Multi-Domain Migration / DR / Operations Planner" }));
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
-    let pendingImportAnalysis = { newItems: [], updatedItems: [], duplicateItems: [] };
+    let selectedServerIDs = new Set();
 
     async function verifyClientIP() {
       try {
@@ -462,13 +461,25 @@
       document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
     }
 
-    function updateSystemDropdown() {
-      const select = document.getElementById('filterSystem');
-      const current = select.value;
+    function updateDropdowns() {
+      const sysSelect = document.getElementById('filterSystem');
+      const curSys = sysSelect.value;
       const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      select.innerHTML = '<option value="ALL">All Systems / Apps</option>';
-      systems.forEach(sys => { select.innerHTML += `<option value="${sys}">${sys}</option>`; });
-      if (systems.includes(current)) select.value = current;
+      sysSelect.innerHTML = '<option value="ALL">All Systems</option>';
+      systems.forEach(sys => { sysSelect.innerHTML += `<option value="${sys}">${sys}</option>`; });
+      if (systems.includes(curSys)) sysSelect.value = curSys;
+
+      const subSelect = document.getElementById('filterSubnet');
+      const curSub = subSelect.value;
+      const subnets = [...new Set(servers.map(s => {
+        let ip = (s.ip || '').trim();
+        if (ip.includes('/')) return ip.split('/')[1] === '24' ? ip.replace(/\.\d+\/\d+$/, '.0/24') : ip;
+        let parts = ip.split('.');
+        return parts.length === 4 ? `${parts[0]}.${parts[1]}.${parts[2]}.0/24` : null;
+      }).filter(Boolean))].sort();
+      subSelect.innerHTML = '<option value="ALL">All Subnets</option>';
+      subnets.forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
+      if (subnets.includes(curSub)) subSelect.value = curSub;
     }
 
     function switchTab(tabId) {
@@ -485,10 +496,16 @@
     }
 
     function renderTopologyCanvas() {
-      updateSystemDropdown();
+      updateDropdowns();
       const domFilter = document.getElementById('filterDomain').value;
       const sysFilter = document.getElementById('filterSystem').value;
+      const subFilter = document.getElementById('filterSubnet').value;
+      const density = document.getElementById('canvasDensity').value;
       const showDeps = document.getElementById('filterShowDeps').checked;
+
+      // Adjust grid gap multipliers based on density selection
+      const colWidth = density === 'compact' ? 280 : (density === 'spacious' ? 380 : 330);
+      const rowHeight = density === 'compact' ? 150 : (density === 'spacious' ? 220 : 180);
 
       const container = document.getElementById('nodesContainer');
       container.innerHTML = '';
@@ -497,11 +514,15 @@
         const sDom = s.domain || 'Becketts';
         if (domFilter !== 'ALL' && sDom !== domFilter) return false;
         if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
+        if (subFilter !== 'ALL') {
+          let ip = (s.ip || '').trim();
+          if (!ip.includes(subFilter.replace('.0/24',''))) return false;
+        }
         return true;
       });
 
       let visibleSet = new Set(primary);
-      if (showDeps && sysFilter !== 'ALL') {
+      if (showDeps && (sysFilter !== 'ALL' || subFilter !== 'ALL')) {
         primary.forEach(srv => {
           const sDom = srv.domain || 'Becketts';
           servers.forEach(cand => {
@@ -522,32 +543,36 @@
       document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
 
       filtered.forEach((s, idx) => {
-        if (s.x === undefined) s.x = 60 + (idx % 4) * 340;
-        if (s.y === undefined) s.y = 60 + Math.floor(idx / 4) * 210;
+        if (s.x === undefined) s.x = 40 + (idx % 5) * colWidth;
+        if (s.y === undefined) s.y = 40 + Math.floor(idx / 5) * rowHeight;
 
         const sDom = s.domain || 'Becketts';
         const isUK = sDom.includes('UK') || sDom.includes('uk');
         const domBadgeClass = isUK ? 'bg-amber-950/90 text-amber-300 border-amber-800' : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
 
         const el = document.createElement('div');
-        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-xl p-3 w-72 shadow-xl flex flex-col gap-1.5`;
+        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-xl p-2.5 w-64 shadow-xl flex flex-col gap-1 hover:border-cyan-500 transition`;
         el.style.left = `${s.x}px`;
         el.style.top = `${s.y}px`;
 
+        el.onclick = (e) => {
+          if (e.target.tagName !== 'INPUT') editServer(s.serverID);
+        };
+
         el.innerHTML = `
           <div class="flex justify-between items-center gap-1">
-            <span class="font-bold text-white text-xs truncate" title="${s.serverName}">${s.serverName}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-cyan-300 font-mono shrink-0">${s.serverID || 'SRV'}</span>
+            <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
+            <span class="text-[9px] px-1 py-0.5 rounded bg-slate-700 text-slate-300 font-mono shrink-0">${s.serverID || 'SRV'}</span>
           </div>
           <div class="flex items-center justify-between gap-1">
             <span class="text-[9px] px-1.5 py-0.5 rounded border font-mono ${domBadgeClass} truncate">
-              <i class="fas fa-globe mr-1"></i>${sDom}
+              <i class="fas fa-globe mr-0.5"></i>${sDom}
             </span>
-            <span class="text-[9px] text-slate-400 font-semibold truncate">${s.system || 'General'}</span>
+            <span class="text-[9px] text-slate-400 font-semibold truncate">${s.dept || 'CS - IT'}</span>
           </div>
-          <div class="text-[11px] text-slate-300 truncate">${s.description || ''}</div>
+          <div class="text-[10px] text-slate-300 truncate">${s.description || s.system || ''}</div>
           <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-700">
-            <span class="text-cyan-400">${s.ip || 'No IP'}</span>
+            <span class="text-cyan-300">${s.ip || 'No IP'}</span>
             <span class="text-amber-400 font-sans font-semibold">${s.owner || 'Unassigned'}</span>
           </div>
         `;
@@ -555,12 +580,13 @@
         container.appendChild(el);
       });
 
-      drawSvgConnectors(filtered);
+      drawSvgConnectors(filtered, colWidth);
     }
 
     function makeDraggable(element, serverObj) {
       let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
       element.onmousedown = function(e) {
+        if (e.target.tagName === 'INPUT') return;
         e.preventDefault();
         mouseX = e.clientX; mouseY = e.clientY;
         document.onmouseup = function() {
@@ -580,7 +606,7 @@
       };
     }
 
-    function drawSvgConnectors(visibleServers) {
+    function drawSvgConnectors(visibleServers, colWidth) {
       const svg = document.getElementById('svgConnectors');
       svg.innerHTML = '';
 
@@ -609,8 +635,8 @@
 
     function appendCurve(svg, parent, child, strokeColor, dashArray) {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const x1 = parent.x + 288, y1 = parent.y + 50;
-      const x2 = child.x, y2 = child.y + 50;
+      const x1 = parent.x + 256, y1 = parent.y + 40;
+      const x2 = child.x, y2 = child.y + 40;
       const cx = (x1 + x2) / 2;
       line.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`);
       line.setAttribute('stroke', strokeColor);
@@ -621,42 +647,91 @@
     }
 
     function autoLayoutCanvas() {
+      const density = document.getElementById('canvasDensity').value;
+      const colWidth = density === 'compact' ? 280 : (density === 'spacious' ? 380 : 330);
+      const rowHeight = density === 'compact' ? 150 : (density === 'spacious' ? 220 : 180);
+
       servers.forEach((s, idx) => {
-        s.x = 60 + (idx % 4) * 340;
-        s.y = 60 + Math.floor(idx / 4) * 210;
+        s.x = 40 + (idx % 5) * colWidth;
+        s.y = 40 + Math.floor(idx / 5) * rowHeight;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderTopologyCanvas();
+    }
+
+    function toggleSelectAll(master) {
+      selectedServerIDs.clear();
+      if (master.checked) {
+        servers.forEach(s => selectedServerIDs.add(s.serverID));
+      }
+      renderInventoryTable();
+    }
+
+    function toggleServerSelection(id, chk) {
+      if (chk.checked) selectedServerIDs.add(id);
+      else selectedServerIDs.delete(id);
+      document.getElementById('selectedCountBadge').innerText = selectedServerIDs.size;
     }
 
     function renderInventoryTable() {
       const q = (document.getElementById('inventorySearch').value || '').toLowerCase();
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
-      servers.filter(s => 
+
+      let visibleList = servers.filter(s => 
         s.serverID.toLowerCase().includes(q) || 
         s.serverName.toLowerCase().includes(q) || 
         (s.ip || '').toLowerCase().includes(q) ||
         (s.owner || '').toLowerCase().includes(q) ||
+        (s.dept || '').toLowerCase().includes(q) ||
         (s.system || '').toLowerCase().includes(q)
-      ).forEach(s => {
+      );
+
+      document.getElementById('selectedCountBadge').innerText = selectedServerIDs.size;
+
+      visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
+        const isChecked = selectedServerIDs.has(s.serverID) ? 'checked' : '';
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
+            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverID}', this)" class="rounded text-cyan-600"></td>
             <td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td>
-            <td class="p-3 font-bold text-white">${s.serverName}</td>
-            <td class="p-3 text-slate-300">${s.system || 'General'}</td>
+            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverID}')" title="Click to edit">${s.serverName} <i class="fas fa-pen text-[10px] ml-1 text-slate-500"></i></td>
+            <td class="p-3 text-slate-300">${s.dept || 'CS - IT Infrastructure'}</td>
+            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
             <td class="p-3 text-amber-400">${s.owner || '-'}</td>
-            <td class="p-3 font-mono">${s.disk || 100} GB</td>
             <td class="p-3 text-right">
               <button onclick="editServer('${s.serverID}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
               <button onclick="deleteServer('${s.serverID}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
       });
+    }
+
+    function openBulkEditModal() {
+      if (selectedServerIDs.size === 0) return alert("Please select at least one server from the inventory table first.");
+      document.getElementById('bulkEditModal').classList.remove('hidden');
+    }
+    function closeBulkEditModal() { document.getElementById('bulkEditModal').classList.add('hidden'); }
+
+    function commitBulkEdit() {
+      const field = document.getElementById('bulkField').value;
+      const val = document.getElementById('bulkValue').value.trim();
+      if (!val) return alert("Please enter a value to update.");
+
+      servers.forEach(s => {
+        if (selectedServerIDs.has(s.serverID)) {
+          s[field] = val;
+        }
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      closeBulkEditModal();
+      renderInventoryTable();
+      renderTopologyCanvas();
+      alert(`Successfully updated ${field} for ${selectedServerIDs.size} servers!`);
     }
 
     function renderZertoTable() {
@@ -667,8 +742,7 @@
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
             <td class="p-3"><input type="checkbox" id="dr-chk-${idx}" ${isProtected} class="rounded text-cyan-600"></td>
-            <td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td>
-            <td class="p-3 font-bold text-white">${s.serverName}</td>
+            <td class="p-3 font-bold text-white">${s.serverID} - ${s.serverName}</td>
             <td class="p-3"><input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
             <td class="p-3"><input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
             <td class="p-3 font-mono">${s.ip || '-'}</td>
@@ -693,7 +767,7 @@
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
-        const estBackup = Math.round((s.disk || 100) * 0.4); // ~40% for incremental backup chain
+        const estBackup = Math.round((s.disk || 100) * 0.4);
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
             <td class="p-3 font-bold text-white">${s.serverID} - ${s.serverName}</td>
@@ -798,6 +872,7 @@
         document.getElementById('modalServerID').value = s.serverID;
         document.getElementById('modalServerName').value = s.serverName;
         document.getElementById('modalDescription').value = s.description || '';
+        document.getElementById('modalDept').value = s.dept || 'CS - IT Infrastructure';
         document.getElementById('modalSystem').value = s.system || '';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
         document.getElementById('modalIP').value = s.ip || '';
@@ -810,7 +885,7 @@
       } else {
         document.getElementById('serverModalTitle').innerText = "Add Server";
         document.getElementById('editOriginalId').value = '';
-        ['modalServerID','modalServerName','modalDescription','modalSystem','modalIP','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        ['modalServerID','modalServerName','modalDescription','modalDept','modalSystem','modalIP','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('modalDomain').value = 'Becketts';
         document.getElementById('modalDisk').value = 100;
         document.getElementById('modalDR').value = 'no';
@@ -827,6 +902,7 @@
         serverID: document.getElementById('modalServerID').value.trim() || `SRV-${Date.now().toString().slice(-4)}`,
         serverName: document.getElementById('modalServerName').value.trim(),
         description: document.getElementById('modalDescription').value.trim(),
+        dept: document.getElementById('modalDept').value.trim() || 'CS - IT Infrastructure',
         system: document.getElementById('modalSystem').value.trim() || 'General',
         domain: document.getElementById('modalDomain').value,
         ip: document.getElementById('modalIP').value.trim(),
@@ -836,7 +912,7 @@
         veeamJob: document.getElementById('modalVeeamJob').value.trim(),
         veeamRetention: parseInt(document.getElementById('modalRetention').value) || 30,
         dependencies: document.getElementById('modalDependencies').value.trim(),
-        x: 100, y: 100
+        x: 40, y: 40
       };
       if (!data.serverName) return alert("Server Name is required.");
       if (origId) {
@@ -878,9 +954,9 @@
     }
 
     function exportToCSV() {
-      let csv = "ServerID,Server Name,Server Description,System Group,Current IP Address,Current Domain,Task Owner,Disk Size (GB),Zerto DR,Veeam Job,Retention Days,Dependencies\n";
+      let csv = "ServerID,Server Name,Server Description,Department,System Group,Current IP Address,Current Domain,Task Owner,Disk Size (GB),Zerto DR,Veeam Job,Retention Days,Dependencies\n";
       servers.forEach(s => {
-        csv += `"${s.serverID}","${s.serverName}","${(s.description||'').replace(/"/g,'""')}","${s.system||'General'}","${s.ip||''}","${s.domain||'Becketts'}","${s.owner||''}","${s.disk||100}","${s.drProtected||'no'}","${s.veeamJob||'Daily-App-Job'}","${s.veeamRetention||30}","${s.dependencies||''}"\n`;
+        csv += `"${s.serverID}","${s.serverName}","${(s.description||'').replace(/"/g,'""')}","${s.dept||'CS - IT Infrastructure'}","${s.system||'General'}","${s.ip||''}","${s.domain||'Becketts'}","${s.owner||''}","${s.disk||100}","${s.drProtected||'no'}","${s.veeamJob||'Daily-App-Job'}","${s.veeamRetention||30}","${s.dependencies||''}"\n`;
       });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -888,7 +964,6 @@
       a.click();
     }
 
-    // SMART EXCEL/CSV PARSER & SMART UPSERT ENGINE
     function parseCSVRow(row) {
       const result = [];
       let current = '', inQuotes = false;
@@ -907,15 +982,12 @@
       const reader = new FileReader();
       reader.onload = function(evt) {
         const lines = evt.target.result.split(/\r?\n/);
-        pendingImportAnalysis = { newItems: [], updatedItems: [], duplicateItems: [] };
         let headerRowIdx = 0;
-
         for (let i = 0; i < Math.min(lines.length, 10); i++) {
           if (lines[i].includes('ServerID') || lines[i].includes('Server Name')) {
             headerRowIdx = i; break;
           }
         }
-
         for (let i = headerRowIdx + 1; i < lines.length; i++) {
           const line = lines[i].trim(); if (!line) continue;
           const cols = parseCSVRow(line);
@@ -925,7 +997,8 @@
             serverID: cols[0] || `SRV-${i}`,
             serverName: cols[1] || cols[0],
             description: cols[2] || '',
-            system: cols[14] || cols[3] || 'General',
+            dept: cols[14] || 'CS - IT Infrastructure',
+            system: cols[3] || 'General',
             ip: cols[4] || '',
             domain: cols[7] || cols[5] || 'Becketts',
             owner: cols[16] || '',
@@ -936,82 +1009,24 @@
             dependencies: ''
           };
 
-          const existing = servers.find(s => s.serverID.toLowerCase() === candidate.serverID.toLowerCase() || s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
-
-          if (!existing) {
-            pendingImportAnalysis.newItems.push(candidate);
+          const existingIdx = servers.findIndex(s => s.serverID.toLowerCase() === candidate.serverID.toLowerCase() || s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
+          if (existingIdx === -1) {
+            candidate.x = 40 + (servers.length % 5) * 330;
+            candidate.y = 40 + Math.floor(servers.length / 5) * 180;
+            servers.push(candidate);
           } else {
-            const diffs = [];
-            ['serverName','description','system','ip','domain','owner'].forEach(field => {
-              if ((existing[field] || '') !== (candidate[field] || '')) {
-                diffs.push(`${field}: "${existing[field] || ''}" → "${candidate[field] || ''}"`);
-              }
-            });
-            if (diffs.length === 0) {
-              pendingImportAnalysis.duplicateItems.push({ server: candidate, reason: 'Identical record' });
-            } else {
-              pendingImportAnalysis.updatedItems.push({ candidate, existing, diffs });
-            }
+            candidate.x = servers[existingIdx].x;
+            candidate.y = servers[existingIdx].y;
+            servers[existingIdx] = Object.assign({}, servers[existingIdx], candidate);
           }
         }
-
-        renderImportPreviewModal();
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        renderInventoryTable();
+        renderTopologyCanvas();
+        alert(`Smart Import complete!`);
         e.target.value = '';
       };
       reader.readAsText(file);
-    }
-
-    function renderImportPreviewModal() {
-      document.getElementById('countNew').innerText = pendingImportAnalysis.newItems.length;
-      document.getElementById('countUpdated').innerText = pendingImportAnalysis.updatedItems.length;
-      document.getElementById('countDuplicate').innerText = pendingImportAnalysis.duplicateItems.length;
-
-      const list = document.getElementById('importDiffList');
-      list.innerHTML = '';
-
-      pendingImportAnalysis.newItems.forEach(item => {
-        list.innerHTML += `<div class="p-2 rounded bg-emerald-950/40 border border-emerald-800/60 flex justify-between"><span><strong class="text-emerald-400">[NEW]</strong> ${item.serverID} - ${item.serverName}</span><span class="font-mono text-slate-400">${item.ip}</span></div>`;
-      });
-
-      pendingImportAnalysis.updatedItems.forEach(u => {
-        list.innerHTML += `<div class="p-2 rounded bg-amber-950/40 border border-amber-800/60"><div><strong class="text-amber-400">[UPDATE]</strong> ${u.candidate.serverID} - ${u.candidate.serverName}</div><div class="text-[11px] text-amber-200/80 font-mono mt-1">${u.diffs.join(' | ')}</div></div>`;
-      });
-
-      pendingImportAnalysis.duplicateItems.forEach(d => {
-        list.innerHTML += `<div class="p-2 rounded bg-slate-800/60 border border-slate-700 text-slate-400 flex justify-between"><span>[SKIPPED DUPLICATE] ${d.server.serverName}</span><span class="text-[10px]">${d.reason}</span></div>`;
-      });
-
-      if (list.innerHTML === '') list.innerHTML = '<div class="text-center text-slate-400 py-4">No valid server rows found.</div>';
-      document.getElementById('importPreviewModal').classList.remove('hidden');
-    }
-
-    function closeImportPreview() { document.getElementById('importPreviewModal').classList.add('hidden'); }
-
-    function commitSmartImport() {
-      const onlyNew = document.getElementById('chkOnlyNew').checked;
-
-      pendingImportAnalysis.newItems.forEach((item, idx) => {
-        item.x = 60 + ((servers.length + idx) % 4) * 340;
-        item.y = 60 + Math.floor((servers.length + idx) / 4) * 210;
-        servers.push(item);
-      });
-
-      if (!onlyNew) {
-        pendingImportAnalysis.updatedItems.forEach(u => {
-          const idx = servers.findIndex(s => s === u.existing);
-          if (idx !== -1) {
-            u.candidate.x = u.existing.x;
-            u.candidate.y = u.existing.y;
-            servers[idx] = Object.assign({}, u.existing, u.candidate);
-          }
-        });
-      }
-
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeImportPreview();
-      renderInventoryTable();
-      renderTopologyCanvas();
-      alert("Smart Upsert completed successfully!");
     }
 
     function exportEncryptedJSON() {
@@ -1039,7 +1054,7 @@
           renderInventoryTable();
           alert(`Decrypted and loaded ${servers.length} servers!`);
         } catch (err) {
-          alert("Decryption failed. Check your encryption key under 'Key'.");
+          alert("Decryption failed.");
         }
       };
       reader.readAsText(file);
