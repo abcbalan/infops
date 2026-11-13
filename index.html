@@ -1,4 +1,4 @@
-<!-- 20261113 v3 - InfOps Secure Infrastructure Command Center -->
+<!-- 20261113 v4 - InfOps Multi-Domain Infrastructure Command Center -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,11 +8,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .canvas-grid { background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+    .canvas-grid { background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px; }
     .node-card { cursor: grab; transition: transform 0.1s ease, box-shadow 0.1s ease; }
     .node-card:active { cursor: grabbing; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
@@ -28,7 +28,7 @@
           <span id="brandName">InfOps</span> 
           <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Secure Command Center</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Migration / DR / Operations Planner</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Operations Planner</p>
       </div>
     </div>
 
@@ -56,8 +56,12 @@
       <button onclick="openEncryptionModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition flex items-center gap-1.5">
         <i class="fas fa-key"></i> Key
       </button>
-      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON">
-        <i class="fas fa-download"></i> Export
+      <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition flex items-center gap-1.5" title="Import Encrypted JSON">
+        <i class="fas fa-upload"></i> Import JSON
+        <input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)">
+      </label>
+      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON for GitHub">
+        <i class="fas fa-download"></i> Export JSON
       </button>
     </div>
   </header>
@@ -67,21 +71,49 @@
 
     <!-- TAB 1: VISIO TOPOLOGY CANVAS -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
-      <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex items-center justify-between z-10 shrink-0 gap-4">
-        <div class="flex items-center space-x-3">
-          <label class="text-xs font-semibold text-slate-300">Department:</label>
-          <select id="filterDept" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-            <option value="ALL">All Departments</option>
-            <option value="INF">INF (Infra)</option>
-            <option value="BS">BS (Business Systems)</option>
-            <option value="BI">BI (Business Intelligence)</option>
-          </select>
+      <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-10 shrink-0 gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Domain:</label>
+            <select id="filterDomain" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Domains</option>
+              <option value="beckettsfoods.co.uk">beckettsfoods.co.uk</option>
+              <option value="uk.toennies.net">uk.toennies.net</option>
+              <option value="Workgroup / DMZ">Workgroup / DMZ</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Dept:</label>
+            <select id="filterDept" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Depts</option>
+              <option value="INF">INF (Infra)</option>
+              <option value="BS">BS (Business Systems)</option>
+              <option value="BI">BI (Business Intelligence)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">System:</label>
+            <select id="filterSystem" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Systems</option>
+            </select>
+          </div>
+
+          <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
+            <input type="checkbox" id="filterDR" onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
+            <span>🛡️ DR Only</span>
+          </label>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="autoLayoutCanvas()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
+            <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange
+          </button>
           <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700" id="nodeCountBadge">Showing 0 VMs</span>
         </div>
-        <button onclick="autoLayoutCanvas()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
-          <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange
-        </button>
       </div>
+
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-8 select-none">
         <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[2500px] min-h-[1500px]"></svg>
         <div id="nodesContainer" class="absolute inset-0 w-[2500px] h-[1500px] pointer-events-auto z-10"></div>
@@ -90,15 +122,15 @@
 
     <!-- TAB 2: SERVER INVENTORY MATRIX -->
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex justify-between items-center mb-4">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Server Inventory & Subnet Manager</h2>
-          <p class="text-xs text-slate-400">Import CSV or encrypted JSON to populate server data securely.</p>
+          <h2 class="text-lg font-bold text-white">Server Inventory & Domain Manager</h2>
+          <p class="text-xs text-slate-400">Import CSV/Excel or encrypted JSON to populate server data securely.</p>
         </div>
-        <div class="flex gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search hostname..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
+        <div class="flex flex-wrap gap-2 items-center">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search hostname, IP, domain..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
           <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
-            <i class="fas fa-file-csv mr-1"></i> Template CSV
+            <i class="fas fa-file-csv mr-1"></i> Export / Template CSV
           </button>
           <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold cursor-pointer transition">
             <i class="fas fa-file-excel mr-1"></i> Import CSV
@@ -115,12 +147,13 @@
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
                 <th class="p-3">Hostname</th>
-                <th class="p-3">Department</th>
+                <th class="p-3">AD Domain</th>
+                <th class="p-3">Dept</th>
                 <th class="p-3">System Group</th>
                 <th class="p-3">IP Address</th>
                 <th class="p-3">Subnet</th>
                 <th class="p-3">Function</th>
-                <th class="p-3">Cutover Wave</th>
+                <th class="p-3">Wave</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -142,6 +175,7 @@
               <tr>
                 <th class="p-3">VPG Name</th>
                 <th class="p-3">VM Name</th>
+                <th class="p-3">AD Domain</th>
                 <th class="p-3">Function</th>
                 <th class="p-3">IP Address</th>
               </tr>
@@ -163,6 +197,7 @@
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
                 <th class="p-3">Hostname</th>
+                <th class="p-3">AD Domain</th>
                 <th class="p-3">Assigned Veeam Job</th>
                 <th class="p-3">Function</th>
                 <th class="p-3">IP Address</th>
@@ -185,15 +220,54 @@
       </div>
       <input type="hidden" id="editOriginalHostname">
       <div class="grid grid-cols-2 gap-3 text-xs">
-        <div><label class="font-semibold text-slate-300 mb-1 block">Hostname:</label><input type="text" id="modalHostname" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Department:</label><select id="modalDept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"><option value="INF">INF</option><option value="BS">BS</option><option value="BI">BI</option></select></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">System Group:</label><input type="text" id="modalSystem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">IP Address:</label><input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Subnet:</label><input type="text" id="modalSubnet" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Cutover Wave:</label><input type="text" id="modalWave" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
-        <div class="col-span-2"><label class="font-semibold text-slate-300 mb-1 block">Function:</label><input type="text" id="modalFunction" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Zerto VPG:</label><input type="text" id="modalVPG" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Veeam Job:</label><input type="text" id="modalVeeam" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white"></div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Hostname:</label>
+          <input type="text" id="modalHostname" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
+          <select id="modalDomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="beckettsfoods.co.uk">beckettsfoods.co.uk</option>
+            <option value="uk.toennies.net">uk.toennies.net</option>
+            <option value="Workgroup / DMZ">Workgroup / DMZ</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+          <select id="modalDept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="INF">INF</option>
+            <option value="BS">BS</option>
+            <option value="BI">BI</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">System Group:</label>
+          <input type="text" id="modalSystem" placeholder="e.g. Active Directory, Sage X3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
+          <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
+          <input type="text" id="modalSubnet" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Cutover Wave:</label>
+          <input type="text" id="modalWave" placeholder="Wave 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Zerto VPG:</label>
+          <input type="text" id="modalVPG" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div class="col-span-2">
+          <label class="font-semibold text-slate-300 mb-1 block">Function / Description:</label>
+          <input type="text" id="modalFunction" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div class="col-span-2">
+          <label class="font-semibold text-slate-300 mb-1 block">Veeam Job:</label>
+          <input type="text" id="modalVeeam" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -208,7 +282,7 @@
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
       <div class="flex flex-col gap-3 text-xs">
         <div><label class="font-semibold text-slate-300 mb-1 block">App Name:</label><input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="InfOps"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Infrastructure Command Center"></div>
+        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Multi-Domain Migration / DR / Operations Planner"></div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -221,6 +295,7 @@
   <div id="encryptionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Encryption Passphrase</h3>
+      <p class="text-xs text-slate-400">Used to encrypt and decrypt your server inventory JSON files.</p>
       <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -232,8 +307,8 @@
   <!-- SCRIPT LOGIC -->
   <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
-    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Infrastructure Command Center" }));
-    const ALLOWED_IPS = ["89.38.120.105", "89.38.120.106", "89.38.120.109"];
+    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Multi-Domain Migration / DR / Operations Planner" }));
+    const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
 
     async function verifyClientIP() {
       try {
@@ -245,13 +320,23 @@
       } catch (e) {}
     }
 
-    // Default inventory starts EMPTY so no private company info sits in GitHub plaintext
     let servers = JSON.parse(localStorage.getItem('infops_servers') || '[]');
 
     function applySettings() {
       document.getElementById('brandName').innerText = appSettings.brandName;
       document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Command Center`;
       document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
+    }
+
+    function updateSystemDropdown() {
+      const select = document.getElementById('filterSystem');
+      const current = select.value;
+      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+      select.innerHTML = '<option value="ALL">All Systems</option>';
+      systems.forEach(sys => {
+        select.innerHTML += `<option value="${sys}">${sys}</option>`;
+      });
+      if (systems.includes(current)) select.value = current;
     }
 
     function switchTab(tabId) {
@@ -266,25 +351,147 @@
     }
 
     function renderTopologyCanvas() {
+      updateSystemDropdown();
+      const domFilter = document.getElementById('filterDomain').value;
+      const deptFilter = document.getElementById('filterDept').value;
+      const sysFilter = document.getElementById('filterSystem').value;
+      const drOnly = document.getElementById('filterDR').checked;
+
       const container = document.getElementById('nodesContainer');
       container.innerHTML = '';
-      document.getElementById('nodeCountBadge').innerText = `Showing ${servers.length} VMs`;
-      servers.forEach((s, idx) => {
+
+      const filtered = servers.filter(s => {
+        const sDom = s.domain || 'beckettsfoods.co.uk';
+        if (domFilter !== 'ALL' && sDom !== domFilter) return false;
+        if (deptFilter !== 'ALL' && s.dept !== deptFilter) return false;
+        if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
+        if (drOnly && !s.vpg) return false;
+        return true;
+      });
+
+      document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
+
+      filtered.forEach((s, idx) => {
+        if (s.x === undefined) s.x = 60 + (idx % 4) * 300;
+        if (s.y === undefined) s.y = 60 + Math.floor(idx / 4) * 180;
+
+        const sDom = s.domain || 'beckettsfoods.co.uk';
+        const isToennies = sDom.includes('toennies');
+        const domBadgeClass = isToennies 
+          ? 'bg-amber-950/90 text-amber-300 border-amber-800' 
+          : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
+
         const el = document.createElement('div');
-        el.className = "node-card absolute bg-slate-800 border border-slate-700 rounded-xl p-3 w-60 shadow-xl flex flex-col gap-1.5";
-        el.style.left = `${s.x || (50 + (idx%4)*280)}px`;
-        el.style.top = `${s.y || (50 + (Math.floor(idx/4)*160))}px`;
-        el.innerHTML = `<div class="font-bold text-white text-xs">${s.hostname}</div><div class="text-[11px] text-slate-400">${s.function}</div><div class="text-[10px] text-cyan-400 font-mono">${s.ip}</div>`;
+        el.className = `node-card absolute bg-slate-800 border ${s.vpg ? 'border-cyan-500 shadow-cyan-900/30' : 'border-slate-700'} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5`;
+        el.style.left = `${s.x}px`;
+        el.style.top = `${s.y}px`;
+
+        el.innerHTML = `
+          <div class="flex justify-between items-center gap-1">
+            <span class="font-bold text-white text-xs truncate" title="${s.hostname}">${s.hostname}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-cyan-300 font-mono shrink-0">${s.dept}</span>
+          </div>
+          <div>
+            <span class="text-[9px] px-1.5 py-0.5 rounded border font-mono ${domBadgeClass}">
+              <i class="fas fa-globe mr-1"></i>${sDom}
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-300 truncate">${s.function || s.system}</div>
+          <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-700">
+            <span class="text-cyan-400">${s.ip}</span>
+            <span class="text-amber-400 font-sans font-semibold">${s.wave || ''}</span>
+          </div>
+        `;
+        makeDraggable(el, s);
         container.appendChild(el);
       });
+
+      drawSvgConnectors(filtered);
+    }
+
+    function makeDraggable(element, serverObj) {
+      let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
+      element.onmousedown = function(e) {
+        e.preventDefault();
+        mouseX = e.clientX; mouseY = e.clientY;
+        document.onmouseup = function() {
+          document.onmouseup = null; document.onmousemove = null;
+          localStorage.setItem('infops_servers', JSON.stringify(servers));
+        };
+        document.onmousemove = function(ev) {
+          ev.preventDefault();
+          posX = mouseX - ev.clientX; posY = mouseY - ev.clientY;
+          mouseX = ev.clientX; mouseY = ev.clientY;
+          serverObj.x = Math.max(10, element.offsetLeft - posX);
+          serverObj.y = Math.max(10, element.offsetTop - posY);
+          element.style.left = serverObj.x + "px";
+          element.style.top = serverObj.y + "px";
+          renderTopologyCanvas();
+        };
+      };
+    }
+
+    function drawSvgConnectors(visibleServers) {
+      const svg = document.getElementById('svgConnectors');
+      svg.innerHTML = '';
+      const dcNodes = visibleServers.filter(s => (s.system || '').toLowerCase().includes('active directory') || (s.function || '').toLowerCase().includes('domain controller'));
+      const appNodes = visibleServers.filter(s => !dcNodes.includes(s));
+
+      dcNodes.forEach(dc => {
+        appNodes.forEach(app => {
+          // Only link servers that belong to the same AD Domain
+          if ((dc.domain || 'beckettsfoods.co.uk') === (app.domain || 'beckettsfoods.co.uk')) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const x1 = dc.x + 256, y1 = dc.y + 50;
+            const x2 = app.x, y2 = app.y + 50;
+            const cx = (x1 + x2) / 2;
+            line.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`);
+            line.setAttribute('stroke', (dc.domain || '').includes('toennies') ? '#f59e0b' : '#06b6d4');
+            line.setAttribute('stroke-width', '1.5');
+            line.setAttribute('stroke-dasharray', '4');
+            line.setAttribute('fill', 'none');
+            svg.appendChild(line);
+          }
+        });
+      });
+    }
+
+    function autoLayoutCanvas() {
+      servers.forEach((s, idx) => {
+        s.x = 60 + Math.floor(idx / 4) * 320;
+        s.y = 60 + (idx % 4) * 180;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderTopologyCanvas();
     }
 
     function renderInventoryTable() {
       const q = (document.getElementById('inventorySearch').value || '').toLowerCase();
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
-      servers.filter(s => s.hostname.toLowerCase().includes(q) || s.ip.includes(q)).forEach(s => {
-        tbody.innerHTML += `<tr class="hover:bg-slate-700/50 transition"><td class="p-3 font-bold text-white">${s.hostname}</td><td class="p-3">${s.dept}</td><td class="p-3">${s.system}</td><td class="p-3 font-mono text-cyan-400">${s.ip}</td><td class="p-3 font-mono">${s.subnet}</td><td class="p-3">${s.function}</td><td class="p-3">${s.wave}</td><td class="p-3 text-right"><button onclick="editServer('${s.hostname}')" class="text-cyan-400 mr-2"><i class="fas fa-pen"></i></button><button onclick="deleteServer('${s.hostname}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+      servers.filter(s => 
+        s.hostname.toLowerCase().includes(q) || 
+        s.ip.includes(q) || 
+        (s.domain || '').toLowerCase().includes(q) ||
+        (s.function || '').toLowerCase().includes(q)
+      ).forEach(s => {
+        const sDom = s.domain || 'beckettsfoods.co.uk';
+        const domBadge = sDom.includes('toennies') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50 transition">
+            <td class="p-3 font-bold text-white">${s.hostname}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
+            <td class="p-3">${s.dept}</td>
+            <td class="p-3">${s.system}</td>
+            <td class="p-3 font-mono text-cyan-400">${s.ip}</td>
+            <td class="p-3 font-mono text-slate-400">${s.subnet}</td>
+            <td class="p-3">${s.function}</td>
+            <td class="p-3 text-amber-400 font-semibold">${s.wave}</td>
+            <td class="p-3 text-right">
+              <button onclick="editServer('${s.hostname}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteServer('${s.hostname}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
       });
     }
 
@@ -292,7 +499,7 @@
       const tbody = document.getElementById('zertoTableBody');
       tbody.innerHTML = '';
       servers.filter(s => s.vpg).forEach(s => {
-        tbody.innerHTML += `<tr><td class="p-3 font-bold text-cyan-400">${s.vpg}</td><td class="p-3">${s.hostname}</td><td class="p-3">${s.function}</td><td class="p-3 font-mono">${s.ip}</td></tr>`;
+        tbody.innerHTML += `<tr class="hover:bg-slate-700/50"><td class="p-3 font-bold text-cyan-400">${s.vpg}</td><td class="p-3 font-bold">${s.hostname}</td><td class="p-3 font-mono text-xs">${s.domain || 'beckettsfoods.co.uk'}</td><td class="p-3">${s.function}</td><td class="p-3 font-mono">${s.ip}</td></tr>`;
       });
     }
 
@@ -300,7 +507,7 @@
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
       servers.forEach(s => {
-        tbody.innerHTML += `<tr><td class="p-3 font-bold">${s.hostname}</td><td class="p-3 text-emerald-400">${s.veeamJob || 'Default-Job'}</td><td class="p-3">${s.function}</td><td class="p-3 font-mono">${s.ip}</td></tr>`;
+        tbody.innerHTML += `<tr class="hover:bg-slate-700/50"><td class="p-3 font-bold">${s.hostname}</td><td class="p-3 font-mono text-xs">${s.domain || 'beckettsfoods.co.uk'}</td><td class="p-3 text-emerald-400">${s.veeamJob || 'Default-Job'}</td><td class="p-3">${s.function}</td><td class="p-3 font-mono">${s.ip}</td></tr>`;
       });
     }
 
@@ -311,6 +518,7 @@
         document.getElementById('serverModalTitle').innerText = `Edit: ${hostname}`;
         document.getElementById('editOriginalHostname').value = hostname;
         document.getElementById('modalHostname').value = s.hostname;
+        document.getElementById('modalDomain').value = s.domain || 'beckettsfoods.co.uk';
         document.getElementById('modalDept').value = s.dept;
         document.getElementById('modalSystem').value = s.system;
         document.getElementById('modalIP').value = s.ip;
@@ -323,6 +531,7 @@
         document.getElementById('serverModalTitle').innerText = "Add Server";
         document.getElementById('editOriginalHostname').value = '';
         ['modalHostname','modalSystem','modalIP','modalSubnet','modalFunction','modalVPG','modalVeeam'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('modalDomain').value = 'beckettsfoods.co.uk';
       }
     }
     function closeServerModal() { document.getElementById('serverModal').classList.add('hidden'); }
@@ -332,6 +541,7 @@
       const orig = document.getElementById('editOriginalHostname').value;
       const data = {
         hostname: document.getElementById('modalHostname').value.trim(),
+        domain: document.getElementById('modalDomain').value,
         dept: document.getElementById('modalDept').value,
         system: document.getElementById('modalSystem').value.trim(),
         ip: document.getElementById('modalIP').value.trim(),
@@ -342,6 +552,7 @@
         veeamJob: document.getElementById('modalVeeam').value.trim(),
         x: 100, y: 100
       };
+      if (!data.hostname) return alert("Hostname is required.");
       if (orig) {
         const idx = servers.findIndex(x => x.hostname === orig);
         if (idx !== -1) { data.x = servers[idx].x; data.y = servers[idx].y; servers[idx] = data; }
@@ -349,6 +560,7 @@
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeServerModal();
       renderInventoryTable();
+      renderTopologyCanvas();
     }
 
     function deleteServer(h) {
@@ -356,6 +568,7 @@
         servers = servers.filter(x => x.hostname !== h);
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
+        renderTopologyCanvas();
       }
     }
 
@@ -379,10 +592,14 @@
     }
 
     function exportToCSV() {
-      let csv = "Hostname,Department,System Group,IP Address,Subnet,Function,Cutover Wave,Zerto VPG,Veeam Job\n";
-      servers.forEach(s => { csv += `"${s.hostname}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.function}","${s.wave}","${s.vpg||''}","${s.veeamJob||''}"\n`; });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-      a.download = `server-template.csv`; a.click();
+      let csv = "Hostname,AD Domain,Department,System Group,IP Address,Subnet,Function,Cutover Wave,Zerto VPG,Veeam Job\n";
+      servers.forEach(s => {
+        csv += `"${s.hostname}","${s.domain||'beckettsfoods.co.uk'}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.function}","${s.wave}","${s.vpg||''}","${s.veeamJob||''}"\n`;
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `infops-server-template.csv`;
+      a.click();
     }
 
     function importCSV(e) {
@@ -396,17 +613,25 @@
           const cols = line.split(',');
           if (cols.length >= 4) {
             imported.push({
-              hostname: cols[0].replace(/"/g,'').trim(), dept: cols[1]?.replace(/"/g,'').trim()||'INF',
-              system: cols[2]?.replace(/"/g,'').trim()||'General', ip: cols[3]?.replace(/"/g,'').trim(),
-              subnet: cols[4]?.replace(/"/g,'').trim()||'10.0.0.0/24', function: cols[5]?.replace(/"/g,'').trim()||'',
-              wave: cols[6]?.replace(/"/g,'').trim()||'Wave 1', vpg: cols[7]?.replace(/"/g,'').trim()||'',
-              veeamJob: cols[8]?.replace(/"/g,'').trim()||'', x: 100 + (i*40), y: 100 + ((i%4)*150)
+              hostname: cols[0].replace(/"/g,'').trim(),
+              domain: cols[1]?.replace(/"/g,'').trim() || 'beckettsfoods.co.uk',
+              dept: cols[2]?.replace(/"/g,'').trim() || 'INF',
+              system: cols[3]?.replace(/"/g,'').trim() || 'General',
+              ip: cols[4]?.replace(/"/g,'').trim() || '',
+              subnet: cols[5]?.replace(/"/g,'').trim() || '10.0.0.0/24',
+              function: cols[6]?.replace(/"/g,'').trim() || '',
+              wave: cols[7]?.replace(/"/g,'').trim() || 'Wave 1',
+              vpg: cols[8]?.replace(/"/g,'').trim() || '',
+              veeamJob: cols[9]?.replace(/"/g,'').trim() || '',
+              x: 60 + ((i - 1) % 4) * 300,
+              y: 60 + Math.floor((i - 1) / 4) * 180
             });
           }
         }
         servers = imported;
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
+        renderTopologyCanvas();
         alert(`Imported ${imported.length} servers successfully!`);
       };
       reader.readAsText(file);
@@ -415,8 +640,32 @@
     function exportEncryptedJSON() {
       const jsonStr = JSON.stringify(servers, null, 2);
       let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' }));
-      a.download = `infops-secure-backup.json`; a.click();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' }));
+      a.download = `infops-secure-backup.json`;
+      a.click();
+    }
+
+    function importEncryptedJSON(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          let content = evt.target.result;
+          if (content.startsWith("INFENC:")) {
+            const raw = content.replace("INFENC:", "");
+            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+          }
+          servers = JSON.parse(content);
+          localStorage.setItem('infops_servers', JSON.stringify(servers));
+          renderTopologyCanvas();
+          renderInventoryTable();
+          alert(`Decrypted and loaded ${servers.length} servers!`);
+        } catch (err) {
+          alert("Decryption failed. Check your encryption key under 'Key'.");
+        }
+      };
+      reader.readAsText(file);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
