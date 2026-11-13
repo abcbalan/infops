@@ -1,10 +1,10 @@
-<!-- 20261113 v18 - Trying Tier -->
+<!-- 20261113 v19 - Try inventory auto fill -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">InfOps - CS Infrastructure & Operations Hub</title>
+  <title id="pageTitle">InfOps - CA Infrastructure Migration & Operations Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -133,8 +133,10 @@
             </select>
           </div>
 
-          <button onclick="alignTopLeft()" class="px-2.5 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-arrow-up-left-from-circle mr-1"></i> Snap</button>
-          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-compress-arrows-alt mr-1"></i> Cluster</button>
+          <!-- SNAP & CLUSTER BUTTONS WITH ACTIVE STATE GLOW -->
+          <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-700 text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-arrow-up-left-from-circle mr-1"></i> Snap</button>
+          <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-compress-arrows-alt mr-1"></i> Cluster</button>
+          
           <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
         </div>
       </div>
@@ -145,7 +147,7 @@
         <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
       </div>
 
-      <!-- HIERARCHICAL VISIO TREE VIEW (Multi-Tier Top-to-Bottom with SVG Lines & Drag-and-Drop) -->
+      <!-- HIERARCHICAL VISIO TREE VIEW -->
       <div id="canvasTreeView" class="flex-1 bg-slate-900 canvas-grid hidden overflow-auto p-8 relative">
         <svg id="svgTreeConnectors" class="absolute top-0 left-0 pointer-events-none z-0" style="width: 3500px; height: 3500px;">
           <defs>
@@ -383,7 +385,7 @@
       <div class="flex flex-col gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
-          <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <select id="bulkField" onchange="onBulkFieldChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
             <option value="visioTier">Visio Tier Level (Auto, Tier 1, Tier 2, Tier 3, Tier 4)</option>
             <option value="wave">Migration Wave</option>
             <option value="cutoverStatus">Cutover Status</option>
@@ -394,9 +396,11 @@
             <option value="veeamJob">Veeam Backup Job</option>
           </select>
         </div>
-        <div>
+        <!-- SMART AUTOCOMPLETE VALUE FIELD FOR BULK EDIT -->
+        <div class="relative">
           <label class="font-semibold text-slate-300 mb-1 block">New Value:</label>
-          <input type="text" id="bulkValue" placeholder="Enter new value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="bulkValue" oninput="onBulkValueInput(this.value)" placeholder="Type or select existing value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <div id="bulkValueDropdown" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-40 overflow-y-auto hidden z-50"></div>
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
@@ -406,7 +410,7 @@
     </div>
   </div>
 
-  <!-- SERVER MODAL (WITH EXPLICIT VISIO TIER SELECTOR & AUTOCOMPLETE) -->
+  <!-- SERVER MODAL (WITH SMART AUTOCOMPLETE FOR DEPT, DOMAIN, SYSTEM, & DEPENDENCIES) -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
@@ -438,28 +442,34 @@
             <option value="Unassigned">Unassigned</option>
           </select>
         </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Department (BI / BS / INF):</label>
-          <input type="text" id="modalDept" placeholder="e.g. BI, BS, INF" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+
+        <!-- DEPARTMENT WITH AUTOCOMPLETE -->
+        <div class="relative">
+          <label class="font-semibold text-slate-300 mb-1 block">Department (e.g. BS, BI, INF):</label>
+          <input type="text" id="modalDept" oninput="onFieldAutocompleteInput('dept', this.value)" placeholder="Type or select dept..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <div id="dropdown-dept" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
         </div>
-        <div>
+
+        <!-- SYSTEM / APP GROUP WITH AUTOCOMPLETE -->
+        <div class="relative">
           <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-          <input type="text" id="modalSystem" placeholder="e.g. Sage X3, Active Directory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="modalSystem" oninput="onFieldAutocompleteInput('system', this.value)" placeholder="Type or select system..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <div id="dropdown-system" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
         </div>
-        <div>
+
+        <!-- AD DOMAIN WITH AUTOCOMPLETE -->
+        <div class="relative">
           <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-          <select id="modalDomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-            <option value="Becketts">Becketts</option>
-            <option value="UK">UK (uk.toennies.net)</option>
-            <option value="Workgroup / DMZ">Workgroup / DMZ</option>
-          </select>
+          <input type="text" id="modalDomain" oninput="onFieldAutocompleteInput('domain', this.value)" placeholder="Type or select domain..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <div id="dropdown-domain" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
         </div>
+
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Current IP Address:</label>
           <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
         </div>
 
-        <!-- AUTOCOMPLETE DEPENDENCY FIELD WITH DROPDOWN -->
+        <!-- AUTOCOMPLETE DEPENDENCY FIELD -->
         <div class="col-span-2 relative">
           <label class="font-semibold text-cyan-300 mb-1 block">Upstream Dependencies (Select existing servers):</label>
           <input type="text" id="modalDependencies" oninput="onDependencyInput(this.value)" placeholder="Type starting letters to select (e.g. DC03, SQL01)..." class="w-full bg-slate-900 border border-cyan-800/70 rounded-xl px-3 py-2 text-white font-mono">
@@ -508,6 +518,7 @@
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110","81.105.235.139"];
     let selectedServerNames = new Set();
     let currentTopoMode = 'visual';
+    let activeLayoutMode = 'snap'; // 'snap' or 'cluster'
     let globalSearchQuery = '';
     let draggedTreeServerName = null;
 
@@ -553,6 +564,90 @@
         if (tabId === 'canvas') renderTopologyCanvas();
         else if (tabId === 'inventory') renderInventoryTable();
         else if (tabId === 'waves') renderCutoverWavesTab();
+      }
+    }
+
+    // SMART AUTOCOMPLETE FOR FIELDS (DEPT, DOMAIN, SYSTEM)
+    function onFieldAutocompleteInput(fieldKey, val) {
+      const dropdown = document.getElementById(`dropdown-${fieldKey}`);
+      const term = val.trim().toLowerCase();
+
+      // Collect all unique existing values for this field from inventory
+      const uniqueValues = [...new Set(servers.map(s => s[fieldKey]).filter(Boolean))].sort();
+
+      if (!term) {
+        if (uniqueValues.length > 0) {
+          showFieldDropdown(fieldKey, uniqueValues);
+        } else {
+          dropdown.classList.add('hidden');
+        }
+        return;
+      }
+
+      const matches = uniqueValues.filter(v => v.toLowerCase().includes(term));
+      if (matches.length > 0) {
+        showFieldDropdown(fieldKey, matches);
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    }
+
+    function showFieldDropdown(fieldKey, options) {
+      const dropdown = document.getElementById(`dropdown-${fieldKey}`);
+      dropdown.innerHTML = '';
+      options.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-950/80 cursor-pointer border-b border-slate-800 font-mono flex justify-between items-center';
+        item.innerHTML = `<span>${opt}</span> <span class="text-[9px] text-slate-400">Existing</span>`;
+        item.onclick = () => selectFieldAutocomplete(fieldKey, opt);
+        dropdown.appendChild(item);
+      });
+      dropdown.classList.remove('hidden');
+    }
+
+    function selectFieldAutocomplete(fieldKey, value) {
+      document.getElementById(`modal${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`).value = value;
+      document.getElementById(`dropdown-${fieldKey}`).classList.add('hidden');
+    }
+
+    // BULK EDIT VALUE AUTOCOMPLETE
+    function onBulkFieldChange() {
+      document.getElementById('bulkValue').value = '';
+      document.getElementById('bulkValueDropdown').classList.add('hidden');
+    }
+
+    function onBulkValueInput(val) {
+      const field = document.getElementById('bulkField').value;
+      const dropdown = document.getElementById('bulkValueDropdown');
+      const term = val.trim().toLowerCase();
+
+      let fieldKey = field;
+      if (field === 'wave') fieldKey = 'wave';
+      else if (field === 'cutoverStatus') fieldKey = 'cutoverStatus';
+      else if (field === 'domain') fieldKey = 'domain';
+      else if (field === 'dept') fieldKey = 'dept';
+      else if (field === 'system') fieldKey = 'system';
+      else if (field === 'veeamJob') fieldKey = 'veeamJob';
+
+      const uniqueValues = [...new Set(servers.map(s => s[fieldKey]).filter(Boolean))].sort();
+      if (uniqueValues.length === 0) { dropdown.classList.add('hidden'); return; }
+
+      const matches = uniqueValues.filter(v => v.toLowerCase().includes(term));
+      if (matches.length > 0) {
+        dropdown.innerHTML = '';
+        matches.forEach(m => {
+          const item = document.createElement('div');
+          item.className = 'px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-950/80 cursor-pointer border-b border-slate-800 font-mono flex justify-between items-center';
+          item.innerHTML = `<span>${m}</span> <span class="text-[9px] text-slate-400">Existing</span>`;
+          item.onclick = () => {
+            document.getElementById('bulkValue').value = m;
+            dropdown.classList.add('hidden');
+          };
+          dropdown.appendChild(item);
+        });
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.classList.add('hidden');
       }
     }
 
@@ -638,7 +733,6 @@
       return depStr.split(',').map(d => d.trim()).filter(d => d && d.toUpperCase() !== '[ALL]');
     }
 
-    // Recursive upstream inclusion so full multi-tier chains appear when filtering by System/Wave
     function getFilteredServers() {
       const domFilter = document.getElementById('filterDomain').value;
       const waveFilter = document.getElementById('filterWave').value;
@@ -647,7 +741,7 @@
 
       let primary = servers.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.wave}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.wave}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         if (domFilter !== 'ALL' && (s.domain || 'Becketts') !== domFilter) return false;
@@ -684,7 +778,28 @@
 
     function onFilterChange() { alignTopLeft(); }
 
+    // ACTIVE LAYOUT TOGGLE & BUTTON HIGHLIGHTING
+    function setTopologyLayoutMode(mode) {
+      activeLayoutMode = mode;
+      const snapBtn = document.getElementById('layoutBtnSnap');
+      const clusterBtn = document.getElementById('layoutBtnCluster');
+
+      if (mode === 'snap') {
+        snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition";
+        clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+        alignTopLeft();
+      } else {
+        clusterBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition";
+        snapBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+        clusterTopologyCards();
+      }
+    }
+
     function alignTopLeft() {
+      activeLayoutMode = 'snap';
+      document.getElementById('layoutBtnSnap').className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition";
+      document.getElementById('layoutBtnCluster').className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+
       const density = document.getElementById('canvasDensity').value;
       const filtered = getFilteredServers();
       const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
@@ -694,6 +809,19 @@
       filtered.forEach((s, idx) => {
         s.x = 20 + (idx % colsCount) * colWidth;
         s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderTopologyCanvas();
+    }
+
+    function clusterTopologyCards() {
+      activeLayoutMode = 'cluster';
+      document.getElementById('layoutBtnCluster').className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition";
+      document.getElementById('layoutBtnSnap').className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+
+      servers.forEach((s, idx) => {
+        s.x = 20 + (idx % 8) * 180;
+        s.y = 20 + Math.floor(idx / 8) * 100;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderTopologyCanvas();
@@ -752,7 +880,6 @@
       drawSvgConnectors(filtered);
     }
 
-    // MULTI-TIER VISIO TREE VIEW WITH DEPENDENCY DEPTH & DRAG-AND-DROP TIERS
     function computeServerTier(srv, visibleMap, visited = new Set()) {
       const explicit = srv.visioTier || 'Auto';
       if (explicit && explicit !== 'Auto') {
@@ -761,7 +888,7 @@
       }
 
       const key = srv.serverName.toLowerCase();
-      if (visited.has(key)) return 1; // cycle guard
+      if (visited.has(key)) return 1;
       visited.add(key);
 
       const deps = parseDepList(srv.dependencies)
@@ -802,9 +929,7 @@
         tierBuckets.get(tier).push(s);
       });
 
-      // Ensure at least Tier 1 and Tier 2 dropzones exist so users can drag between tiers
       const totalLanes = Math.max(maxTier, 2);
-
       const tierMeta = {
         1: { title: 'Tier 1: Root Infrastructure & Domain Controllers (Top)', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
         2: { title: 'Tier 2: Secondary Controllers, Management & Core Databases', icon: 'fa-layer-group text-cyan-400', border: 'border-cyan-500/80' },
@@ -843,8 +968,6 @@
       }
 
       container.innerHTML = html;
-
-      // Draw top-to-bottom SVG dependency lines after DOM renders
       requestAnimationFrame(() => drawTreeConnectors(filtered));
     }
 
@@ -884,14 +1007,8 @@
       e.dataTransfer.setData('text/plain', serverName);
     }
 
-    function onTreeTierDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.classList.add('drag-over');
-    }
-
-    function onTreeTierDragLeave(e) {
-      e.currentTarget.classList.remove('drag-over');
-    }
+    function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 
     function onTreeTierDrop(e, targetTierNum) {
       e.preventDefault();
@@ -913,7 +1030,6 @@
       const container = document.getElementById('canvasTreeView');
       if (!svg || !container || container.classList.contains('hidden')) return;
 
-      // Clear old paths while keeping <defs>
       Array.from(svg.querySelectorAll('path')).forEach(p => p.remove());
 
       const cardMap = new Map();
@@ -925,7 +1041,6 @@
       const scrollLeft = container.scrollLeft;
       const scrollTop = container.scrollTop;
 
-      // Resize SVG to cover full scrollable area
       svg.style.width = `${Math.max(container.scrollWidth, 1200)}px`;
       svg.style.height = `${Math.max(container.scrollHeight, 900)}px`;
 
@@ -1036,15 +1151,6 @@
       if (dashArray !== '0') line.setAttribute('stroke-dasharray', dashArray);
       line.setAttribute('fill', 'none');
       svg.appendChild(line);
-    }
-
-    function clusterTopologyCards() {
-      servers.forEach((s, idx) => {
-        s.x = 20 + (idx % 8) * 180;
-        s.y = 20 + Math.floor(idx / 8) * 100;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderTopologyCanvas();
     }
 
     function toggleSelectAll(master) {
