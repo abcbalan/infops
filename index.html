@@ -1,4 +1,4 @@
-<!-- 20261113 v10 - InfOps Master Command Center (Ultra-Compact Density, No Server ID, Full Multi-Field Bulk Update) -->
+<!-- 20261113 v11 - InfOps Master Command Center (Global Counters, Universal Search, Cluster/Reset, Line-by-Line Topology View) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +13,7 @@
     .node-card:active { cursor: grabbing; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    th { resize: horizontal; overflow: auto; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
@@ -35,22 +36,22 @@
     <!-- NAV TABS -->
     <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto">
       <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
-        <i class="fas fa-draw-polygon mr-1.5"></i> Topology
+        <i class="fas fa-draw-polygon mr-1.5"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-server mr-1.5"></i> Inventory
+        <i class="fas fa-server mr-1.5"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-shield-alt mr-1.5"></i> Zerto DR
+        <i class="fas fa-shield-alt mr-1.5"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-database mr-1.5"></i> Veeam Backups
+        <i class="fas fa-database mr-1.5"></i> Veeam Backups <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-calculator mr-1.5"></i> Storage Calc
+        <i class="fas fa-calculator mr-1.5"></i> Storage Calc <span id="counter-calculator" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-stethoscope mr-1.5"></i> IP Health
+        <i class="fas fa-stethoscope mr-1.5"></i> IP Health <span id="counter-health" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
     </div>
 
@@ -75,7 +76,7 @@
   <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- TAB 1: VISIO TOPOLOGY CANVAS -->
+    <!-- TAB 1: VISIO TOPOLOGY CANVAS & LINE LIST -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-10 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
@@ -110,6 +111,12 @@
         </div>
 
         <div class="flex items-center space-x-2">
+          <!-- View Toggle -->
+          <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+            <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
+            <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white"><i class="fas fa-list mr-1"></i> Line List</button>
+          </div>
+
           <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
             <label class="text-[11px] font-semibold text-slate-400">Density:</label>
             <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
@@ -118,16 +125,41 @@
               <option value="spacious">Spacious</option>
             </select>
           </div>
-          <button onclick="autoLayoutCanvas()" class="px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow">
-            <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange Tidy
+
+          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Bring all cards together tightly">
+            <i class="fas fa-compress-arrows-alt mr-1"></i> Cluster
           </button>
-          <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700" id="nodeCountBadge">Showing 0 VMs</span>
+          <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow">
+            <i class="fas fa-th mr-1"></i> Tidy Grid
+          </button>
+          <span class="text-xs text-slate-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold" id="nodeCountBadge">0 VMs</span>
         </div>
       </div>
 
+      <!-- VISUAL CANVAS VIEW -->
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-4 select-none">
         <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
         <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
+      </div>
+
+      <!-- LINE LIST VIEW (Initially hidden) -->
+      <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
+              <tr>
+                <th class="p-3">Server Name</th>
+                <th class="p-3">Department</th>
+                <th class="p-3">System / App</th>
+                <th class="p-3">Domain</th>
+                <th class="p-3">IP Address</th>
+                <th class="p-3">Dependencies</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="topologyListTbody" class="divide-y divide-slate-700 text-slate-200"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -135,11 +167,11 @@
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Server Inventory Matrix & Mass Bulk Edit</h2>
-          <p class="text-xs text-slate-400">Click any server name to edit. Select multiple servers using checkboxes for bulk mass updates.</p>
+          <h2 class="text-lg font-bold text-white">Server Inventory Matrix & Universal Bulk Edit</h2>
+          <p class="text-xs text-slate-400">Search checks all headers. Columns are horizontally resizable by dragging their right edge.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search name, dept, IP..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search name, dept, IP, owner..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-56">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition">
             <i class="fas fa-edit mr-1"></i> Bulk Update Selected (<span id="selectedCountBadge">0</span>)
           </button>
@@ -178,14 +210,19 @@
 
     <!-- TAB 3: ZERTO DR -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-4">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white">Zerto Disaster Recovery (DR) Control Panel</h2>
-          <p class="text-xs text-slate-400">Manage your DR servers manually below.</p>
+          <p class="text-xs text-slate-400">Manage DR protection status and VPG assignments.</p>
         </div>
-        <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
-          <i class="fas fa-save mr-1"></i> Save DR Changes
-        </button>
+        <div class="flex gap-2">
+          <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
+            <i class="fas fa-edit mr-1"></i> Bulk Update
+          </button>
+          <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
+            <i class="fas fa-save mr-1"></i> Save DR Changes
+          </button>
+        </div>
       </div>
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
@@ -207,14 +244,19 @@
 
     <!-- TAB 4: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-4">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white">Veeam Backup Job, Schedule & Retention Management</h2>
-          <p class="text-xs text-slate-400">Manually configure backup job names, times, and retention periods per server.</p>
+          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server.</p>
         </div>
-        <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">
-          <i class="fas fa-save mr-1"></i> Save Backup Changes
-        </button>
+        <div class="flex gap-2">
+          <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
+            <i class="fas fa-edit mr-1"></i> Bulk Update
+          </button>
+          <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">
+            <i class="fas fa-save mr-1"></i> Save Backup Changes
+          </button>
+        </div>
       </div>
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
@@ -239,7 +281,7 @@
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
           <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
-          <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage based on retention periods.</p>
+          <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -307,19 +349,20 @@
   <!-- BULK MASS EDIT MODAL -->
   <div id="bulkEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
-      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Bulk Mass Update Selected Servers (<span id="bulkModalCount">0</span> selected)</h3>
-      <p class="text-xs text-slate-400">Select any field and enter the new value to update all checked servers simultaneously.</p>
+      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Universal Bulk Mass Update (<span id="bulkModalCount">0</span> servers selected)</h3>
+      <p class="text-xs text-slate-400">Select any attribute across Topology, Inventory, Zerto, or Veeam to update simultaneously.</p>
       <div class="flex flex-col gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
           <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
             <option value="domain">AD Domain (e.g. uk.toennies.net or Becketts)</option>
             <option value="dept">Department (BI, BS, INF, CS - IT)</option>
-            <option value="system">System / Application Group (e.g. Sage X3, WMS)</option>
+            <option value="system">System / Application Group</option>
             <option value="owner">Task Owner</option>
             <option value="drProtected">Zerto DR Protected (yes / no)</option>
             <option value="veeamJob">Veeam Backup Job Name</option>
             <option value="veeamRetention">Veeam Retention Days</option>
+            <option value="dependencies">Upstream Dependencies</option>
           </select>
         </div>
         <div>
@@ -341,7 +384,7 @@
         <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add / Edit Server</h3>
         <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
       </div>
-      <input type="hidden" id="editOriginalId">
+      <input type="hidden" id="editOriginalName">
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
@@ -439,6 +482,7 @@
     let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Multi-Domain Migration / DR / Operations Planner" }));
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
     let selectedServerNames = new Set();
+    let currentTopoMode = 'visual';
 
     async function verifyClientIP() {
       try {
@@ -456,6 +500,15 @@
       document.getElementById('brandName').innerText = appSettings.brandName;
       document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Command Center`;
       document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
+      updateGlobalCounters();
+    }
+
+    function updateGlobalCounters() {
+      const total = servers.length;
+      ['canvas', 'inventory', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
+        const el = document.getElementById(`counter-${t}`);
+        if (el) el.innerText = total;
+      });
     }
 
     function updateDropdowns() {
@@ -492,21 +545,22 @@
       if (tabId === 'health') renderHealthTab();
     }
 
-    function renderTopologyCanvas() {
-      updateDropdowns();
+    function setTopologyViewMode(mode) {
+      currentTopoMode = mode;
+      document.getElementById('topoModeVisual').className = mode === 'visual' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
+      document.getElementById('topoModeList').className = mode === 'list' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
+      
+      document.getElementById('canvasArea').classList.toggle('hidden', mode !== 'visual');
+      document.getElementById('svgConnectors').classList.toggle('hidden', mode !== 'visual');
+      document.getElementById('canvasListView').classList.toggle('hidden', mode !== 'list');
+      renderTopologyCanvas();
+    }
+
+    function getFilteredServers() {
       const domFilter = document.getElementById('filterDomain').value;
       const sysFilter = document.getElementById('filterSystem').value;
       const subFilter = document.getElementById('filterSubnet').value;
-      const density = document.getElementById('canvasDensity').value;
       const showDeps = document.getElementById('filterShowDeps').checked;
-
-      // Ultra-compact tight spacing calculation
-      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
-      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
-      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
-
-      const container = document.getElementById('nodesContainer');
-      container.innerHTML = '';
 
       let primary = servers.filter(s => {
         const sDom = s.domain || 'Becketts';
@@ -536,9 +590,27 @@
           }
         });
       }
+      return Array.from(visibleSet);
+    }
 
-      const filtered = Array.from(visibleSet);
-      document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
+    function renderTopologyCanvas() {
+      updateDropdowns();
+      updateGlobalCounters();
+      const density = document.getElementById('canvasDensity').value;
+      const filtered = getFilteredServers();
+      document.getElementById('nodeCountBadge').innerText = `${filtered.length} VMs`;
+
+      if (currentTopoMode === 'list') {
+        renderTopologyListView(filtered);
+        return;
+      }
+
+      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
+      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
+      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
+
+      const container = document.getElementById('nodesContainer');
+      container.innerHTML = '';
 
       filtered.forEach((s, idx) => {
         if (s.x === undefined) s.x = 20 + (idx % colsCount) * colWidth;
@@ -575,7 +647,27 @@
         container.appendChild(el);
       });
 
-      drawSvgConnectors(filtered, colWidth);
+      drawSvgConnectors(filtered);
+    }
+
+    function renderTopologyListView(filtered) {
+      const tbody = document.getElementById('topologyListTbody');
+      tbody.innerHTML = '';
+      filtered.forEach(s => {
+        const sDom = s.domain || 'Becketts';
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50 transition">
+            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+            <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
+            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
+            <td class="p-3 font-mono text-indigo-300">${sDom}</td>
+            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
+            <td class="p-3 font-mono text-slate-400">${s.dependencies || 'None'}</td>
+            <td class="p-3 text-right">
+              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300"><i class="fas fa-pen"></i></button>
+            </td>
+          </tr>`;
+      });
     }
 
     function makeDraggable(element, serverObj) {
@@ -601,7 +693,7 @@
       };
     }
 
-    function drawSvgConnectors(visibleServers, colWidth) {
+    function drawSvgConnectors(visibleServers) {
       const svg = document.getElementById('svgConnectors');
       svg.innerHTML = '';
 
@@ -641,6 +733,16 @@
       svg.appendChild(line);
     }
 
+    function clusterTopologyCards() {
+      // Bring all cards tightly together into a dense cluster
+      servers.forEach((s, idx) => {
+        s.x = 20 + (idx % 8) * 180;
+        s.y = 20 + Math.floor(idx / 8) * 100;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderTopologyCanvas();
+    }
+
     function autoLayoutCanvas() {
       const density = document.getElementById('canvasDensity').value;
       const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
@@ -653,7 +755,6 @@
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderTopologyCanvas();
-      alert("Auto-Arrange Tidy applied successfully!");
     }
 
     function toggleSelectAll(master) {
@@ -671,17 +772,17 @@
     }
 
     function renderInventoryTable() {
+      updateGlobalCounters();
       const q = (document.getElementById('inventorySearch').value || '').toLowerCase();
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
 
-      let visibleList = servers.filter(s => 
-        s.serverName.toLowerCase().includes(q) || 
-        (s.ip || '').toLowerCase().includes(q) ||
-        (s.owner || '').toLowerCase().includes(q) ||
-        (s.dept || '').toLowerCase().includes(q) ||
-        (s.system || '').toLowerCase().includes(q)
-      );
+      // Universal search checking ALL fields / headers
+      let visibleList = servers.filter(s => {
+        if (!q) return true;
+        const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
+        return combined.includes(q);
+      });
 
       document.getElementById('selectedCountBadge').innerText = selectedServerNames.size;
 
@@ -707,7 +808,10 @@
     }
 
     function openBulkEditModal() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server from the inventory table first.");
+      if (selectedServerNames.size === 0) {
+        // If none explicitly checked, select all by default for maximum flexibility
+        servers.forEach(s => selectedServerNames.add(s.serverName));
+      }
       document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
       document.getElementById('bulkEditModal').classList.remove('hidden');
     }
@@ -731,6 +835,7 @@
     }
 
     function renderZertoTable() {
+      updateGlobalCounters();
       const tbody = document.getElementById('zertoTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
@@ -760,6 +865,7 @@
     }
 
     function renderVeeamTable() {
+      updateGlobalCounters();
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
@@ -789,6 +895,7 @@
     }
 
     function renderCalculatorTab() {
+      updateGlobalCounters();
       let totalServers = servers.length;
       let totalDisk = 0;
       let totalBackup = 0;
@@ -826,6 +933,7 @@
     }
 
     function renderHealthTab() {
+      updateGlobalCounters();
       let ipMap = {};
       let missingCount = 0;
       let dupCount = 0;
@@ -864,7 +972,7 @@
       if (serverName) {
         const s = servers.find(x => x.serverName === serverName);
         document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
-        document.getElementById('editOriginalId').value = serverName;
+        document.getElementById('editOriginalName').value = serverName;
         document.getElementById('modalServerName').value = s.serverName;
         document.getElementById('modalDescription').value = s.description || '';
         document.getElementById('modalDept').value = s.dept || 'INF';
@@ -879,7 +987,7 @@
         document.getElementById('modalDependencies').value = s.dependencies || '';
       } else {
         document.getElementById('serverModalTitle').innerText = "Add New Server";
-        document.getElementById('editOriginalId').value = '';
+        document.getElementById('editOriginalName').value = '';
         ['modalServerName','modalDescription','modalDept','modalSystem','modalIP','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('modalDomain').value = 'Becketts';
         document.getElementById('modalDisk').value = 100;
@@ -892,7 +1000,7 @@
     function editServer(name) { openServerModal(name); }
 
     function saveServerRecord() {
-      const origName = document.getElementById('editOriginalId').value;
+      const origName = document.getElementById('editOriginalName').value;
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
         description: document.getElementById('modalDescription').value.trim(),
@@ -987,7 +1095,6 @@
           const cols = parseCSVRow(line);
           if (!cols[0] && !cols[1]) continue;
 
-          // Accommodate your colleague's exact template columns
           const candidate = {
             serverName: cols[1] || cols[0],
             description: cols[2] || '',
