@@ -1,10 +1,10 @@
-<!-- 20261113 v1 - Trying InfOps Infrastructure Migration & Monitoring Platform -->
+<!-- 20261113 v2 - InfOps Infrastructure Migration & Monitoring Platform -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InfOps - Coventry Migration & Operations Command Center</title>
+  <title id="pageTitle">InfOps - Infrastructure Command Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -25,9 +25,10 @@
       </div>
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
-          InfOps <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Coventry & Co-lo Command Center</span>
+          <span id="brandName">InfOps</span> 
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Infrastructure Command Center</span>
         </h1>
-        <p class="text-xs text-slate-400">Becketts BFL (12 Hosts) & Central Services Migration / DR / Veeam Planner</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Migration / DR / Veeam Operations Planner</p>
       </div>
     </div>
 
@@ -48,17 +49,16 @@
     </div>
 
     <!-- UTILITY ACTIONS -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-2">
+      <button onclick="openSettingsModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition flex items-center gap-1.5">
+        <i class="fas fa-cog"></i> Settings
+      </button>
       <button onclick="openEncryptionModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition flex items-center gap-1.5">
-        <i class="fas fa-key"></i> Encryption Key
+        <i class="fas fa-key"></i> Key
       </button>
-      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow">
-        <i class="fas fa-download"></i> Export JSON
+      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON for GitHub">
+        <i class="fas fa-download"></i> Export
       </button>
-      <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 cursor-pointer transition flex items-center gap-1.5">
-        <i class="fas fa-upload"></i> Import JSON
-        <input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
-      </label>
     </div>
   </header>
 
@@ -67,7 +67,6 @@
 
     <!-- TAB 1: VISIO TOPOLOGY CANVAS -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
-      <!-- CANVAS CONTROLS BAR -->
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex items-center justify-between z-10 shrink-0 gap-4">
         <div class="flex items-center space-x-3">
           <label class="text-xs font-semibold text-slate-300">Department:</label>
@@ -89,7 +88,7 @@
 
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
             <input type="checkbox" id="filterDR" onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
-            <span>🛡️ Show DR Protected Only</span>
+            <span>🛡️ DR Protected Only</span>
           </label>
         </div>
 
@@ -101,11 +100,8 @@
         </div>
       </div>
 
-      <!-- INTERACTIVE DRAWING AREA -->
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-8 select-none">
-        <!-- SVG CONNECTOR LINES -->
         <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[2500px] min-h-[1500px]"></svg>
-        <!-- NODES CONTAINER -->
         <div id="nodesContainer" class="absolute inset-0 w-[2500px] h-[1500px] pointer-events-auto z-10"></div>
       </div>
     </section>
@@ -114,11 +110,18 @@
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex justify-between items-center mb-4">
         <div>
-          <h2 class="text-lg font-bold text-white">Server Inventory & MPLS Subnet Manager</h2>
-          <p class="text-xs text-slate-400">Manage all 132+ Coventry & Co-lo VMs, Subnets, and Cutover Waves safely.</p>
+          <h2 class="text-lg font-bold text-white">Server Inventory & Subnet Manager</h2>
+          <p class="text-xs text-slate-400">Manage VMs, Subnets, and Cutover Waves securely with Excel/CSV import and export.</p>
         </div>
-        <div class="flex gap-2">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search hostname, IP, function..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-64">
+        <div class="flex gap-2 items-center">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search hostname, IP..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
+          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition" title="Export CSV for Excel">
+            <file class="fas fa-file-csv mr-1"></file> Export CSV
+          </button>
+          <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold cursor-pointer transition" title="Import CSV/Excel List">
+            <i class="fas fa-file-excel mr-1"></i> Import CSV
+            <input type="file" accept=".csv,.txt" class="hidden" onchange="importCSV(event)">
+          </label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
             <i class="fas fa-plus mr-1"></i> Add Server
           </button>
@@ -133,7 +136,7 @@
                 <th class="p-3">Department</th>
                 <th class="p-3">System Group</th>
                 <th class="p-3">IP Address</th>
-                <th class="p-3">Subnet (MPLS)</th>
+                <th class="p-3">Subnet</th>
                 <th class="p-3">Function / Description</th>
                 <th class="p-3">Cutover Wave</th>
                 <th class="p-3 text-right">Actions</th>
@@ -145,12 +148,12 @@
       </div>
     </section>
 
-    <!-- TAB 3: ZERTO VPGs & DR -->
+    <!-- TAB 3: ZERTO VPGs -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex justify-between items-center mb-4">
         <div>
           <h2 class="text-lg font-bold text-white">Zerto VPG & Disaster Recovery Matrix</h2>
-          <p class="text-xs text-slate-400">Virtual Protection Group priority mapping and DR readiness for critical workloads.</p>
+          <p class="text-xs text-slate-400">Virtual Protection Group priority mapping and DR readiness.</p>
         </div>
         <span class="text-xs bg-purple-950 text-purple-300 border border-purple-800 px-3 py-1 rounded-lg">Zerto DR Active</span>
       </div>
@@ -165,7 +168,6 @@
                 <th class="p-3">Function</th>
                 <th class="p-3">IP Address</th>
                 <th class="p-3">Subnet</th>
-                <th class="p-3">Owner</th>
               </tr>
             </thead>
             <tbody id="zertoTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -174,12 +176,12 @@
       </div>
     </section>
 
-    <!-- TAB 4: VEEAM BACKUP JOBS -->
+    <!-- TAB 4: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex justify-between items-center mb-4">
         <div>
           <h2 class="text-lg font-bold text-white">Veeam Backup Job Tracking</h2>
-          <p class="text-xs text-slate-400">Verify backup job assignments before scheduling cutover waves.</p>
+          <p class="text-xs text-slate-400">Verify backup job assignments before scheduling cutovers.</p>
         </div>
         <span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1 rounded-lg">Veeam B&R Integrated</span>
       </div>
@@ -203,6 +205,92 @@
 
   </div>
 
+  <!-- SERVER ADD / EDIT MODAL -->
+  <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add New Server</h3>
+        <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+      <input type="hidden" id="editOriginalHostname">
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Hostname:</label>
+          <input type="text" id="modalHostname" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+          <select id="modalDept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            <option value="INF">INF (Infra)</option>
+            <option value="BS">BS (Business Systems)</option>
+            <option value="BI">BI (Business Intelligence)</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">System Group:</label>
+          <input type="text" id="modalSystem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="Active Directory, Sage X3...">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
+          <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
+          <input type="text" id="modalSubnet" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Cutover Wave:</label>
+          <input type="text" id="modalWave" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="Wave 1">
+        </div>
+        <div class="col-span-2">
+          <label class="font-semibold text-slate-300 mb-1 block">Function / Description:</label>
+          <input type="text" id="modalFunction" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Zerto VPG:</label>
+          <input type="text" id="modalVPG" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="P01 - ServerName">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Veeam Backup Job:</label>
+          <input type="text" id="modalVeeam" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="Daily-SQL-Job">
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end mt-2">
+        <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow">Save Server</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECT SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center gap-3 border-b border-slate-700 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-cyan-600/25 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold">
+          <i class="fas fa-sliders-h"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-sm">Project & Header Settings</h3>
+          <p class="text-xs text-slate-400">Customize branding name to fit any infrastructure migration project.</p>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">App / Brand Name:</label>
+          <input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" value="InfOps">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Project Subtitle / Scope:</label>
+          <input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500" value="Infrastructure Migration & Operations Command Center">
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end mt-2">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button onclick="saveProjectSettings()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow">Apply Settings</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ENCRYPTION KEY MODAL -->
   <div id="encryptionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
@@ -211,17 +299,17 @@
           <i class="fas fa-lock"></i>
         </div>
         <div>
-          <h3 class="font-bold text-white text-sm">Server Data Encryption Settings</h3>
-          <p class="text-xs text-slate-400">Protect exported JSON server IPs and hostnames with a secret key.</p>
+          <h3 class="font-bold text-white text-sm">Data Encryption Passphrase</h3>
+          <p class="text-xs text-slate-400">Secures exported server inventory JSON with client-side encryption for GitHub.</p>
         </div>
       </div>
       <div>
         <label class="text-xs font-semibold text-slate-300 mb-1 block">Secret Passphrase:</label>
-        <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500" placeholder="Enter encryption key...">
+        <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveSecretKey()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow">Save & Apply</button>
+        <button onclick="saveSecretKey()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow">Save Key</button>
       </div>
     </div>
   </div>
@@ -229,90 +317,57 @@
   <!-- SCRIPT LOGIC -->
   <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsCoventry2026!';
+    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({
+      brandName: "InfOps",
+      subtitle: "Infrastructure Migration & Operations Command Center"
+    }));
 
-// Allowed Public IP Whitelist
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
 
     async function verifyClientIP() {
       try {
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
-        const userIP = data.ip;
-
-        if (!ALLOWED_IPS.includes(userIP)) {
+        if (!ALLOWED_IPS.includes(data.ip)) {
           document.body.innerHTML = `
             <div class="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
               <div class="w-16 h-16 bg-red-500/20 border border-red-500 text-red-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
                 <i class="fas fa-shield-alt"></i>
               </div>
               <h1 class="text-xl font-bold mb-2">Access Denied</h1>
-              <p class="text-xs text-slate-400 max-w-sm mb-4">Your current public IP (<span class="font-mono text-cyan-400">${userIP}</span>) is not authorized to access the InfOps Command Center.</p>
-              <p class="text-[10px] text-slate-500">Contact your Infrastructure team to whitelist this network.</p>
+              <p class="text-xs text-slate-400 max-w-sm mb-4">Your current public IP (<span class="font-mono text-cyan-400">${data.ip}</span>) is not authorized.</p>
             </div>
           `;
         }
-      } catch (err) {
-        console.warn("IP verification skipped offline or blocked by network policy.");
-      }
+      } catch (e) { console.warn("IP check skipped offline."); }
     }
 
-    // Run check on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      verifyClientIP();
-    });
-    
-    // Core Server Inventory with Zerto and Veeam Data
     let servers = JSON.parse(localStorage.getItem('infops_servers') || JSON.stringify([
       { hostname: "CS1-VMNTDC0001", dept: "INF", system: "Active Directory", ip: "10.160.1.31", subnet: "10.160.1.0/24", function: "UK Domain Controller", wave: "Wave 1", vpg: "P01 - CS1-VMNTDC0001", veeamJob: "Hourly-DC-Job", x: 100, y: 100 },
-      { hostname: "DC03", dept: "INF", system: "Active Directory", ip: "192.168.0.30", subnet: "192.168.0.0/22", function: "BFL AD, DNS, DHCP", wave: "Wave 1", vpg: "P01 - DC03", veeamJob: "Hourly-DC-Job", x: 100, y: 250 },
-      { hostname: "NTCOV1", dept: "INF", system: "Active Directory", ip: "10.160.1.11", subnet: "10.160.1.0/24", function: "UK Domain Controller", wave: "Wave 1", vpg: "P01 - NTCOV1", veeamJob: "Hourly-DC-Job", x: 100, y: 400 },
-      { hostname: "CO1-VSSQLS0001", dept: "BS", system: "Sage X3", ip: "172.31.0.15", subnet: "172.31.0.0/23", function: "SQL for Sage X3", wave: "Wave 2", vpg: "P03 - CO1-VSSQLS0001", veeamJob: "Daily-SQL-Job", x: 450, y: 100 },
-      { hostname: "CO1-VSAPPS0032", dept: "BS", system: "Sage X3", ip: "172.31.0.38", subnet: "172.31.0.0/23", function: "BFL WMS & X3", wave: "Wave 2", vpg: "P03 - CO1-VSAPPS0032", veeamJob: "Daily-App-Job", x: 450, y: 250 },
-      { hostname: "CO1-VSAPPS0002", dept: "BS", system: "Sage X3", ip: "172.31.0.12", subnet: "172.31.0.0/23", function: "X3 Primary Application", wave: "Wave 3", vpg: "P05 - CO1-VSAPPS0002", veeamJob: "Daily-App-Job", x: 450, y: 400 },
-      { hostname: "CO1-VSAPPS0025", dept: "BI", system: "Qlikview", ip: "172.31.0.29", subnet: "172.31.0.0/23", function: "BI Software - Qlikview", wave: "Wave 3", vpg: "P05 - CO1-VSAPPS0025", veeamJob: "Weekly-Archive-Job", x: 800, y: 150 },
-      { hostname: "CS1-VMAPPS0013", dept: "BI", system: "Qlikview", ip: "172.31.0.59", subnet: "172.31.0.0/23", function: "QlikView BI reporting server", wave: "Wave 3", vpg: "P06 - CS1-VMAPPS0013", veeamJob: "Weekly-Archive-Job", x: 800, y: 300 },
-      { hostname: "CO1-VSFILE0001", dept: "INF", system: "File Server", ip: "192.168.0.32", subnet: "192.168.0.0/22", function: "Central File Server", wave: "Wave 1", vpg: "P02 - CO1-VSFILE0001", veeamJob: "Daily-SQL-Job", x: 100, y: 550 },
-      { hostname: "CO1-VSWEBS0001", dept: "BS", system: "Intranet", ip: "192.168.0.48", subnet: "192.168.0.22", function: "Intranet. Critical", wave: "Wave 4", vpg: "P07 - CO1-VSWEBS0001", veeamJob: "Daily-App-Job", x: 800, y: 450 }
+      { hostname: "DC03", dept: "INF", system: "Active Directory", ip: "192.168.0.30", subnet: "192.168.0.0/22", function: "BFL AD, DNS, DHCP", wave: "Wave 1", vpg: "P01 - DC03", veeamJob: "Hourly-DC-Job", x: 100, y: 280 },
+      { hostname: "NTCOV1", dept: "INF", system: "Active Directory", ip: "10.160.1.11", subnet: "10.160.1.0/24", function: "UK Domain Controller", wave: "Wave 1", vpg: "P01 - NTCOV1", veeamJob: "Hourly-DC-Job", x: 100, y: 460 },
+      { hostname: "CO1-VSSQLS0001", dept: "BS", system: "Sage X3", ip: "172.31.0.15", subnet: "172.31.0.0/23", function: "SQL Database for Sage X3", wave: "Wave 2", vpg: "P03 - CO1-VSSQLS0001", veeamJob: "Daily-SQL-Job", x: 480, y: 120 },
+      { hostname: "CO1-VSAPPS0032", dept: "BS", system: "Sage X3", ip: "172.31.0.38", subnet: "172.31.0.0/23", function: "BFL WMS & X3 App", wave: "Wave 2", vpg: "P03 - CO1-VSAPPS0032", veeamJob: "Daily-App-Job", x: 480, y: 300 },
+      { hostname: "CO1-VSAPPS0002", dept: "BS", system: "Sage X3", ip: "172.31.0.12", subnet: "172.31.0.0/23", function: "X3 Primary Application", wave: "Wave 3", vpg: "P05 - CO1-VSAPPS0002", veeamJob: "Daily-App-Job", x: 480, y: 480 },
+      { hostname: "CO1-VSAPPS0025", dept: "BI", system: "Qlikview", ip: "172.31.0.29", subnet: "172.31.0.0/23", function: "BI Reporting Qlikview", wave: "Wave 3", vpg: "P05 - CO1-VSAPPS0025", veeamJob: "Weekly-Archive-Job", x: 860, y: 180 },
+      { hostname: "CS1-VMAPPS0013", dept: "BI", system: "Qlikview", ip: "172.31.0.59", subnet: "172.31.0.0/23", function: "QlikView Analytics Server", wave: "Wave 3", vpg: "P06 - CS1-VMAPPS0013", veeamJob: "Weekly-Archive-Job", x: 860, y: 360 }
     ]));
+
+    function applySettings() {
+      document.getElementById('brandName').innerText = appSettings.brandName;
+      document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Infrastructure Command Center`;
+      document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
+    }
 
     function switchTab(tabId) {
       ['canvas', 'inventory', 'zerto', 'veeam'].forEach(t => {
         document.getElementById(`tabContent-${t}`).classList.toggle('hidden', t !== tabId);
-        const btn = document.getElementById(`tabBtn-${t}`);
-        if (t === tabId) {
-          btn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow";
-        } else {
-          btn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition";
-        }
-      });
-      if (tabId === 'canvas') renderTopologyCanvas();
-      if (tabId === 'inventory') renderInventoryTable();
-      if (tabId === 'zerto') renderZertoTable();
-      if (tabId === 'veeam') renderVeeamTable();
-    }
-
-    function renderTopologyCanvas() {
-      const deptFilter = document.getElementById('filterDept').value;
-      const sysFilter = document.getElementById('filterSystem').value;
-      const drOnly = document.getElementById('filterDR').checked;
-
-      const container = document.getElementById('nodesContainer');
-      container.innerHTML = '';
-
-      const filtered = servers.filter(s => {
-        if (deptFilter !== 'ALL' && s.dept !== deptFilter) return false;
-        if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
-        if (drOnly && !s.vpg) return false;
-        return true;
-      });
-
-      document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
+        const btn = document.getElementById(`tabBtn-${t}`); if (t === tabId) { btn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow"; } else { btn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition"; } }); if (tabId === 'canvas') renderTopologyCanvas(); if (tabId === 'inventory') renderInventoryTable(); if (tabId === 'zerto') renderZertoTable(); if (tabId === 'veeam') renderVeeamTable(); }  function renderTopologyCanvas() { const deptFilter = document.getElementById('filterDept').value; const sysFilter = document.getElementById('filterSystem').value; const drOnly = document.getElementById('filterDR').checked;  const container = document.getElementById('nodesContainer'); container.innerHTML = '';  const filtered = servers.filter(s => { if (deptFilter !== 'ALL' && s.dept !== deptFilter) return false; if (sysFilter !== 'ALL' && s.system !== sysFilter) return false; if (drOnly && !s.vpg) return false; return true; });  document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
 
       filtered.forEach(s => {
         const el = document.createElement('div');
-        el.className = `node-card absolute bg-slate-800 border ${s.vpg ? 'border-cyan-500 shadow-cyan-900/30' : 'border-slate-700'} rounded-xl p-3 w-56 shadow-lg flex flex-col gap-1.5`;
-        el.style.left = `${s.x}px`;
-        el.style.top = `${s.y}px`;
+        el.className = `node-card absolute bg-slate-800 border ${s.vpg ? 'border-cyan-500 shadow-cyan-900/40' : 'border-slate-700'} rounded-xl p-3 w-60 shadow-xl flex flex-col gap-1.5`;
+        el.style.left = `${s.x}px`; el.style.top = `${s.y}px`;
         
         let deptColor = 'bg-cyan-950 text-cyan-400 border-cyan-800';
         if (s.dept === 'BS') deptColor = 'bg-blue-950 text-blue-400 border-blue-800';
@@ -330,8 +385,6 @@
           </div>
           ${s.vpg ? `<div class="text-[9px] bg-cyan-950/80 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-900 truncate mt-0.5"><i class="fas fa-shield-alt mr-1"></i>${s.vpg}</div>` : ''}
         `;
-
-        // Make node draggable on canvas
         makeDraggable(el, s);
         container.appendChild(el);
       });
@@ -341,31 +394,24 @@
     function makeDraggable(element, serverObj) {
       let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
       element.onmousedown = dragMouseDown;
-
       function dragMouseDown(e) {
         e.preventDefault();
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+        mouseX = e.clientX; mouseY = e.clientY;
         document.onmouseup = closeDragElement;
         document.onmousemove = elementDrag;
       }
-
       function elementDrag(e) {
         e.preventDefault();
-        posX = mouseX - e.clientX;
-        posY = mouseY - e.clientY;
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+        posX = mouseX - e.clientX; posY = mouseY - e.clientY;
+        mouseX = e.clientX; mouseY = e.clientY;
         serverObj.x = Math.max(10, element.offsetLeft - posX);
         serverObj.y = Math.max(10, element.offsetTop - posY);
         element.style.left = serverObj.x + "px";
         element.style.top = serverObj.y + "px";
         drawSvgConnectors(servers);
       }
-
       function closeDragElement() {
-        document.onmouseup = null;
-        document.onmousemove = null;
+        document.onmouseup = null; document.onmousemove = null;
         localStorage.setItem('infops_servers', JSON.stringify(servers));
       }
     }
@@ -373,33 +419,30 @@
     function drawSvgConnectors(visibleServers) {
       const svg = document.getElementById('svgConnectors');
       svg.innerHTML = '';
-      // Draw simulated dependency connection lines between Active Directory and other systems
-      const adServers = visibleServers.filter(s => s.system === 'Active Directory');
-      const appServers = visibleServers.filter(s => s.system !== 'Active Directory');
+      const dcNodes = visibleServers.filter(s => s.system === 'Active Directory' || s.dept === 'INF');
+      const otherNodes = visibleServers.filter(s => s.system !== 'Active Directory' && s.dept !== 'INF');
 
-      adServers.forEach(ad => {
-        appServers.forEach(app => {
-          if (Math.abs(ad.y - app.y) < 300) {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            const x1 = ad.x + 224, y1 = ad.y + 40;
-            const x2 = app.x, y2 = app.y + 40;
-            const cx = (x1 + x2) / 2;
-            line.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`);
-            line.setAttribute('stroke', '#0e7490');
-            line.setAttribute('stroke-width', '1.5');
-            line.setAttribute('stroke-dasharray', '4');
-            line.setAttribute('fill', 'none');
-            svg.appendChild(line);
-          }
+      dcNodes.forEach(dc => {
+        otherNodes.forEach(app => {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const x1 = dc.x + 240, y1 = dc.y + 45;
+          const x2 = app.x, y2 = app.y + 45;
+          const cx = (x1 + x2) / 2;
+          line.setAttribute('d', `M ${x1}${y1} C ${cx}${y1}, ${cx}${y2}, ${x2}${y2}`);
+          line.setAttribute('stroke', '#06b6d4');
+          line.setAttribute('stroke-width', '1.8');
+          line.setAttribute('stroke-dasharray', '5');
+          line.setAttribute('fill', 'none');
+          svg.appendChild(line);
         });
       });
     }
 
     function autoLayoutCanvas() {
-      let startX = 50, startY = 50, colWidth = 280, rowHeight = 160;
+      let startX = 50, startY = 50, colWidth = 320, rowHeight = 170;
       servers.forEach((s, idx) => {
-        s.x = startX + (Math.floor(idx / 5) * colWidth);
-        s.y = startY + ((idx % 5) * rowHeight);
+        s.x = startX + (Math.floor(idx / 4) * colWidth);
+        s.y = startY + ((idx % 4) * rowHeight);
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderTopologyCanvas();
@@ -418,101 +461,3 @@
             <td class="p-3 font-mono text-cyan-400">${s.ip}</td>
             <td class="p-3 font-mono text-slate-400">${s.subnet}</td>
             <td class="p-3">${s.function}</td>
-            <td class="p-3"><span class="text-amber-400 font-semibold">${s.wave}</span></td>
-            <td class="p-3 text-right">
-              <button onclick="editServer('${s.hostname}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function renderZertoTable() {
-      const tbody = document.getElementById('zertoTableBody');
-      tbody.innerHTML = '';
-      servers.filter(s => s.vpg).forEach(s => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-cyan-400">${s.vpg}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-purple-950 text-purple-300 border border-purple-800">High / Medium</span></td>
-            <td class="p-3 font-bold text-white">${s.hostname}</td>
-            <td class="p-3">${s.function}</td>
-            <td class="p-3 font-mono text-cyan-400">${s.ip}</td>
-            <td class="p-3 font-mono text-slate-400">${s.subnet}</td>
-            <td class="p-3 font-semibold">${s.dept}</td>
-          </tr>
-        `;
-      });
-    }
-
-    function renderVeeamTable() {
-      const tbody = document.getElementById('veeamTableBody');
-      tbody.innerHTML = '';
-      servers.forEach(s => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-white">${s.hostname}</td>
-            <td class="p-3 font-semibold text-emerald-400"><i class="fas fa-database mr-1"></i>${s.veeamJob || 'Standard-Daily-Job'}</td>
-            <td class="p-3">${s.function}</td>
-            <td class="p-3 font-mono text-cyan-400">${s.ip}</td>
-            <td class="p-3 text-slate-400">14-Day Retention / App-Consistent</td>
-          </tr>
-        `;
-      });
-    }
-
-    function openEncryptionModal() { document.getElementById('encryptionModal').classList.remove('hidden'); document.getElementById('secretPassInput').value = ENCRYPTION_KEY; }
-    function closeEncryptionModal() { document.getElementById('encryptionModal').classList.add('hidden'); }
-    function saveSecretKey() {
-      ENCRYPTION_KEY = document.getElementById('secretPassInput').value.trim() || 'InfOpsCoventry2026!';
-      localStorage.setItem('infops_secret', ENCRYPTION_KEY);
-      closeEncryptionModal();
-      alert("Encryption passphrase updated successfully!");
-    }
-
-    function exportEncryptedJSON() {
-      const jsonStr = JSON.stringify(servers, null, 2);
-      // Simple XOR encryption for exported JSON security
-      let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => 
-        String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))
-      ).join(''));
-
-      const blob = new Blob([encrypted], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `infops-servers-backup-${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    function importJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          let content = evt.target.result;
-          if (content.startsWith("INFENC:")) {
-            const raw = content.replace("INFENC:", "");
-            const decoded = atob(raw).split('').map((c, i) => 
-              String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))
-            ).join('');
-            content = decoded;
-          }
-          servers = JSON.parse(content);
-          localStorage.setItem('infops_servers', JSON.stringify(servers));
-          renderTopologyCanvas();
-          alert("Server inventory imported and decrypted successfully!");
-        } catch(err) {
-          alert("Failed to decrypt or parse JSON. Please check your encryption key.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      autoLayoutCanvas();
-    });
-  </script>
-</body>
-</html>
