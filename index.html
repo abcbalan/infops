@@ -1,10 +1,10 @@
-<!-- 20261113 v13 - InfOps Master Command Center (Global Navbar Search, Resizable Table Widths, Universal Counters) -->
+<!-- 20261113 v14 - InfOps CA Migration & Operations Hub (Migration Waves, Cutover Schedules, Pre/Post Migration Checklists) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">InfOps - Infrastructure Command Center</title>
+  <title id="pageTitle">InfOps - CA Infrastructure Migration & Operations Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -27,16 +27,16 @@
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Migration & Operations Hub</span>
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CA Infra Migration & Operations Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Backup & Bulk Ops</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
       </div>
     </div>
 
     <!-- UNIVERSAL GLOBAL SEARCH -->
     <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner">
       <i class="fas fa-search text-slate-400 mr-2 text-xs"></i>
-      <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere (name, IP, dept)..." class="bg-transparent text-xs text-white focus:outline-none w-full">
+      <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere..." class="bg-transparent text-xs text-white focus:outline-none w-full">
       <span id="globalSearchCount" class="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded ml-1 font-mono">0</span>
     </div>
 
@@ -48,17 +48,20 @@
       <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
         <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
+      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+        <i class="fas fa-flag-checkered mr-1"></i> Cutover Waves <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+      </button>
       <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-shield-alt mr-1"></i> Zerto DR
       </button>
       <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-database mr-1"></i> Veeam <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-database mr-1"></i> Veeam
       </button>
       <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-calculator mr-1"></i> Calc <span id="counter-calculator" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-calculator mr-1"></i> Calc
       </button>
       <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-stethoscope mr-1"></i> Health <span id="counter-health" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-stethoscope mr-1"></i> Health
       </button>
     </div>
 
@@ -89,16 +92,20 @@
           </div>
 
           <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="filterSystem" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Systems</option>
+            <label class="text-xs font-semibold text-slate-300">Migration Wave:</label>
+            <select id="filterWave" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Waves</option>
+              <option value="Wave 1 - Pilot">Wave 1 - Pilot</option>
+              <option value="Wave 2 - Core Apps">Wave 2 - Core Apps</option>
+              <option value="Wave 3 - Databases & DCs">Wave 3 - Databases & DCs</option>
+              <option value="Unassigned">Unassigned</option>
             </select>
           </div>
 
           <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="filterSubnet" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Subnets</option>
+            <label class="text-xs font-semibold text-slate-300">System:</label>
+            <select id="filterSystem" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Systems</option>
             </select>
           </div>
 
@@ -124,13 +131,13 @@
             </select>
           </div>
 
-          <button onclick="alignTopLeft()" class="px-2.5 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Fly & align all filtered cards to top-left">
+          <button onclick="alignTopLeft()" class="px-2.5 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Snap cards to top-left">
             <i class="fas fa-arrow-up-left-from-circle mr-1"></i> Top-Left Snap
           </button>
-          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Cluster cards tightly together">
+          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow">
             <i class="fas fa-compress-arrows-alt mr-1"></i> Cluster
           </button>
-          <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Tidy Grid">
+          <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow">
             <i class="fas fa-th mr-1"></i> Tidy Grid
           </button>
           <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
@@ -150,11 +157,11 @@
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
               <tr>
                 <th class="p-3">Server Name</th>
+                <th class="p-3">Migration Wave</th>
                 <th class="p-3">Department</th>
                 <th class="p-3">System / App</th>
                 <th class="p-3">Domain</th>
                 <th class="p-3">IP Address</th>
-                <th class="p-3">Dependencies</th>
                 <th class="p-3 text-right">Action</th>
               </tr>
             </thead>
@@ -172,10 +179,10 @@
             Server Inventory Matrix & Universal Bulk Edit
             <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
           </h2>
-          <p class="text-xs text-slate-400">Drag the right edge of any table header to adjust column widths.</p>
+          <p class="text-xs text-slate-400">Manage all server attributes, domains, and departments. Resize columns by dragging headers.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search local inventory..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search inventory..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition">
             <i class="fas fa-edit mr-1"></i> Bulk Update (<span id="selectedCountBadge">0</span>)
           </button>
@@ -198,11 +205,11 @@
               <tr>
                 <th class="p-3 w-10"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600"></th>
                 <th class="p-3">Server Name</th>
-                <th class="p-3">Department (BI / BS / INF)</th>
+                <th class="p-3">Migration Wave</th>
+                <th class="p-3">Department (BI/BS/INF)</th>
                 <th class="p-3">System / App</th>
                 <th class="p-3">Domain</th>
                 <th class="p-3">IP Address</th>
-                <th class="p-3">Task Owner</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -212,15 +219,53 @@
       </div>
     </section>
 
-    <!-- TAB 3: ZERTO DR -->
+    <!-- TAB 3: CUTOVER WAVES & CHECKLISTS (NEW POWERHOUSE FEATURE) -->
+    <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
+      <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              CA Infrastructure Migration Cutover Waves & Readiness Checklists
+            </h2>
+            <p class="text-xs text-slate-400">Coordinate migration execution waves, cutover dates, and pre/post verification checklists.</p>
+          </div>
+          <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition">
+            <i class="fas fa-save mr-1.5"></i> Save Cutover Progress
+          </button>
+        </div>
+
+        <!-- Wave Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="waveSummaryCards"></div>
+
+        <!-- Detailed Wave Matrix Table -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 class="font-bold text-white text-sm">Server Cutover & Verification Matrix</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
+                <tr>
+                  <th class="p-3">Server Name</th>
+                  <th class="p-3">Migration Wave</th>
+                  <th class="p-3">Cutover Status</th>
+                  <th class="p-3 text-center">DNS Updated</th>
+                  <th class="p-3 text-center">Firewall Rules</th>
+                  <th class="p-3 text-center">Final Storage Sync</th>
+                  <th class="p-3 text-center">App Sign-off</th>
+                </tr>
+              </thead>
+              <tbody id="wavesTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ZERTO DR -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Zerto Disaster Recovery (DR) Control Panel
-            <span id="zertoCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
-          </h2>
-          <p class="text-xs text-slate-400">Manage DR protection status and VPG assignments. Resize table columns by dragging headers.</p>
+          <h2 class="text-lg font-bold text-white">Zerto Disaster Recovery (DR) Control Panel</h2>
+          <p class="text-xs text-slate-400">Manage DR protection status and VPG assignments.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -249,15 +294,12 @@
       </div>
     </section>
 
-    <!-- TAB 4: VEEAM BACKUPS -->
+    <!-- TAB 5: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Veeam Backup Job & Retention Management
-            <span id="veeamCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
-          </h2>
-          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server. Resize table columns by dragging headers.</p>
+          <h2 class="text-lg font-bold text-white">Veeam Backup Job & Retention Management</h2>
+          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -286,14 +328,11 @@
       </div>
     </section>
 
-    <!-- TAB 5: STORAGE & HARDWARE CALCULATOR -->
+    <!-- TAB 6: STORAGE & HARDWARE CALCULATOR -->
     <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
-          <h2 class="text-xl font-bold text-white flex items-center gap-2">
-            Hardware & Veeam Backup Storage Calculator
-            <span id="calcCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
-          </h2>
+          <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
           <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage.</p>
         </div>
 
@@ -331,14 +370,11 @@
       </div>
     </section>
 
-    <!-- TAB 6: IP HEALTH CHECK -->
+    <!-- TAB 7: IP HEALTH CHECK -->
     <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
-          <h2 class="text-xl font-bold text-white flex items-center gap-2">
-            Data Health & IP Address Validator
-            <span id="healthCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
-          </h2>
+          <h2 class="text-xl font-bold text-white">Data Health & IP Address Validator</h2>
           <p class="text-xs text-slate-400">Inspects inventory for duplicate IP addresses or missing entries.</p>
         </div>
 
@@ -366,11 +402,13 @@
   <div id="bulkEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Universal Bulk Mass Update (<span id="bulkModalCount">0</span> servers selected)</h3>
-      <p class="text-xs text-slate-400">Select any attribute across Topology, Inventory, Zerto, or Veeam to update simultaneously.</p>
+      <p class="text-xs text-slate-400">Select any attribute across Topology, Inventory, Waves, Zerto, or Veeam to update simultaneously.</p>
       <div class="flex flex-col gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
           <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="wave">Migration Wave (Wave 1 - Pilot, Wave 2 - Core Apps, Wave 3 - Databases & DCs)</option>
+            <option value="cutoverStatus">Cutover Status (Not Started, Ready, Migrated, Verified)</option>
             <option value="domain">AD Domain (e.g. uk.toennies.net or Becketts)</option>
             <option value="dept">Department (BI, BS, INF, CS - IT)</option>
             <option value="system">System / Application Group</option>
@@ -407,12 +445,17 @@
           <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Migration Wave:</label>
+          <select id="modalWave" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="Wave 1 - Pilot">Wave 1 - Pilot</option>
+            <option value="Wave 2 - Core Apps">Wave 2 - Core Apps</option>
+            <option value="Wave 3 - Databases & DCs">Wave 3 - Databases & DCs</option>
+            <option value="Unassigned">Unassigned</option>
+          </select>
+        </div>
+        <div>
           <label class="font-semibold text-slate-300 mb-1 block">Department (BI / BS / INF):</label>
           <input type="text" id="modalDept" placeholder="e.g. BI, BS, INF" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-        </div>
-        <div class="col-span-2">
-          <label class="font-semibold text-slate-300 mb-1 block">Description:</label>
-          <input type="text" id="modalDescription" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
@@ -429,29 +472,6 @@
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Current IP Address:</label>
           <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Task Owner:</label>
-          <input type="text" id="modalOwner" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Disk Capacity (GB):</label>
-          <input type="number" id="modalDisk" value="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Zerto DR Protected?:</label>
-          <select id="modalDR" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-            <option value="no">No</option>
-            <option value="yes">Yes (DR Protected)</option>
-          </select>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Veeam Backup Job:</label>
-          <input type="text" id="modalVeeamJob" placeholder="Daily-App-Job" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Retention Period (Days):</label>
-          <input type="number" id="modalRetention" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
         </div>
         <div class="col-span-2">
           <label class="font-semibold text-cyan-300 mb-1 block">Upstream Dependencies (comma-separated server names, or [ALL]):</label>
@@ -471,7 +491,7 @@
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
       <div class="flex flex-col gap-3 text-xs">
         <div><label class="font-semibold text-slate-300 mb-1 block">App Name:</label><input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="InfOps"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Multi-Domain Migration / DR / Operations Planner"></div>
+        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="CA Infra Migration & Operations Hub"></div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -495,7 +515,7 @@
   <!-- SCRIPT LOGIC -->
   <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
-    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Multi-Domain Migration / DR / Operations Planner" }));
+    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "CA Infra Migration & Operations Hub" }));
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
     let selectedServerNames = new Set();
     let currentTopoMode = 'visual';
@@ -522,33 +542,27 @@
 
     function updateGlobalCounters() {
       const total = servers.length;
-      ['canvas', 'inventory', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
+      ['canvas', 'inventory', 'waves', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
         const el = document.getElementById(`counter-${t}`);
         if (el) el.innerText = total;
       });
       document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
-      document.getElementById('zertoCountBadge').innerText = `${total} servers`;
-      document.getElementById('veeamCountBadge').innerText = `${total} servers`;
-      document.getElementById('calcCountBadge').innerText = `${total} servers`;
-      document.getElementById('healthCountBadge').innerText = `${total} servers`;
     }
 
     function onGlobalSearch(val) {
       globalSearchQuery = val.trim().toLowerCase();
       const matchCount = servers.filter(s => {
         if (!globalSearchQuery) return true;
-        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase().includes(globalSearchQuery);
+        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.wave}`.toLowerCase().includes(globalSearchQuery);
       }).length;
       document.getElementById('globalSearchCount').innerText = matchCount;
 
-      // Re-render current active tab
       const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
       if (activeTab) {
         const tabId = activeTab.id.replace('tabContent-', '');
         if (tabId === 'canvas') renderTopologyCanvas();
         else if (tabId === 'inventory') renderInventoryTable();
-        else if (tabId === 'zerto') renderZertoTable();
-        else if (tabId === 'veeam') renderVeeamTable();
+        else if (tabId === 'waves') renderCutoverWavesTab();
       }
     }
 
@@ -559,27 +573,16 @@
       sysSelect.innerHTML = '<option value="ALL">All Systems</option>';
       systems.forEach(sys => { sysSelect.innerHTML += `<option value="${sys}">${sys}</option>`; });
       if (systems.includes(curSys)) sysSelect.value = curSys;
-
-      const subSelect = document.getElementById('filterSubnet');
-      const curSub = subSelect.value;
-      const subnets = [...new Set(servers.map(s => {
-        let ip = (s.ip || '').trim();
-        if (ip.includes('/')) return ip.split('/')[1] === '24' ? ip.replace(/\.\d+\/\d+$/, '.0/24') : ip;
-        let parts = ip.split('.');
-        return parts.length === 4 ? `${parts[0]}.${parts[1]}.${parts[2]}.0/24` : null;
-      }).filter(Boolean))].sort();
-      subSelect.innerHTML = '<option value="ALL">All Subnets</option>';
-      subnets.forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
-      if (subnets.includes(curSub)) subSelect.value = curSub;
     }
 
     function switchTab(tabId) {
-      ['canvas', 'inventory', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
+      ['canvas', 'inventory', 'waves', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
         document.getElementById(`tabContent-${t}`).classList.toggle('hidden', t !== tabId);
         document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0";
       });
       if (tabId === 'canvas') renderTopologyCanvas();
       if (tabId === 'inventory') renderInventoryTable();
+      if (tabId === 'waves') renderCutoverWavesTab();
       if (tabId === 'zerto') renderZertoTable();
       if (tabId === 'veeam') renderVeeamTable();
       if (tabId === 'calculator') renderCalculatorTab();
@@ -599,27 +602,23 @@
 
     function getFilteredServers() {
       const domFilter = document.getElementById('filterDomain').value;
+      const waveFilter = document.getElementById('filterWave').value;
       const sysFilter = document.getElementById('filterSystem').value;
-      const subFilter = document.getElementById('filterSubnet').value;
       const showDeps = document.getElementById('filterShowDeps').checked;
 
       let primary = servers.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.wave}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
-        const sDom = s.domain || 'Becketts';
-        if (domFilter !== 'ALL' && sDom !== domFilter) return false;
+        if (domFilter !== 'ALL' && (s.domain || 'Becketts') !== domFilter) return false;
+        if (waveFilter !== 'ALL' && (s.wave || 'Unassigned') !== waveFilter) return false;
         if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
-        if (subFilter !== 'ALL') {
-          let ip = (s.ip || '').trim();
-          if (!ip.includes(subFilter.replace('.0/24',''))) return false;
-        }
         return true;
       });
 
       let visibleSet = new Set(primary);
-      if (showDeps && (sysFilter !== 'ALL' || subFilter !== 'ALL')) {
+      if (showDeps && (sysFilter !== 'ALL' || waveFilter !== 'ALL')) {
         primary.forEach(srv => {
           const sDom = srv.domain || 'Becketts';
           servers.forEach(cand => {
@@ -629,7 +628,7 @@
           });
           if (srv.dependencies) {
             srv.dependencies.split(',').map(d => d.trim().toLowerCase()).forEach(depName => {
-              const found = servers.find(x => x.serverName.toLowerCase() === depName || (x.serverID && x.serverID.toLowerCase() === depName));
+              const found = servers.find(x => x.serverName.toLowerCase() === depName);
               if (found) visibleSet.add(found);
             });
           }
@@ -699,12 +698,12 @@
             <span class="text-[9px] px-1 py-0.2 rounded border font-mono ${domBadgeClass} truncate">${sDom}</span>
           </div>
           <div class="flex items-center justify-between gap-1 text-[9px] text-slate-400">
-            <span class="font-semibold text-slate-300 truncate">${s.dept || 'INF'}</span>
+            <span class="font-semibold text-cyan-200 truncate">${s.wave || 'Wave 1'}</span>
             <span class="truncate">${s.system || 'General'}</span>
           </div>
           <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
             <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
-            <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.owner || 'Unassigned'}</span>
+            <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || 'INF'}</span>
           </div>
         `;
         makeDraggable(el, s);
@@ -722,11 +721,11 @@
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
             <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+            <td class="p-3 font-semibold text-cyan-300">${s.wave || 'Wave 1 - Pilot'}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
             <td class="p-3 font-mono text-indigo-300">${sDom}</td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-400">${s.dependencies || 'None'}</td>
             <td class="p-3 text-right">
               <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300"><i class="fas fa-pen"></i></button>
             </td>
@@ -775,7 +774,7 @@
         if (app.dependencies) {
           app.dependencies.split(',').map(d => d.trim().toLowerCase()).forEach(depName => {
             if (depName === '[all]') return;
-            const parent = visibleServers.find(s => s.serverName.toLowerCase() === depName || (s.serverID && s.serverID.toLowerCase() === depName));
+            const parent = visibleServers.find(s => s.serverName.toLowerCase() === depName);
             if (parent) {
               appendCurve(svg, parent, app, '#06b6d4', '0');
             }
@@ -842,11 +841,11 @@
 
       let visibleList = servers.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.wave}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner}`.toLowerCase();
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.wave}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
         }
         return true;
@@ -861,18 +860,99 @@
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
             <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600"></td>
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" title="Click to edit">${s.serverName} <i class="fas fa-pen text-[10px] ml-1 text-slate-500"></i></td>
+            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+            <td class="p-3 font-semibold text-cyan-300">${s.wave || 'Wave 1 - Pilot'}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 text-slate-300">${s.owner || '-'}</td>
             <td class="p-3 text-right">
               <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
               <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
       });
+    }
+
+    function renderCutoverWavesTab() {
+      updateGlobalCounters();
+      const waveSummary = document.getElementById('waveSummaryCards');
+      waveSummary.innerHTML = '';
+
+      const waves = ["Wave 1 - Pilot", "Wave 2 - Core Apps", "Wave 3 - Databases & DCs"];
+      waves.forEach(wName => {
+        let wServers = servers.filter(s => (s.wave || 'Wave 1 - Pilot') === wName);
+        let migratedCount = wServers.filter(s => s.cutoverStatus === 'Migrated & Verified').length;
+        let pct = wServers.length ? Math.round((migratedCount / wServers.length) * 100) : 0;
+        waveSummary.innerHTML += `
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-cyan-400 text-sm">${wName}</span>
+              <span class="text-xs font-mono text-slate-400">${wServers.length} VMs</span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700">
+              <div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-slate-400">
+              <span>Cutover Progress:</span>
+              <span class="font-semibold text-emerald-400">${pct}% Complete</span>
+            </div>
+          </div>`;
+      });
+
+      const tbody = document.getElementById('wavesTableBody');
+      tbody.innerHTML = '';
+      servers.forEach((s, idx) => {
+        const status = s.cutoverStatus || 'Not Started';
+        const chkDNS = s.chkDNS ? 'checked' : '';
+        const chkFW = s.chkFW ? 'checked' : '';
+        const chkSync = s.chkSync ? 'checked' : '';
+        const chkSign = s.chkSign ? 'checked' : '';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50">
+            <td class="p-3 font-bold text-white">${s.serverName}</td>
+            <td class="p-3">
+              <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
+                <option value="Wave 1 - Pilot" ${s.wave === 'Wave 1 - Pilot' ? 'selected' : ''}>Wave 1 - Pilot</option>
+                <option value="Wave 2 - Core Apps" ${s.wave === 'Wave 2 - Core Apps' ? 'selected' : ''}>Wave 2 - Core Apps</option>
+                <option value="Wave 3 - Databases & DCs" ${s.wave === 'Wave 3 - Databases & DCs' ? 'selected' : ''}>Wave 3 - Databases & DCs</option>
+              </select>
+            </td>
+            <td class="p-3">
+              <select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                <option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                <option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option>
+                <option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option>
+              </select>
+            </td>
+            <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${idx}" ${chkDNS} class="rounded text-cyan-600"></td>
+            <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${idx}" ${chkFW} class="rounded text-cyan-600"></td>
+            <td class="p-3 text-center"><input type="checkbox" id="chk-sync-${idx}" ${chkSync} class="rounded text-cyan-600"></td>
+            <td class="p-3 text-center"><input type="checkbox" id="chk-sign-${idx}" ${chkSign} class="rounded text-cyan-600"></td>
+          </tr>`;
+      });
+    }
+
+    function saveWaveChanges() {
+      servers.forEach((s, idx) => {
+        const wName = document.getElementById(`wave-name-${idx}`);
+        const wStat = document.getElementById(`wave-status-${idx}`);
+        const cDNS = document.getElementById(`chk-dns-${idx}`);
+        const cFW = document.getElementById(`chk-fw-${idx}`);
+        const cSync = document.getElementById(`chk-sync-${idx}`);
+        const cSign = document.getElementById(`chk-sign-${idx}`);
+
+        if (wName) s.wave = wName.value;
+        if (wStat) s.cutoverStatus = wStat.value;
+        if (cDNS) s.chkDNS = cDNS.checked;
+        if (cFW) s.chkFW = cFW.checked;
+        if (cSync) s.chkSync = cSync.checked;
+        if (cSign) s.chkSign = cSign.checked;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderCutoverWavesTab();
+      alert("Cutover waves and checklists saved successfully!");
     }
 
     function openBulkEditModal() {
@@ -906,10 +986,6 @@
       const tbody = document.getElementById('zertoTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
-        if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description}`.toLowerCase();
-          if (!combined.includes(globalSearchQuery)) return;
-        }
         const isProtected = s.drProtected === 'yes' ? 'checked' : '';
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
@@ -940,10 +1016,6 @@
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
-        if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.veeamJob}`.toLowerCase();
-          if (!combined.includes(globalSearchQuery)) return;
-        }
         const estBackup = Math.round((s.disk || 100) * 0.4);
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
@@ -1049,26 +1121,18 @@
         document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
         document.getElementById('editOriginalName').value = serverName;
         document.getElementById('modalServerName').value = s.serverName;
-        document.getElementById('modalDescription').value = s.description || '';
+        document.getElementById('modalWave').value = s.wave || 'Wave 1 - Pilot';
         document.getElementById('modalDept').value = s.dept || 'INF';
         document.getElementById('modalSystem').value = s.system || '';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
         document.getElementById('modalIP').value = s.ip || '';
-        document.getElementById('modalOwner').value = s.owner || '';
-        document.getElementById('modalDisk').value = s.disk || 100;
-        document.getElementById('modalDR').value = s.drProtected || 'no';
-        document.getElementById('modalVeeamJob').value = s.veeamJob || 'Daily-App-Job';
-        document.getElementById('modalRetention').value = s.veeamRetention || 30;
         document.getElementById('modalDependencies').value = s.dependencies || '';
       } else {
         document.getElementById('serverModalTitle').innerText = "Add New Server";
         document.getElementById('editOriginalName').value = '';
-        ['modalServerName','modalDescription','modalDept','modalSystem','modalIP','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        ['modalServerName','modalDept','modalSystem','modalIP','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('modalWave').value = 'Wave 1 - Pilot';
         document.getElementById('modalDomain').value = 'Becketts';
-        document.getElementById('modalDisk').value = 100;
-        document.getElementById('modalDR').value = 'no';
-        document.getElementById('modalVeeamJob').value = 'Daily-App-Job';
-        document.getElementById('modalRetention').value = 30;
       }
     }
     function closeServerModal() { document.getElementById('serverModal').classList.add('hidden'); }
@@ -1078,17 +1142,13 @@
       const origName = document.getElementById('editOriginalName').value;
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
-        description: document.getElementById('modalDescription').value.trim(),
+        wave: document.getElementById('modalWave').value,
         dept: document.getElementById('modalDept').value.trim() || 'INF',
         system: document.getElementById('modalSystem').value.trim() || 'General',
         domain: document.getElementById('modalDomain').value,
         ip: document.getElementById('modalIP').value.trim(),
-        owner: document.getElementById('modalOwner').value.trim(),
-        disk: parseFloat(document.getElementById('modalDisk').value) || 100,
-        drProtected: document.getElementById('modalDR').value,
-        veeamJob: document.getElementById('modalVeeamJob').value.trim(),
-        veeamRetention: parseInt(document.getElementById('modalRetention').value) || 30,
         dependencies: document.getElementById('modalDependencies').value.trim(),
+        cutoverStatus: 'Not Started',
         x: 20, y: 20
       };
       if (!data.serverName) return alert("Server Name is required.");
@@ -1131,13 +1191,13 @@
     }
 
     function exportToCSV() {
-      let csv = "Server Name,Server Description,Department,System Group,Current IP Address,Current Domain,Task Owner,Disk Size (GB),Zerto DR,Veeam Job,Retention Days,Dependencies\n";
+      let csv = "Server Name,Migration Wave,Department,System Group,Current IP Address,Current Domain,Cutover Status,Dependencies\n";
       servers.forEach(s => {
-        csv += `"${s.serverName}","${(s.description||'').replace(/"/g,'""')}","${s.dept||'INF'}","${s.system||'General'}","${s.ip||''}","${s.domain||'Becketts'}","${s.owner||''}","${s.disk||100}","${s.drProtected||'no'}","${s.veeamJob||'Daily-App-Job'}","${s.veeamRetention||30}","${s.dependencies||''}"\n`;
+        csv += `"${s.serverName}","${s.wave||'Wave 1 - Pilot'}","${s.dept||'INF'}","${s.system||'General'}","${s.ip||''}","${s.domain||'Becketts'}","${s.cutoverStatus||'Not Started'}","${s.dependencies||''}"\n`;
       });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-      a.download = `infops-master-template.csv`;
+      a.download = `ca-migration-waves.csv`;
       a.click();
     }
 
@@ -1172,16 +1232,12 @@
 
           const candidate = {
             serverName: cols[1] || cols[0],
-            description: cols[2] || '',
+            wave: cols[15] || 'Wave 1 - Pilot',
             dept: cols[14] || cols[3] || 'INF',
             system: cols[3] || 'General',
             ip: cols[4] || '',
             domain: cols[7] || cols[5] || 'Becketts',
-            owner: cols[16] || cols[6] || '',
-            disk: 100,
-            drProtected: 'no',
-            veeamJob: 'Daily-App-Job',
-            veeamRetention: 30,
+            cutoverStatus: 'Not Started',
             dependencies: ''
           };
 
@@ -1210,7 +1266,7 @@
       let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' }));
-      a.download = `infops-secure-backup.json`;
+      a.download = `ca-migration-secure-backup.json`;
       a.click();
     }
 
