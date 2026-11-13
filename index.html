@@ -233,7 +233,7 @@
   <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
     let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Infrastructure Command Center" }));
-    const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
+    const ALLOWED_IPS = ["89.38.120.105", "89.38.120.106", "89.38.120.109"];
 
     async function verifyClientIP() {
       try {
