@@ -1,4 +1,4 @@
-<!-- 20261113 v11 - InfOps Master Command Center (Global Counters, Universal Search, Cluster/Reset, Line-by-Line Topology View) -->
+<!-- 20261113 v12 - InfOps Master Command Center (Top-Left Auto-Snap Filter View, Global Counters, Full Bulk Edit) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,7 +82,7 @@
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="filterDomain" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <select id="filterDomain" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Domains</option>
               <option value="Becketts">Becketts</option>
               <option value="UK">UK (uk.toennies.net)</option>
@@ -92,20 +92,20 @@
 
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="filterSystem" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <select id="filterSystem" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Systems</option>
             </select>
           </div>
 
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="filterSubnet" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <select id="filterSubnet" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Subnets</option>
             </select>
           </div>
 
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
-            <input type="checkbox" id="filterShowDeps" checked onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
+            <input type="checkbox" id="filterShowDeps" checked onchange="onFilterChange()" class="rounded text-cyan-600 focus:ring-0">
             <span>🔗 Include Upstream (DC/SQL)</span>
           </label>
         </div>
@@ -126,7 +126,10 @@
             </select>
           </div>
 
-          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Bring all cards together tightly">
+          <button onclick="alignTopLeft()" class="px-2.5 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Fly & align all filtered cards to top-left">
+            <i class="fas fa-arrow-up-left-from-circle mr-1"></i> Top-Left Snap
+          </button>
+          <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Cluster cards tightly together">
             <i class="fas fa-compress-arrows-alt mr-1"></i> Cluster
           </button>
           <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow">
@@ -142,7 +145,7 @@
         <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
       </div>
 
-      <!-- LINE LIST VIEW (Initially hidden) -->
+      <!-- LINE LIST VIEW -->
       <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
         <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
           <table class="w-full text-left border-collapse text-xs">
@@ -593,6 +596,25 @@
       return Array.from(visibleSet);
     }
 
+    function onFilterChange() {
+      alignTopLeft();
+    }
+
+    function alignTopLeft() {
+      const density = document.getElementById('canvasDensity').value;
+      const filtered = getFilteredServers();
+      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
+      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
+      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
+
+      filtered.forEach((s, idx) => {
+        s.x = 20 + (idx % colsCount) * colWidth;
+        s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderTopologyCanvas();
+    }
+
     function renderTopologyCanvas() {
       updateDropdowns();
       updateGlobalCounters();
@@ -734,7 +756,6 @@
     }
 
     function clusterTopologyCards() {
-      // Bring all cards tightly together into a dense cluster
       servers.forEach((s, idx) => {
         s.x = 20 + (idx % 8) * 180;
         s.y = 20 + Math.floor(idx / 8) * 100;
@@ -777,7 +798,6 @@
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
 
-      // Universal search checking ALL fields / headers
       let visibleList = servers.filter(s => {
         if (!q) return true;
         const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
@@ -809,7 +829,6 @@
 
     function openBulkEditModal() {
       if (selectedServerNames.size === 0) {
-        // If none explicitly checked, select all by default for maximum flexibility
         servers.forEach(s => selectedServerNames.add(s.serverName));
       }
       document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
