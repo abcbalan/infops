@@ -1,4 +1,4 @@
-<!-- 20261113 v6 - InfOps Master Command Center (Smart Upsert + Multi-Domain + Dependencies) -->
+<!-- 20261113 v7 - InfOps Master Command Center (All Features & Calculator) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,25 +26,31 @@
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Secure Command Center</span>
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">Migration & Operations Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Operations Planner</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / DR / Backup & Storage Planner</p>
       </div>
     </div>
 
     <!-- NAV TABS -->
-    <div class="flex items-center space-x-2 bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow">
+    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto">
+      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
         <i class="fas fa-draw-polygon mr-1.5"></i> Topology
       </button>
-      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
         <i class="fas fa-server mr-1.5"></i> Inventory
       </button>
-      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
-        <i class="fas fa-shield-alt mr-1.5"></i> Zerto VPGs
+      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+        <i class="fas fa-shield-alt mr-1.5"></i> Zerto DR
       </button>
-      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
         <i class="fas fa-database mr-1.5"></i> Veeam Backups
+      </button>
+      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+        <i class="fas fa-calculator mr-1.5"></i> Storage Calc
+      </button>
+      <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+        <i class="fas fa-stethoscope mr-1.5"></i> IP Health Check
       </button>
     </div>
 
@@ -60,7 +66,7 @@
         <i class="fas fa-upload"></i> Import JSON
         <input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)">
       </label>
-      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON for GitHub">
+      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export Encrypted JSON">
         <i class="fas fa-download"></i> Export JSON
       </button>
     </div>
@@ -77,25 +83,14 @@
             <label class="text-xs font-semibold text-slate-300">Domain:</label>
             <select id="filterDomain" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Domains</option>
-              <option value="beckettsfoods.co.uk">beckettsfoods.co.uk</option>
-              <option value="uk.toennies.net">uk.toennies.net</option>
+              <option value="Becketts">Becketts</option>
+              <option value="UK">UK (uk.toennies.net)</option>
               <option value="Workgroup / DMZ">Workgroup / DMZ</option>
             </select>
           </div>
 
           <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Dept:</label>
-            <select id="filterDept" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Depts</option>
-              <option value="CS - IT Infrastructure">CS - IT Infrastructure</option>
-              <option value="CS - BS">CS - BS</option>
-              <option value="CS - BI">CS - BI</option>
-              <option value="Becketts">Becketts</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
+            <label class="text-xs font-semibold text-slate-300">System / App:</label>
             <select id="filterSystem" onchange="renderTopologyCanvas()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Systems</option>
             </select>
@@ -109,15 +104,15 @@
 
         <div class="flex items-center space-x-2">
           <button onclick="autoLayoutCanvas()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
-            <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange
+            <i class="fas fa-project-diagram mr-1"></i> Auto-Arrange Tidy
           </button>
           <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700" id="nodeCountBadge">Showing 0 VMs</span>
         </div>
       </div>
 
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-8 select-none">
-        <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3000px] min-h-[2000px]"></svg>
-        <div id="nodesContainer" class="absolute inset-0 w-[3000px] h-[2000px] pointer-events-auto z-10"></div>
+        <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
+        <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
       </div>
     </section>
 
@@ -126,15 +121,15 @@
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white">Server Inventory & Master Excel Sync</h2>
-          <p class="text-xs text-slate-400">Upload your master Excel/CSV anytime. Smart upsert protects existing updates & canvas layouts.</p>
+          <p class="text-xs text-slate-400">Upload your master Excel/CSV anytime. Smart Upsert prevents duplicates and preserves custom edits.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search ID, hostname, IP..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search ID, name, owner..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-52">
           <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
-            <i class="fas fa-file-csv mr-1"></i> Export CSV Template
+            <i class="fas fa-file-csv mr-1"></i> Export Master CSV
           </button>
           <label class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow">
-            <i class="fas fa-file-excel mr-1"></i> Smart Import CSV
+            <i class="fas fa-file-excel mr-1"></i> Smart Import Master Excel/CSV
             <input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)">
           </label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -149,11 +144,11 @@
               <tr>
                 <th class="p-3">Server ID</th>
                 <th class="p-3">Server Name</th>
-                <th class="p-3">Description</th>
-                <th class="p-3">AD Domain</th>
+                <th class="p-3">System / App Group</th>
+                <th class="p-3">Domain</th>
                 <th class="p-3">Current IP</th>
-                <th class="p-3">Entity</th>
                 <th class="p-3">Task Owner</th>
+                <th class="p-3">Disk (GB)</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -163,21 +158,28 @@
       </div>
     </section>
 
-    <!-- TAB 3: ZERTO VPGs -->
+    <!-- TAB 3: ZERTO DR -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">Zerto VPG & Disaster Recovery Matrix</h2>
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Zerto Disaster Recovery (DR) Control Panel</h2>
+          <p class="text-xs text-slate-400">Manage your DR servers (easily toggle replication and set VPG assignments).</p>
+        </div>
+        <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
+          <i class="fas fa-save mr-1"></i> Save DR Changes
+        </button>
       </div>
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
+                <th class="p-3">DR Protected?</th>
                 <th class="p-3">Server ID</th>
                 <th class="p-3">Server Name</th>
-                <th class="p-3">AD Domain</th>
+                <th class="p-3">VPG Name</th>
+                <th class="p-3">Target Site / Notes</th>
                 <th class="p-3">Current IP</th>
-                <th class="p-3">Description</th>
               </tr>
             </thead>
             <tbody id="zertoTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -188,23 +190,102 @@
 
     <!-- TAB 4: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">Veeam Backup Job Tracking</h2>
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Veeam Backup Job & Retention Management</h2>
+          <p class="text-xs text-slate-400">Configure backup jobs, schedule times, and retention periods per server.</p>
+        </div>
+        <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow">
+          <i class="fas fa-save mr-1"></i> Save Backup Changes
+        </button>
       </div>
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
-                <th class="p-3">Server ID</th>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Info Source</th>
-                <th class="p-3">AD Domain</th>
-                <th class="p-3">Current IP</th>
+                <th class="p-3">Server ID & Name</th>
+                <th class="p-3">Veeam Backup Job Name</th>
+                <th class="p-3">Backup Time</th>
+                <th class="p-3">Retention Period (Days)</th>
+                <th class="p-3">Est. Backup Size</th>
               </tr>
             </thead>
             <tbody id="veeamTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: STORAGE & HARDWARE CALCULATOR -->
+    <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
+      <div class="max-w-4xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
+          <p class="text-xs text-slate-400">Calculates total primary VM disk capacity and required Veeam backup repository storage based on retention periods and daily change rates.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-slate-400 uppercase">Total Servers Tracked</div>
+            <div id="calcTotalServers" class="text-3xl font-extrabold text-white mt-1">0</div>
+            <div class="text-[11px] text-cyan-400 mt-2">Inventory count with disk assigned</div>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-slate-400 uppercase">Total Primary VM Disk Size</div>
+            <div id="calcTotalPrimaryDisk" class="text-3xl font-extrabold text-cyan-400 mt-1">0 GB</div>
+            <div class="text-[11px] text-slate-400 mt-2">Combined raw capacity</div>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-slate-400 uppercase">Est. Veeam Repository Storage</div>
+            <div id="calcTotalBackupStorage" class="text-3xl font-extrabold text-emerald-400 mt-1">0 GB</div>
+            <div class="text-[11px] text-slate-400 mt-2">Includes retention & incremental delta</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
+          <h3 class="font-bold text-white text-sm mb-4">Storage Breakdown by System / Application Group</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
+                <tr>
+                  <th class="p-3">System / Application</th>
+                  <th class="p-3">VM Count</th>
+                  <th class="p-3">Total Disk (GB)</th>
+                  <th class="p-3">Est. Backup Storage (GB)</th>
+                </tr>
+              </thead>
+              <tbody id="calcBreakdownBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: IP HEALTH CHECK & DUPLICATES -->
+    <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
+      <div class="max-w-4xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white">Data Health & IP Address Validator</h2>
+          <p class="text-xs text-slate-400">Automatically inspects your master inventory for duplicate IP addresses, missing IPs, or formatting errors.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-800 border border-amber-800/60 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-amber-400 uppercase">Duplicate IP Collisions</div>
+            <div id="healthDupCount" class="text-3xl font-extrabold text-amber-300 mt-1">0</div>
+            <div class="text-[11px] text-slate-400 mt-2">Servers sharing the exact same IP address</div>
+          </div>
+          <div class="bg-slate-800 border border-red-800/60 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-red-400 uppercase">Missing / Unknown IPs</div>
+            <div id="healthMissingCount" class="text-3xl font-extrabold text-red-300 mt-1">0</div>
+            <div class="text-[11px] text-slate-400 mt-2">Servers without valid IP assignments</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 class="font-bold text-white text-sm">Health Inspection Log</h3>
+          <div id="healthLogContainer" class="space-y-2 text-xs"></div>
         </div>
       </div>
     </section>
@@ -217,9 +298,9 @@
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <div>
           <h3 class="font-bold text-white text-base flex items-center gap-2">
-            <i class="fas fa-filter text-amber-400"></i> Smart Master File Upsert & Duplicate Inspector
+            <i class="fas fa-filter text-amber-400"></i> Smart Master Upsert & Duplicate Inspector
           </h3>
-          <p class="text-xs text-slate-400">Review changes against your existing inventory before committing.</p>
+          <p class="text-xs text-slate-400">Review changes against existing inventory before merging.</p>
         </div>
         <button onclick="closeImportPreview()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
       </div>
@@ -258,7 +339,7 @@
 
   <!-- SERVER MODAL -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+    <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add Server</h3>
         <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
@@ -278,9 +359,13 @@
           <input type="text" id="modalDescription" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
+          <label class="font-semibold text-slate-300 mb-1 block">System / Application Group:</label>
+          <input type="text" id="modalSystem" placeholder="e.g. Sage X3, Active Directory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
           <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
           <select id="modalDomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-            <option value="Becketts">Becketts (beckettsfoods.co.uk)</option>
+            <option value="Becketts">Becketts</option>
             <option value="UK">UK (uk.toennies.net)</option>
             <option value="Workgroup / DMZ">Workgroup / DMZ</option>
           </select>
@@ -290,12 +375,27 @@
           <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
         </div>
         <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Entity:</label>
-          <input type="text" id="modalEntity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-        </div>
-        <div>
           <label class="font-semibold text-slate-300 mb-1 block">Task Owner:</label>
           <input type="text" id="modalOwner" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Disk Capacity (GB):</label>
+          <input type="number" id="modalDisk" value="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Zerto DR Protected?:</label>
+          <select id="modalDR" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="no">No</option>
+            <option value="yes">Yes (DR Protected)</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Veeam Backup Job:</label>
+          <input type="text" id="modalVeeamJob" placeholder="Daily-App-Job" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Retention Period (Days):</label>
+          <input type="number" id="modalRetention" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
         </div>
         <div class="col-span-2">
           <label class="font-semibold text-cyan-300 mb-1 block">Upstream Dependencies (comma-separated names, or [ALL] for DCs):</label>
@@ -365,27 +465,28 @@
     function updateSystemDropdown() {
       const select = document.getElementById('filterSystem');
       const current = select.value;
-      const systems = [...new Set(servers.map(s => s.entity).filter(Boolean))].sort();
-      select.innerHTML = '<option value="ALL">All Entities</option>';
+      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+      select.innerHTML = '<option value="ALL">All Systems / Apps</option>';
       systems.forEach(sys => { select.innerHTML += `<option value="${sys}">${sys}</option>`; });
       if (systems.includes(current)) select.value = current;
     }
 
     function switchTab(tabId) {
-      ['canvas', 'inventory', 'zerto', 'veeam'].forEach(t => {
+      ['canvas', 'inventory', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
         document.getElementById(`tabContent-${t}`).classList.toggle('hidden', t !== tabId);
-        document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-4 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow" : "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition";
+        document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0";
       });
       if (tabId === 'canvas') renderTopologyCanvas();
       if (tabId === 'inventory') renderInventoryTable();
       if (tabId === 'zerto') renderZertoTable();
       if (tabId === 'veeam') renderVeeamTable();
+      if (tabId === 'calculator') renderCalculatorTab();
+      if (tabId === 'health') renderHealthTab();
     }
 
     function renderTopologyCanvas() {
       updateSystemDropdown();
       const domFilter = document.getElementById('filterDomain').value;
-      const deptFilter = document.getElementById('filterDept').value;
       const sysFilter = document.getElementById('filterSystem').value;
       const showDeps = document.getElementById('filterShowDeps').checked;
 
@@ -395,8 +496,7 @@
       let primary = servers.filter(s => {
         const sDom = s.domain || 'Becketts';
         if (domFilter !== 'ALL' && sDom !== domFilter) return false;
-        if (deptFilter !== 'ALL' && s.dept !== deptFilter) return false;
-        if (sysFilter !== 'ALL' && s.entity !== sysFilter) return false;
+        if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
         return true;
       });
 
@@ -422,8 +522,8 @@
       document.getElementById('nodeCountBadge').innerText = `Showing ${filtered.length} VMs`;
 
       filtered.forEach((s, idx) => {
-        if (s.x === undefined) s.x = 60 + (idx % 4) * 320;
-        if (s.y === undefined) s.y = 60 + Math.floor(idx / 4) * 200;
+        if (s.x === undefined) s.x = 60 + (idx % 4) * 340;
+        if (s.y === undefined) s.y = 60 + Math.floor(idx / 4) * 210;
 
         const sDom = s.domain || 'Becketts';
         const isUK = sDom.includes('UK') || sDom.includes('uk');
@@ -443,12 +543,12 @@
             <span class="text-[9px] px-1.5 py-0.5 rounded border font-mono ${domBadgeClass} truncate">
               <i class="fas fa-globe mr-1"></i>${sDom}
             </span>
-            <span class="text-[9px] text-slate-400 font-semibold truncate">${s.entity || ''}</span>
+            <span class="text-[9px] text-slate-400 font-semibold truncate">${s.system || 'General'}</span>
           </div>
           <div class="text-[11px] text-slate-300 truncate">${s.description || ''}</div>
           <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-700">
             <span class="text-cyan-400">${s.ip || 'No IP'}</span>
-            <span class="text-amber-400 font-sans font-semibold">${s.owner || ''}</span>
+            <span class="text-amber-400 font-sans font-semibold">${s.owner || 'Unassigned'}</span>
           </div>
         `;
         makeDraggable(el, s);
@@ -522,8 +622,8 @@
 
     function autoLayoutCanvas() {
       servers.forEach((s, idx) => {
-        s.x = 60 + Math.floor(idx / 4) * 320;
-        s.y = 60 + (idx % 4) * 200;
+        s.x = 60 + (idx % 4) * 340;
+        s.y = 60 + Math.floor(idx / 4) * 210;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderTopologyCanvas();
@@ -537,8 +637,8 @@
         s.serverID.toLowerCase().includes(q) || 
         s.serverName.toLowerCase().includes(q) || 
         (s.ip || '').toLowerCase().includes(q) ||
-        (s.description || '').toLowerCase().includes(q) ||
-        (s.owner || '').toLowerCase().includes(q)
+        (s.owner || '').toLowerCase().includes(q) ||
+        (s.system || '').toLowerCase().includes(q)
       ).forEach(s => {
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
@@ -546,11 +646,11 @@
           <tr class="hover:bg-slate-700/50 transition">
             <td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td>
             <td class="p-3 font-bold text-white">${s.serverName}</td>
-            <td class="p-3 text-slate-300 truncate max-w-xs" title="${s.description || ''}">${s.description || '-'}</td>
+            <td class="p-3 text-slate-300">${s.system || 'General'}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3">${s.entity || '-'}</td>
             <td class="p-3 text-amber-400">${s.owner || '-'}</td>
+            <td class="p-3 font-mono">${s.disk || 100} GB</td>
             <td class="p-3 text-right">
               <button onclick="editServer('${s.serverID}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
               <button onclick="deleteServer('${s.serverID}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
@@ -562,17 +662,131 @@
     function renderZertoTable() {
       const tbody = document.getElementById('zertoTableBody');
       tbody.innerHTML = '';
-      servers.forEach(s => {
-        tbody.innerHTML += `<tr class="hover:bg-slate-700/50"><td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td><td class="p-3 font-bold">${s.serverName}</td><td class="p-3 font-mono text-xs">${s.domain || 'Becketts'}</td><td class="p-3 font-mono">${s.ip || '-'}</td><td class="p-3 text-slate-300">${s.description || '-'}</td></tr>`;
+      servers.forEach((s, idx) => {
+        const isProtected = s.drProtected === 'yes' ? 'checked' : '';
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50">
+            <td class="p-3"><input type="checkbox" id="dr-chk-${idx}" ${isProtected} class="rounded text-cyan-600"></td>
+            <td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td>
+            <td class="p-3 font-bold text-white">${s.serverName}</td>
+            <td class="p-3"><input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
+            <td class="p-3"><input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
+            <td class="p-3 font-mono">${s.ip || '-'}</td>
+          </tr>`;
       });
+    }
+
+    function saveZertoChanges() {
+      servers.forEach((s, idx) => {
+        const chk = document.getElementById(`dr-chk-${idx}`);
+        const vpg = document.getElementById(`dr-vpg-${idx}`);
+        const site = document.getElementById(`dr-site-${idx}`);
+        if (chk) s.drProtected = chk.checked ? 'yes' : 'no';
+        if (vpg) s.vpg = vpg.value.trim();
+        if (site) s.drSite = site.value.trim();
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      alert("Zerto DR settings saved successfully!");
     }
 
     function renderVeeamTable() {
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
-      servers.forEach(s => {
-        tbody.innerHTML += `<tr class="hover:bg-slate-700/50"><td class="p-3 font-mono text-cyan-400 font-bold">${s.serverID}</td><td class="p-3 font-bold">${s.serverName}</td><td class="p-3 text-emerald-400">${s.source || 'VMware'}</td><td class="p-3 font-mono text-xs">${s.domain || 'Becketts'}</td><td class="p-3 font-mono">${s.ip || '-'}</td></tr>`;
+      servers.forEach((s, idx) => {
+        const estBackup = Math.round((s.disk || 100) * 0.4); // ~40% for incremental backup chain
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50">
+            <td class="p-3 font-bold text-white">${s.serverID} - ${s.serverName}</td>
+            <td class="p-3"><input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
+            <td class="p-3"><input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono"></td>
+            <td class="p-3"><input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-24 font-mono"></td>
+            <td class="p-3 font-mono text-emerald-400">~${estBackup} GB</td>
+          </tr>`;
       });
+    }
+
+    function saveVeeamChanges() {
+      servers.forEach((s, idx) => {
+        const job = document.getElementById(`veeam-job-${idx}`);
+        const time = document.getElementById(`veeam-time-${idx}`);
+        const ret = document.getElementById(`veeam-ret-${idx}`);
+        if (job) s.veeamJob = job.value.trim();
+        if (time) s.veeamTime = time.value.trim();
+        if (ret) s.veeamRetention = parseInt(ret.value) || 30;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      alert("Veeam backup settings saved successfully!");
+    }
+
+    function renderCalculatorTab() {
+      let totalServers = servers.length;
+      let totalDisk = 0;
+      let totalBackup = 0;
+      let breakdown = {};
+
+      servers.forEach(s => {
+        let d = parseFloat(s.disk) || 100;
+        totalDisk += d;
+        let b = d * 0.35 * (Math.min(s.veeamRetention || 30, 30) / 10);
+        totalBackup += b;
+
+        let sys = s.system || 'General';
+        if (!breakdown[sys]) breakdown[sys] = { count: 0, disk: 0, backup: 0 };
+        breakdown[sys].count++;
+        breakdown[sys].disk += d;
+        breakdown[sys].backup += b;
+      });
+
+      document.getElementById('calcTotalServers').innerText = totalServers;
+      document.getElementById('calcTotalPrimaryDisk').innerText = `${totalDisk.toLocaleString()} GB`;
+      document.getElementById('calcTotalBackupStorage').innerText = `${Math.round(totalBackup).toLocaleString()} GB`;
+
+      const tbody = document.getElementById('calcBreakdownBody');
+      tbody.innerHTML = '';
+      Object.keys(breakdown).sort().forEach(sys => {
+        let data = breakdown[sys];
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/50">
+            <td class="p-3 font-bold text-white">${sys}</td>
+            <td class="p-3">${data.count}</td>
+            <td class="p-3 font-mono">${data.disk.toLocaleString()} GB</td>
+            <td class="p-3 font-mono text-emerald-400">~${Math.round(data.backup).toLocaleString()} GB</td>
+          </tr>`;
+      });
+    }
+
+    function renderHealthTab() {
+      let ipMap = {};
+      let missingCount = 0;
+      let dupCount = 0;
+      let logHtml = '';
+
+      servers.forEach(s => {
+        let ip = (s.ip || '').trim();
+        if (!ip || ip.toLowerCase() === 'unknown' || ip.toLowerCase() === 'n/a') {
+          missingCount++;
+          logHtml += `<div class="p-2 rounded bg-red-950/40 border border-red-800/60 text-red-300"><strong>[MISSING IP]</strong> Server <strong>${s.serverID} (${s.serverName})</strong> has no valid IP address assigned.</div>`;
+        } else {
+          if (!ipMap[ip]) ipMap[ip] = [];
+          ipMap[ip].push(s);
+        }
+      });
+
+      Object.keys(ipMap).forEach(ip => {
+        if (ipMap[ip].length > 1) {
+          dupCount++;
+          let names = ipMap[ip].map(x => `${x.serverID} (${x.serverName})`).join(', ');
+          logHtml += `<div class="p-2 rounded bg-amber-950/40 border border-amber-800/60 text-amber-300"><strong>[IP COLLISION]</strong> IP address <strong>${ip}</strong> is shared by multiple servers: ${names}</div>`;
+        }
+      });
+
+      if (logHtml === '') {
+        logHtml = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-center font-semibold"><i class="fas fa-check-circle mr-2"></i>All server IP addresses are valid and unique!</div>';
+      }
+
+      document.getElementById('healthMissingCount').innerText = missingCount;
+      document.getElementById('healthDupCount').innerText = dupCount;
+      document.getElementById('healthLogContainer').innerHTML = logHtml;
     }
 
     function openServerModal(serverID = null) {
@@ -584,16 +798,24 @@
         document.getElementById('modalServerID').value = s.serverID;
         document.getElementById('modalServerName').value = s.serverName;
         document.getElementById('modalDescription').value = s.description || '';
+        document.getElementById('modalSystem').value = s.system || '';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
         document.getElementById('modalIP').value = s.ip || '';
-        document.getElementById('modalEntity').value = s.entity || '';
         document.getElementById('modalOwner').value = s.owner || '';
+        document.getElementById('modalDisk').value = s.disk || 100;
+        document.getElementById('modalDR').value = s.drProtected || 'no';
+        document.getElementById('modalVeeamJob').value = s.veeamJob || 'Daily-App-Job';
+        document.getElementById('modalRetention').value = s.veeamRetention || 30;
         document.getElementById('modalDependencies').value = s.dependencies || '';
       } else {
         document.getElementById('serverModalTitle').innerText = "Add Server";
         document.getElementById('editOriginalId').value = '';
-        ['modalServerID','modalServerName','modalDescription','modalIP','modalEntity','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        ['modalServerID','modalServerName','modalDescription','modalSystem','modalIP','modalOwner','modalDependencies'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('modalDomain').value = 'Becketts';
+        document.getElementById('modalDisk').value = 100;
+        document.getElementById('modalDR').value = 'no';
+        document.getElementById('modalVeeamJob').value = 'Daily-App-Job';
+        document.getElementById('modalRetention').value = 30;
       }
     }
     function closeServerModal() { document.getElementById('serverModal').classList.add('hidden'); }
@@ -605,12 +827,15 @@
         serverID: document.getElementById('modalServerID').value.trim() || `SRV-${Date.now().toString().slice(-4)}`,
         serverName: document.getElementById('modalServerName').value.trim(),
         description: document.getElementById('modalDescription').value.trim(),
+        system: document.getElementById('modalSystem').value.trim() || 'General',
         domain: document.getElementById('modalDomain').value,
         ip: document.getElementById('modalIP').value.trim(),
-        entity: document.getElementById('modalEntity').value.trim(),
         owner: document.getElementById('modalOwner').value.trim(),
+        disk: parseFloat(document.getElementById('modalDisk').value) || 100,
+        drProtected: document.getElementById('modalDR').value,
+        veeamJob: document.getElementById('modalVeeamJob').value.trim(),
+        veeamRetention: parseInt(document.getElementById('modalRetention').value) || 30,
         dependencies: document.getElementById('modalDependencies').value.trim(),
-        source: 'Manual',
         x: 100, y: 100
       };
       if (!data.serverName) return alert("Server Name is required.");
@@ -653,9 +878,9 @@
     }
 
     function exportToCSV() {
-      let csv = "ServerID,Server Name,Server Description,Server Info Source,Current IP Address,Current Domain,Entity,Task Owner,Dependencies\n";
+      let csv = "ServerID,Server Name,Server Description,System Group,Current IP Address,Current Domain,Task Owner,Disk Size (GB),Zerto DR,Veeam Job,Retention Days,Dependencies\n";
       servers.forEach(s => {
-        csv += `"${s.serverID}","${s.serverName}","${(s.description||'').replace(/"/g,'""')}","${s.source||'VMware'}","${s.ip||''}","${s.domain||'Becketts'}","${s.entity||''}","${s.owner||''}","${s.dependencies||''}"\n`;
+        csv += `"${s.serverID}","${s.serverName}","${(s.description||'').replace(/"/g,'""')}","${s.system||'General'}","${s.ip||''}","${s.domain||'Becketts'}","${s.owner||''}","${s.disk||100}","${s.drProtected||'no'}","${s.veeamJob||'Daily-App-Job'}","${s.veeamRetention||30}","${s.dependencies||''}"\n`;
       });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -685,7 +910,6 @@
         pendingImportAnalysis = { newItems: [], updatedItems: [], duplicateItems: [] };
         let headerRowIdx = 0;
 
-        // Auto-detect header row based on Sample.xlsx structure
         for (let i = 0; i < Math.min(lines.length, 10); i++) {
           if (lines[i].includes('ServerID') || lines[i].includes('Server Name')) {
             headerRowIdx = i; break;
@@ -701,12 +925,15 @@
             serverID: cols[0] || `SRV-${i}`,
             serverName: cols[1] || cols[0],
             description: cols[2] || '',
-            source: cols[3] || 'VMware',
+            system: cols[14] || cols[3] || 'General',
             ip: cols[4] || '',
             domain: cols[7] || cols[5] || 'Becketts',
-            entity: cols[14] || cols[6] || 'Becketts',
             owner: cols[16] || '',
-            dependencies: cols[24] || ''
+            disk: 100,
+            drProtected: 'no',
+            veeamJob: 'Daily-App-Job',
+            veeamRetention: 30,
+            dependencies: ''
           };
 
           const existing = servers.find(s => s.serverID.toLowerCase() === candidate.serverID.toLowerCase() || s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
@@ -715,7 +942,7 @@
             pendingImportAnalysis.newItems.push(candidate);
           } else {
             const diffs = [];
-            ['serverName','description','ip','domain','entity','owner','dependencies'].forEach(field => {
+            ['serverName','description','system','ip','domain','owner'].forEach(field => {
               if ((existing[field] || '') !== (candidate[field] || '')) {
                 diffs.push(`${field}: "${existing[field] || ''}" → "${candidate[field] || ''}"`);
               }
@@ -764,8 +991,8 @@
       const onlyNew = document.getElementById('chkOnlyNew').checked;
 
       pendingImportAnalysis.newItems.forEach((item, idx) => {
-        item.x = 60 + ((servers.length + idx) % 4) * 320;
-        item.y = 60 + Math.floor((servers.length + idx) / 4) * 200;
+        item.x = 60 + ((servers.length + idx) % 4) * 340;
+        item.y = 60 + Math.floor((servers.length + idx) / 4) * 210;
         servers.push(item);
       });
 
@@ -775,7 +1002,7 @@
           if (idx !== -1) {
             u.candidate.x = u.existing.x;
             u.candidate.y = u.existing.y;
-            servers[idx] = u.candidate;
+            servers[idx] = Object.assign({}, u.existing, u.candidate);
           }
         });
       }
