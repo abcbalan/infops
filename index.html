@@ -1,4 +1,4 @@
-<!-- 20261113 v12 - InfOps Master Command Center (Top-Left Auto-Snap Filter View, Global Counters, Full Bulk Edit) -->
+<!-- 20261113 v13 - InfOps Master Command Center (Global Navbar Search, Resizable Table Widths, Universal Counters) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,14 +13,14 @@
     .node-card:active { cursor: grabbing; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    th { resize: horizontal; overflow: auto; }
+    th { resize: horizontal; overflow: auto; min-width: 80px; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
 
   <!-- TOP HEADER NAVBAR -->
-  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md">
-    <div class="flex items-center space-x-3">
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4">
+    <div class="flex items-center space-x-3 shrink-0">
       <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
         <i class="fas fa-network-wired"></i>
       </div>
@@ -33,43 +33,41 @@
       </div>
     </div>
 
+    <!-- UNIVERSAL GLOBAL SEARCH -->
+    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner">
+      <i class="fas fa-search text-slate-400 mr-2 text-xs"></i>
+      <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere (name, IP, dept)..." class="bg-transparent text-xs text-white focus:outline-none w-full">
+      <span id="globalSearchCount" class="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded ml-1 font-mono">0</span>
+    </div>
+
     <!-- NAV TABS -->
-    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto">
+    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto shrink-0">
       <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
-        <i class="fas fa-draw-polygon mr-1.5"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-draw-polygon mr-1"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-server mr-1.5"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-shield-alt mr-1.5"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-database mr-1.5"></i> Veeam Backups <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-database mr-1"></i> Veeam <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-calculator mr-1.5"></i> Storage Calc <span id="counter-calculator" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-calculator mr-1"></i> Calc <span id="counter-calculator" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-stethoscope mr-1.5"></i> IP Health <span id="counter-health" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-stethoscope mr-1"></i> Health <span id="counter-health" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
     </div>
 
     <!-- UTILITY ACTIONS -->
-    <div class="flex items-center space-x-2">
-      <button onclick="openSettingsModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition flex items-center gap-1.5">
-        <i class="fas fa-cog"></i> Settings
-      </button>
-      <button onclick="openEncryptionModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition flex items-center gap-1.5">
-        <i class="fas fa-key"></i> Key
-      </button>
-      <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition flex items-center gap-1.5" title="Import JSON">
-        <i class="fas fa-upload"></i> Import JSON
-        <input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)">
-      </label>
-      <button onclick="exportEncryptedJSON()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 shadow" title="Export JSON">
-        <i class="fas fa-download"></i> Export JSON
-      </button>
+    <div class="flex items-center space-x-2 shrink-0">
+      <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition" title="Settings"><i class="fas fa-cog"></i></button>
+      <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition" title="Encryption Key"><i class="fas fa-key"></i></button>
+      <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
+      <button onclick="exportEncryptedJSON()" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition shadow" title="Export JSON"><i class="fas fa-download"></i></button>
     </div>
   </header>
 
@@ -132,10 +130,10 @@
           <button onclick="clusterTopologyCards()" class="px-2.5 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Cluster cards tightly together">
             <i class="fas fa-compress-arrows-alt mr-1"></i> Cluster
           </button>
-          <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow">
+          <button onclick="autoLayoutCanvas()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow" title="Tidy Grid">
             <i class="fas fa-th mr-1"></i> Tidy Grid
           </button>
-          <span class="text-xs text-slate-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold" id="nodeCountBadge">0 VMs</span>
+          <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
         </div>
       </div>
 
@@ -170,23 +168,26 @@
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Server Inventory Matrix & Universal Bulk Edit</h2>
-          <p class="text-xs text-slate-400">Search checks all headers. Columns are horizontally resizable by dragging their right edge.</p>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Server Inventory Matrix & Universal Bulk Edit
+            <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
+          <p class="text-xs text-slate-400">Drag the right edge of any table header to adjust column widths.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search name, dept, IP, owner..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-56">
+          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search local inventory..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition">
-            <i class="fas fa-edit mr-1"></i> Bulk Update Selected (<span id="selectedCountBadge">0</span>)
+            <i class="fas fa-edit mr-1"></i> Bulk Update (<span id="selectedCountBadge">0</span>)
           </button>
           <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition">
             <i class="fas fa-file-csv mr-1"></i> Export CSV
           </button>
           <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow">
-            <i class="fas fa-file-excel mr-1"></i> Smart Import
+            <i class="fas fa-file-excel mr-1"></i> Import
             <input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)">
           </label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow">
-            <i class="fas fa-plus mr-1"></i> Add Server
+            <i class="fas fa-plus mr-1"></i> Add
           </button>
         </div>
       </div>
@@ -215,8 +216,11 @@
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Zerto Disaster Recovery (DR) Control Panel</h2>
-          <p class="text-xs text-slate-400">Manage DR protection status and VPG assignments.</p>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Zerto Disaster Recovery (DR) Control Panel
+            <span id="zertoCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
+          <p class="text-xs text-slate-400">Manage DR protection status and VPG assignments. Resize table columns by dragging headers.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -249,8 +253,11 @@
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Veeam Backup Job, Schedule & Retention Management</h2>
-          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server.</p>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Veeam Backup Job & Retention Management
+            <span id="veeamCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
+          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server. Resize table columns by dragging headers.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow">
@@ -283,7 +290,10 @@
     <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
-          <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            Hardware & Veeam Backup Storage Calculator
+            <span id="calcCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
           <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage.</p>
         </div>
 
@@ -325,7 +335,10 @@
     <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
-          <h2 class="text-xl font-bold text-white">Data Health & IP Address Validator</h2>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            Data Health & IP Address Validator
+            <span id="healthCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
           <p class="text-xs text-slate-400">Inspects inventory for duplicate IP addresses or missing entries.</p>
         </div>
 
@@ -486,6 +499,7 @@
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110"];
     let selectedServerNames = new Set();
     let currentTopoMode = 'visual';
+    let globalSearchQuery = '';
 
     async function verifyClientIP() {
       try {
@@ -512,6 +526,30 @@
         const el = document.getElementById(`counter-${t}`);
         if (el) el.innerText = total;
       });
+      document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
+      document.getElementById('zertoCountBadge').innerText = `${total} servers`;
+      document.getElementById('veeamCountBadge').innerText = `${total} servers`;
+      document.getElementById('calcCountBadge').innerText = `${total} servers`;
+      document.getElementById('healthCountBadge').innerText = `${total} servers`;
+    }
+
+    function onGlobalSearch(val) {
+      globalSearchQuery = val.trim().toLowerCase();
+      const matchCount = servers.filter(s => {
+        if (!globalSearchQuery) return true;
+        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase().includes(globalSearchQuery);
+      }).length;
+      document.getElementById('globalSearchCount').innerText = matchCount;
+
+      // Re-render current active tab
+      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
+      if (activeTab) {
+        const tabId = activeTab.id.replace('tabContent-', '');
+        if (tabId === 'canvas') renderTopologyCanvas();
+        else if (tabId === 'inventory') renderInventoryTable();
+        else if (tabId === 'zerto') renderZertoTable();
+        else if (tabId === 'veeam') renderVeeamTable();
+      }
     }
 
     function updateDropdowns() {
@@ -566,6 +604,10 @@
       const showDeps = document.getElementById('filterShowDeps').checked;
 
       let primary = servers.filter(s => {
+        if (globalSearchQuery) {
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
+          if (!combined.includes(globalSearchQuery)) return false;
+        }
         const sDom = s.domain || 'Becketts';
         if (domFilter !== 'ALL' && sDom !== domFilter) return false;
         if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
@@ -794,14 +836,20 @@
 
     function renderInventoryTable() {
       updateGlobalCounters();
-      const q = (document.getElementById('inventorySearch').value || '').toLowerCase();
+      const localQ = (document.getElementById('inventorySearch').value || '').toLowerCase();
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
 
       let visibleList = servers.filter(s => {
-        if (!q) return true;
-        const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
-        return combined.includes(q);
+        if (globalSearchQuery) {
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description} ${s.veeamJob}`.toLowerCase();
+          if (!combined.includes(globalSearchQuery)) return false;
+        }
+        if (localQ) {
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner}`.toLowerCase();
+          if (!combinedLocal.includes(localQ)) return false;
+        }
+        return true;
       });
 
       document.getElementById('selectedCountBadge').innerText = selectedServerNames.size;
@@ -858,6 +906,10 @@
       const tbody = document.getElementById('zertoTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
+        if (globalSearchQuery) {
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.description}`.toLowerCase();
+          if (!combined.includes(globalSearchQuery)) return;
+        }
         const isProtected = s.drProtected === 'yes' ? 'checked' : '';
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
@@ -888,6 +940,10 @@
       const tbody = document.getElementById('veeamTableBody');
       tbody.innerHTML = '';
       servers.forEach((s, idx) => {
+        if (globalSearchQuery) {
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.owner} ${s.veeamJob}`.toLowerCase();
+          if (!combined.includes(globalSearchQuery)) return;
+        }
         const estBackup = Math.round((s.disk || 100) * 0.4);
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50">
