@@ -1,4 +1,4 @@
-<!-- 20261116 v20 - Trying Flexible Header Import, Subnet Filtering & Smart Diff -->
+<!-- 20261116 v21 - Trying Flexible Header Import, Subnet Filtering & Smart Diff -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -545,6 +545,27 @@
 
     let servers = JSON.parse(localStorage.getItem('infops_servers') || '[]');
 
+    function calculateSubnet(ip) {
+  if (!ip || ip === 'N/A' || ip === 'Unknown') return 'Unassigned';
+  
+  // Custom prefix matching rules based on your network architecture
+  if (/^172\.21\.(14|15)\./.test(ip)) return '172.21.14.0/24';
+  if (/^172\.31\.15\./.test(ip))     return '172.31.15.0/24';
+  if (/^172\.31\.1\./.test(ip))      return '172.31.1.0/23';
+  if (/^172\.31\./.test(ip))         return '172.31.0.0/23';
+  if (/^10\.160\.1\./.test(ip))      return '10.160.1.0/24';
+  if (/^10\.10\.0\./.test(ip))       return '10.10.0.0/24';
+  if (/^10\.10\.1\./.test(ip))       return '10.10.1.0/24';
+  if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22';
+
+  // Default fallback /24 calculation for any other IP range
+  const parts = ip.split('.');
+  if (parts.length === 4) {
+    return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+  }
+  return 'Unassigned';
+}
+    
     function applySettings() {
       document.getElementById('brandName').innerText = appSettings.brandName;
       document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Command Center`;
@@ -1559,11 +1580,12 @@
             osFamily: getCol(cols, ['osfamily']) || 'Other',
             domain: getCol(cols, ['domain']) || 'No domain join',
             ip: getCol(cols, ['ipaddress', 'ip']) || '',
-            subnet: getCol(cols, ['subnet']) || 'Unassigned',
             networkName: getCol(cols, ['networkname']) || 'None',
             datastore: getCol(cols, ['datastore']) || 'Unknown',
             disk: parseFloat(getCol(cols, ['totaldiskgb', 'disk'])) || 100
           };
+          // Automatically calculate subnet from IP
+          candidate.subnet = calculateSubnet(candidate.ip);
 
           const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
           if (existingIdx === -1) {
