@@ -1,4 +1,4 @@
-<!-- 20261116 v32 - Trying to add Filter Bars Across All Tabs -->
+<!-- 20261116 v33 - Trying to add Filter Bars Across All Tabs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,20 +19,20 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
 
-  <!-- TOP HEADER NAVBAR -->
-  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4">
-    <div class="flex items-center space-x-3 shrink-0">
-      <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
-        <i class="fas fa-network-wired"></i>
-      </div>
-      <div>
-        <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
-          <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
-        </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
-      </div>
+<!-- TOP HEADER NAVBAR -->
+<header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4 relative z-50">
+  <div class="flex items-center space-x-3 shrink-0 pointer-events-auto">
+    <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
+      <i class="fas fa-network-wired"></i>
     </div>
+    <div>
+      <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
+        <span id="brandName">InfOps</span> 
+        <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
+      </h1>
+      <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
+    </div>
+  </div>
 
     <!-- UNIVERSAL GLOBAL SEARCH -->
     <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner">
