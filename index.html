@@ -1,20 +1,18 @@
-<!-- 20261116 v22 - Trying with Smart Telemetry Diff, Zerto P00-P02 Filters & CS Migration Project Tab -->
+<!-- 20261116 v23 - Trying Inventory Filters & Selection Counter -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">InfOps - CS Infrastructure Operations Hub</title>
+  <title id="pageTitle">InfOps - CS Infra Operations Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .canvas-grid { background-image: radial-gradient(#334155 1.5px, transparent 1.5px); background-size: 16px 16px; }
     .node-card { cursor: grab; transition: box-shadow 0.05s ease, transform 0.1s ease; }
     .node-card:active { cursor: grabbing; }
-    .tier-dropzone.drag-over { background-color: rgba(6, 182, 212, 0.08); border-color: #06b6d4; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    th { resize: horizontal; overflow: auto; min-width: 80px; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
@@ -28,9 +26,9 @@
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CA Infra Migration & Operations Hub</span>
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / CS Migration Project</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">CS Infra Operations Hub / Topology / Zerto DR / Veeam Backup</p>
       </div>
     </div>
 
@@ -43,156 +41,79 @@
 
     <!-- NAV TABS -->
     <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto shrink-0">
-      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
-        <i class="fas fa-draw-polygon mr-1"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
-      </button>
-      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
-      </button>
-      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-flag-checkered mr-1"></i> CS Migration Project <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
-      </button>
-      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
-      </button>
-      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-database mr-1"></i> Veeam <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
+        <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
         <i class="fas fa-calculator mr-1"></i> Calc
       </button>
-      <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
-        <i class="fas fa-stethoscope mr-1"></i> Health
-      </button>
-    </div>
-
-    <!-- UTILITY ACTIONS -->
-    <div class="flex items-center space-x-2 shrink-0">
-      <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition" title="Settings"><i class="fas fa-cog"></i></button>
-      <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition" title="Encryption Key"><i class="fas fa-key"></i></button>
-      <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
-      <button onclick="exportEncryptedJSON()" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition shadow" title="Export JSON"><i class="fas fa-download"></i></button>
     </div>
   </header>
 
   <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- TAB 1: TOPOLOGY, VISIO TREE & LINE LIST -->
-    <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
-      <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-10 shrink-0 gap-3">
+    <!-- INVENTORY MATRIX WITH DROPDOWN FILTERS & LIVE COUNTERS -->
+    <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 overflow-hidden p-6">
+      <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Server Inventory Matrix & Universal Bulk Edit
+            <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 servers</span>
+          </h2>
+          <p class="text-xs text-slate-400">Filter inventory by department, system, domain, or subnet to easily select servers for mass updates.</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5">
+            <i class="fas fa-edit"></i> Bulk Update 
+            <span id="selectedCountBadge" class="bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
+          </button>
+          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
+          <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-plus mr-1"></i> Add Server</button>
+        </div>
+      </div>
+
+      <!-- INVENTORY FILTER BAR -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="filterDomain" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Domains</option>
-              <option value="Becketts">Becketts</option>
-              <option value="uk.toennies.net">uk.toennies.net</option>
-              <option value="No domain join">No domain join</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="filterSubnet" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Subnets</option>
+            <label class="text-xs font-semibold text-slate-300">Department:</label>
+            <select id="invFilterDept" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-semibold text-amber-300">
+              <option value="ALL">All Departments</option>
             </select>
           </div>
 
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="filterSystem" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <select id="invFilterSystem" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
               <option value="ALL">All Systems</option>
             </select>
           </div>
 
-          <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
-            <input type="checkbox" id="filterShowDeps" checked onchange="onFilterChange()" class="rounded text-cyan-600 focus:ring-0">
-            <span>🔗 Include Upstream (DC/SQL)</span>
-          </label>
-        </div>
-
-        <div class="flex items-center space-x-2">
-          <!-- View Toggle -->
-          <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
-            <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
-            <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
-            <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white"><i class="fas fa-list mr-1"></i> Line List</button>
-          </div>
-
-          <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
-            <label class="text-[11px] font-semibold text-slate-400">Density:</label>
-            <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
-              <option value="compact">Compact</option>
-              <option value="normal" selected>Normal</option>
-              <option value="spacious">Spacious</option>
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Domain:</label>
+            <select id="invFilterDomain" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">All Domains</option>
             </select>
           </div>
 
-          <!-- SNAP & CLUSTER BUTTONS -->
-          <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-700 text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-arrow-up-left-from-circle mr-1"></i> Snap</button>
-          <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-compress-arrows-alt mr-1"></i> Cluster</button>
-          
-          <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
+            <select id="invFilterSubnet" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono text-cyan-300">
+              <option value="ALL">All Subnets</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
+            <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search inventory name/IP..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
+          </div>
+          <button onclick="resetInventoryFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition" title="Reset Filters"><i class="fas fa-undo"></i></button>
         </div>
       </div>
 
-      <!-- VISUAL CANVAS VIEW -->
-      <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-4 select-none">
-        <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
-        <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
-      </div>
-
-      <!-- HIERARCHICAL VISIO TREE VIEW -->
-      <div id="canvasTreeView" class="flex-1 bg-slate-900 canvas-grid hidden overflow-auto p-8 relative">
-        <svg id="svgTreeConnectors" class="absolute top-0 left-0 pointer-events-none z-0" style="width: 3500px; height: 3500px;">
-          <defs>
-            <marker id="treeArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-              <path d="M 0 0 L 8 4 L 0 8 z" fill="#06b6d4" />
-            </marker>
-          </defs>
-        </svg>
-        <div id="treeNodesContainer" class="relative z-10 space-y-16 min-w-max pb-20"></div>
-      </div>
-
-      <!-- LINE LIST VIEW -->
-      <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
-              <tr>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Department</th>
-                <th class="p-3">System / App</th>
-                <th class="p-3">Domain</th>
-                <th class="p-3">IP Address</th>
-                <th class="p-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="topologyListTbody" class="divide-y divide-slate-700 text-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: INVENTORY MATRIX -->
-    <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Server Inventory Matrix & Universal Bulk Edit
-            <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-mono">0 servers</span>
-          </h2>
-          <p class="text-xs text-slate-400">Sorted alphabetically by server name. Resize columns by dragging headers.</p>
-        </div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search inventory..." class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
-          <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition"><i class="fas fa-edit mr-1"></i> Bulk Update (<span id="selectedCountBadge">0</span>)</button>
-          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
-          <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow"><i class="fas fa-file-excel mr-1"></i> Import CSV<input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)"></label>
-          <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-plus mr-1"></i> Add</button>
-        </div>
-      </div>
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
@@ -204,211 +125,12 @@
                 <th class="p-3">System / App</th>
                 <th class="p-3">Domain</th>
                 <th class="p-3">IP Address</th>
-                <th class="p-3 text-center">Snapshots</th>
+                <th class="p-3 font-mono">Subnet</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="inventoryTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: CS MIGRATION PROJECT -->
-    <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
-      <div class="max-w-6xl mx-auto w-full space-y-6">
-        <div class="flex flex-wrap justify-between items-center gap-3">
-          <div>
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-              CS Migration Project & Cutover Checklists
-              <span id="waveVmCounter" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 VMs</span>
-            </h2>
-            <p class="text-xs text-slate-400">Coordinate migration execution waves, dependencies, and verification checklists.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Filter Wave:</label>
-              <select id="waveTabFilterWave" onchange="renderCutoverWavesTab()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Waves</option>
-                <option value="Wave 1 - Pilot">Wave 1 - Pilot</option>
-                <option value="Wave 2 - Core Apps">Wave 2 - Core Apps</option>
-                <option value="Wave 3 - Databases & DCs">Wave 3 - Databases & DCs</option>
-                <option value="Unassigned">Unassigned</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Filter Subnet:</label>
-              <select id="waveTabFilterSubnet" onchange="renderCutoverWavesTab()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Subnets</option>
-              </select>
-            </div>
-            <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition"><i class="fas fa-save mr-1.5"></i> Save Progress</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="waveSummaryCards"></div>
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-          <h3 class="font-bold text-white text-sm">Server Migration, IP, Subnet & Dependency Matrix</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-                <tr>
-                  <th class="p-3">Server Name</th>
-                  <th class="p-3">IP Address</th>
-                  <th class="p-3">Subnet</th>
-                  <th class="p-3">Migration Wave</th>
-                  <th class="p-3">Upstream Dependencies</th>
-                  <th class="p-3">Cutover Status</th>
-                  <th class="p-3 text-center">DNS</th>
-                  <th class="p-3 text-center">FW</th>
-                  <th class="p-3 text-center">Sync</th>
-                  <th class="p-3 text-center">Sign-off</th>
-                </tr>
-              </thead>
-              <tbody id="wavesTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 4: ZERTO DR -->
-    <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Zerto Disaster Recovery (DR) Control Panel
-            <span id="zertoVmCounter" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 VMs</span>
-          </h2>
-          <p class="text-xs text-slate-400">Showing servers with DR Status P00, P01, or P02 (Sorted by DR Status then Server Name).</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">DR Status:</label>
-            <select id="zertoFilterStatus" onchange="renderZertoTable()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">P00, P01, P02 (All)</option>
-              <option value="P00">P00</option>
-              <option value="P01">P01</option>
-              <option value="P02">P02</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="zertoFilterSubnet" onchange="renderZertoTable()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Subnets</option>
-            </select>
-          </div>
-          <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-save mr-1"></i> Save DR Changes</button>
-        </div>
-      </div>
-      <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
-        <div class="overflow-y-auto flex-1">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr>
-                <th class="p-3">DR Status</th>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Snapshots?</th>
-                <th class="p-3">Current IP</th>
-                <th class="p-3">Subnet</th>
-              </tr>
-            </thead>
-            <tbody id="zertoTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 5: VEEAM BACKUPS -->
-    <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Veeam Backup Job Management
-            <span id="veeamVmCounter" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 VMs</span>
-          </h2>
-          <p class="text-xs text-slate-400">Configure master backup job names, retention, and schedule directly per server.</p>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="openBulkEditModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
-          <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-save mr-1"></i> Save Backup Changes</button>
-        </div>
-      </div>
-      <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
-        <div class="overflow-y-auto flex-1">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Veeam Backup Job Name (Master / Schedule / Retention)</th>
-                <th class="p-3">Est. Backup Size</th>
-              </tr>
-            </thead>
-            <tbody id="veeamTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 6: STORAGE CALCULATOR -->
-    <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
-      <div class="max-w-4xl mx-auto w-full space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-white">Hardware & Veeam Backup Storage Calculator</h2>
-          <p class="text-xs text-slate-400">Computes primary disk capacity and required Veeam backup repository storage.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
-            <div class="text-xs font-semibold text-slate-400 uppercase">Total Servers Tracked</div>
-            <div id="calcTotalServers" class="text-3xl font-extrabold text-white mt-1">0</div>
-          </div>
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
-            <div class="text-xs font-semibold text-slate-400 uppercase">Total Primary VM Disk Size</div>
-            <div id="calcTotalPrimaryDisk" class="text-3xl font-extrabold text-cyan-400 mt-1">0 GB</div>
-          </div>
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
-            <div class="text-xs font-semibold text-slate-400 uppercase">Est. Veeam Repository Storage</div>
-            <div id="calcTotalBackupStorage" class="text-3xl font-extrabold text-emerald-400 mt-1">0 GB</div>
-          </div>
-        </div>
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-          <h3 class="font-bold text-white text-sm mb-4">Storage Breakdown by System / Application Group</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-                <tr>
-                  <th class="p-3">System / Application</th>
-                  <th class="p-3">VM Count</th>
-                  <th class="p-3">Total Disk (GB)</th>
-                  <th class="p-3">Est. Backup Storage (GB)</th>
-                </tr>
-              </thead>
-              <tbody id="calcBreakdownBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 7: IP HEALTH CHECK -->
-    <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
-      <div class="max-w-4xl mx-auto w-full space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-white">Data Health & IP Address Validator</h2>
-          <p class="text-xs text-slate-400">Inspects inventory for duplicate IP addresses or missing entries.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-800 border border-amber-800/60 rounded-2xl p-5 shadow-lg">
-            <div class="text-xs font-semibold text-amber-400 uppercase">Duplicate IP Collisions</div>
-            <div id="healthDupCount" class="text-3xl font-extrabold text-amber-300 mt-1">0</div>
-          </div>
-          <div class="bg-slate-800 border border-red-800/60 rounded-2xl p-5 shadow-lg">
-            <div class="text-xs font-semibold text-red-400 uppercase">Missing / Unknown IPs</div>
-            <div id="healthMissingCount" class="text-3xl font-extrabold text-red-300 mt-1">0</div>
-          </div>
-        </div>
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-          <h3 class="font-bold text-white text-sm">Health Inspection Log</h3>
-          <div id="healthLogContainer" class="space-y-2 text-xs"></div>
         </div>
       </div>
     </section>
@@ -422,21 +144,15 @@
       <div class="flex flex-col gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
-          <select id="bulkField" onchange="onBulkFieldChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-            <option value="visioTier">Visio Tier Level (Auto, Tier 1, Tier 2, Tier 3, Tier 4)</option>
-            <option value="wave">Migration Wave</option>
-            <option value="cutoverStatus">Cutover Status</option>
-            <option value="domain">AD Domain</option>
-            <option value="dept">Department</option>
+          <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <option value="dept">Department (BI / BS / INF)</option>
             <option value="system">System / Application Group</option>
-            <option value="drProtected">Zerto DR Protected</option>
-            <option value="veeamJob">Veeam Backup Job</option>
+            <option value="domain">AD Domain</option>
           </select>
         </div>
-        <div class="relative">
+        <div>
           <label class="font-semibold text-slate-300 mb-1 block">New Value:</label>
-          <input type="text" id="bulkValue" oninput="onBulkValueInput(this.value)" placeholder="Type or select existing value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <div id="bulkValueDropdown" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-40 overflow-y-auto hidden z-50"></div>
+          <input type="text" id="bulkValue" placeholder="Type new value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
@@ -446,1293 +162,179 @@
     </div>
   </div>
 
-  <!-- SERVER MODAL -->
-  <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-        <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add / Edit Server</h3>
-        <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
-      </div>
-      <input type="hidden" id="editOriginalName">
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
-          <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Visio Tree Tier Level:</label>
-          <select id="modalVisioTier" class="w-full bg-slate-900 border border-cyan-700 rounded-xl px-3 py-2 text-cyan-300 font-bold">
-            <option value="Auto">Auto (Follow Dependency Depth)</option>
-            <option value="Tier 1">Tier 1 - Root / Domain Controllers</option>
-            <option value="Tier 2">Tier 2 - Mid-Tier / Sub-DC / SQL</option>
-            <option value="Tier 3">Tier 3 - Application Servers</option>
-            <option value="Tier 4">Tier 4 - Edge / Client VMs</option>
-          </select>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Migration Wave:</label>
-          <select id="modalWave" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-            <option value="Wave 1 - Pilot">Wave 1 - Pilot</option>
-            <option value="Wave 2 - Core Apps">Wave 2 - Core Apps</option>
-            <option value="Wave 3 - Databases & DCs">Wave 3 - Databases & DCs</option>
-            <option value="Unassigned">Unassigned</option>
-          </select>
-        </div>
-
-        <!-- DEPARTMENT (NO AUTO INF) -->
-        <div class="relative">
-          <label class="font-semibold text-slate-300 mb-1 block">Department (e.g. BS, BI, INF):</label>
-          <input type="text" id="modalDept" oninput="onFieldAutocompleteInput('dept', this.value)" placeholder="e.g. BS, BI, INF..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <div id="dropdown-dept" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
-        </div>
-
-        <div class="relative">
-          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-          <input type="text" id="modalSystem" oninput="onFieldAutocompleteInput('system', this.value)" placeholder="Type or select system..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <div id="dropdown-system" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
-        </div>
-
-        <div class="relative">
-          <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-          <input type="text" id="modalDomain" oninput="onFieldAutocompleteInput('domain', this.value)" placeholder="Type or select domain..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <div id="dropdown-domain" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-36 overflow-y-auto hidden z-50"></div>
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Current IP Address:</label>
-          <input type="text" id="modalIP" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
-          <input type="text" id="modalSubnet" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" placeholder="e.g. 172.31.15.0/24">
-        </div>
-
-        <div class="col-span-2 relative">
-          <label class="font-semibold text-cyan-300 mb-1 block">Upstream Dependencies (Select existing servers):</label>
-          <input type="text" id="modalDependencies" oninput="onDependencyInput(this.value)" placeholder="Type starting letters to select (e.g. DC03, SQL01)..." class="w-full bg-slate-900 border border-cyan-800/70 rounded-xl px-3 py-2 text-white font-mono">
-          <div id="dependencyDropdown" class="absolute left-0 right-0 mt-1 bg-slate-900 border border-cyan-700 rounded-xl shadow-2xl max-h-40 overflow-y-auto hidden z-50"></div>
-        </div>
-
-      </div>
-      <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Save Record</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROJECT SETTINGS MODAL -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
-      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
-      <div class="flex flex-col gap-3 text-xs">
-        <div><label class="font-semibold text-slate-300 mb-1 block">App Name:</label><input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="InfOps"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="CA Infra Migration & Operations Hub"></div>
-      </div>
-      <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveProjectSettings()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ENCRYPTION KEY MODAL -->
-  <div id="encryptionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
-      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Encryption Passphrase</h3>
-      <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-      <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveSecretKey()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCRIPT LOGIC -->
   <script>
-    let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
-    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "CA Infra Migration & Operations Hub" }));
-    const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110","81.105.235.139"];
+    let servers = JSON.parse(localStorage.getItem('infops_servers') || JSON.stringify([
+      { serverName: "BS-APP01", dept: "BS", system: "Billing", domain: "Becketts", ip: "172.31.15.10", subnet: "172.31.15.0/24" },
+      { serverName: "BI-SQL01", dept: "BI", system: "BusinessIntelligence", domain: "Becketts", ip: "172.31.15.20", subnet: "172.31.15.0/24" },
+      { serverName: "INF-DC01", dept: "INF", system: "ActiveDirectory", domain: "CorpUK", ip: "10.160.1.5", subnet: "10.160.1.0/24" },
+      { serverName: "BS-WEB02", dept: "BS", system: "Billing", domain: "Becketts", ip: "172.31.15.15", subnet: "172.31.15.0/24" }
+    ]));
+
     let selectedServerNames = new Set();
-    let currentTopoMode = 'visual';
-    let activeLayoutMode = 'snap';
     let globalSearchQuery = '';
-    let draggedTreeServerName = null;
 
-    async function verifyClientIP() {
-      try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        if (!ALLOWED_IPS.includes(data.ip)) {
-          document.body.innerHTML = `<div class="fixed inset-0 bg-slate-950 flex items-center justify-center text-white text-xl font-bold">Access Denied (${data.ip})</div>`;
-        }
-      } catch (e) {}
-    }
+    function updateDropdowns() {
+      const domains = [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
+      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+      const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+      const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
 
-    let servers = JSON.parse(localStorage.getItem('infops_servers') || '[]');
-    // Ensure alphabetical sort by default
-    servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
+      const fillSel = (id, list, allLabel) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const cur = el.value;
+        el.innerHTML = `<option value="ALL">${allLabel}</option>`;
+        list.forEach(item => { el.innerHTML += `<option value="${item}">${item}</option>`; });
+        if (list.includes(cur)) el.value = cur;
+      };
 
-    function calculateSubnet(ip) {
-      if (!ip || ip === 'N/A' || ip === 'Unknown') return 'Unassigned';
-      if (/^172\.21\.(14|15)\./.test(ip)) return '172.21.14.0/24';
-      if (/^172\.31\.15\./.test(ip))     return '172.31.15.0/24';
-      if (/^172\.31\.1\./.test(ip))      return '172.31.1.0/23';
-      if (/^172\.31\./.test(ip))         return '172.31.0.0/23';
-      if (/^10\.160\.1\./.test(ip))      return '10.160.1.0/24';
-      if (/^10\.10\.0\./.test(ip))       return '10.10.0.0/24';
-      if (/^10\.10\.1\./.test(ip))       return '10.10.1.0/24';
-      if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22';
-
-      const parts = ip.split('.');
-      if (parts.length === 4) {
-        return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
-      }
-      return 'Unassigned';
-    }
-    
-    function applySettings() {
-      document.getElementById('brandName').innerText = appSettings.brandName;
-      document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Command Center`;
-      document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
-      updateGlobalCounters();
+      fillSel('invFilterDept', depts, 'All Departments');
+      fillSel('invFilterSystem', systems, 'All Systems');
+      fillSel('invFilterDomain', domains, 'All Domains');
+      fillSel('invFilterSubnet', subnets, 'All Subnets');
     }
 
     function updateGlobalCounters() {
-      const total = servers.length;
-      ['canvas', 'inventory', 'waves', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
-        const el = document.getElementById(`counter-${t}`);
-        if (el) el.innerText = total;
-      });
-      document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
+      document.getElementById('counter-inventory').innerText = servers.length;
+      document.getElementById('inventoryCountBadge').innerText = `${servers.length} servers`;
+      document.getElementById('selectedCountBadge').innerText = `${selectedServerNames.size} selected`;
     }
 
-    function onGlobalSearch(val) {
-      globalSearchQuery = val.trim().toLowerCase();
-      const matchCount = servers.filter(s => {
-        if (!globalSearchQuery) return true;
-        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave}`.toLowerCase().includes(globalSearchQuery);
-      }).length;
-      document.getElementById('globalSearchCount').innerText = matchCount;
-
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) {
-        const tabId = activeTab.id.replace('tabContent-', '');
-        if (tabId === 'canvas') renderTopologyCanvas();
-        else if (tabId === 'inventory') renderInventoryTable();
-        else if (tabId === 'waves') renderCutoverWavesTab();
-        else if (tabId === 'zerto') renderZertoTable();
-        else if (tabId === 'veeam') renderVeeamTable();
-      }
-    }
-
-    function onFieldAutocompleteInput(fieldKey, val) {
-      const dropdown = document.getElementById(`dropdown-${fieldKey}`);
-      const term = val.trim().toLowerCase();
-      const uniqueValues = [...new Set(servers.map(s => s[fieldKey]).filter(Boolean))].sort();
-
-      if (!term) {
-        if (uniqueValues.length > 0) showFieldDropdown(fieldKey, uniqueValues);
-        else dropdown.classList.add('hidden');
-        return;
-      }
-
-      const matches = uniqueValues.filter(v => v.toLowerCase().includes(term));
-      if (matches.length > 0) showFieldDropdown(fieldKey, matches);
-      else dropdown.classList.add('hidden');
-    }
-
-    function showFieldDropdown(fieldKey, options) {
-      const dropdown = document.getElementById(`dropdown-${fieldKey}`);
-      dropdown.innerHTML = '';
-      options.forEach(opt => {
-        const item = document.createElement('div');
-        item.className = 'px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-950/80 cursor-pointer border-b border-slate-800 font-mono flex justify-between items-center';
-        item.innerHTML = `<span>${opt}</span> <span class="text-[9px] text-slate-400">Existing</span>`;
-        item.onclick = () => selectFieldAutocomplete(fieldKey, opt);
-        dropdown.appendChild(item);
-      });
-      dropdown.classList.remove('hidden');
-    }
-
-    function selectFieldAutocomplete(fieldKey, value) {
-      document.getElementById(`modal${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`).value = value;
-      document.getElementById(`dropdown-${fieldKey}`).classList.add('hidden');
-    }
-
-    function onBulkFieldChange() {
-      document.getElementById('bulkValue').value = '';
-      document.getElementById('bulkValueDropdown').classList.add('hidden');
-    }
-
-    function onBulkValueInput(val) {
-      const field = document.getElementById('bulkField').value;
-      const dropdown = document.getElementById('bulkValueDropdown');
-      const term = val.trim().toLowerCase();
-      let fieldKey = field;
-
-      const uniqueValues = [...new Set(servers.map(s => s[fieldKey]).filter(Boolean))].sort();
-      if (uniqueValues.length === 0) { dropdown.classList.add('hidden'); return; }
-
-      const matches = uniqueValues.filter(v => v.toLowerCase().includes(term));
-      if (matches.length > 0) {
-        dropdown.innerHTML = '';
-        matches.forEach(m => {
-          const item = document.createElement('div');
-          item.className = 'px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-950/80 cursor-pointer border-b border-slate-800 font-mono flex justify-between items-center';
-          item.innerHTML = `<span>${m}</span> <span class="text-[9px] text-slate-400">Existing</span>`;
-          item.onclick = () => {
-            document.getElementById('bulkValue').value = m;
-            dropdown.classList.add('hidden');
-          };
-          dropdown.appendChild(item);
-        });
-        dropdown.classList.remove('hidden');
-      } else {
-        dropdown.classList.add('hidden');
-      }
-    }
-
-    function onDependencyInput(val) {
-      const dropdown = document.getElementById('dependencyDropdown');
-      const currentInputName = document.getElementById('modalServerName').value.trim();
-      const parts = val.split(',');
-      const currentTerm = parts[parts.length - 1].trim().toLowerCase();
-
-      if (!currentTerm && val.endsWith(',')) {
-        showDependencyDropdown(servers.filter(s => s.serverName !== currentInputName));
-        return;
-      }
-      if (!currentTerm) { dropdown.classList.add('hidden'); return; }
-
-      const matches = servers.filter(s => s.serverName.toLowerCase().includes(currentTerm) && s.serverName !== currentInputName);
-      if (matches.length > 0) showDependencyDropdown(matches);
-      else dropdown.classList.add('hidden');
-    }
-
-    function showDependencyDropdown(matches) {
-      const dropdown = document.getElementById('dependencyDropdown');
-      dropdown.innerHTML = '';
-      matches.forEach(m => {
-        const item = document.createElement('div');
-        item.className = 'px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-950/80 cursor-pointer border-b border-slate-800 font-mono flex justify-between items-center';
-        item.innerHTML = `<span>${m.serverName}</span> <span class="text-[10px] text-slate-400">${m.system || 'General'}</span>`;
-        item.onclick = () => selectDependency(m.serverName);
-        dropdown.appendChild(item);
-      });
-      dropdown.classList.remove('hidden');
-    }
-
-    function selectDependency(serverName) {
-      const input = document.getElementById('modalDependencies');
-      let val = input.value;
-      let parts = val.split(',');
-      parts.pop();
-      parts.push(serverName);
-      input.value = parts.map(p => p.trim()).filter(Boolean).join(', ') + ', ';
-      document.getElementById('dependencyDropdown').classList.add('hidden');
-      input.focus();
-    }
-
-    function updateDropdowns() {
-      const sysSelect = document.getElementById('filterSystem');
-      const curSys = sysSelect?.value;
-      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      if (sysSelect) {
-        sysSelect.innerHTML = '<option value="ALL">All Systems</option>';
-        systems.forEach(sys => { sysSelect.innerHTML += `<option value="${sys}">${sys}</option>`; });
-        if (systems.includes(curSys)) sysSelect.value = curSys;
-      }
-
-      const subSelect = document.getElementById('filterSubnet');
-      const curSub = subSelect?.value;
-      const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      if (subSelect) {
-        subSelect.innerHTML = '<option value="ALL">All Subnets</option>';
-        subnets.forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
-        if (subnets.includes(curSub)) subSelect.value = curSub;
-      }
-
-      // Wave Tab Subnet dropdown
-      const waveSubSelect = document.getElementById('waveTabFilterSubnet');
-      const curWaveSub = waveSubSelect?.value;
-      if (waveSubSelect) {
-        waveSubSelect.innerHTML = '<option value="ALL">All Subnets</option>';
-        subnets.forEach(sub => { waveSubSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
-        if (subnets.includes(curWaveSub)) waveSubSelect.value = curWaveSub;
-      }
-
-      // Zerto Subnet dropdown
-      const zertoSubSelect = document.getElementById('zertoFilterSubnet');
-      const curZertoSub = zertoSubSelect?.value;
-      if (zertoSubSelect) {
-        zertoSubSelect.innerHTML = '<option value="ALL">All Subnets</option>';
-        subnets.forEach(sub => { zertoSubSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
-        if (subnets.includes(curZertoSub)) zertoSubSelect.value = curZertoSub;
-      }
-    }
-
-    function switchTab(tabId) {
-      ['canvas', 'inventory', 'waves', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
-        document.getElementById(`tabContent-${t}`).classList.toggle('hidden', t !== tabId);
-        document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0";
-      });
-      if (tabId === 'canvas') renderTopologyCanvas();
-      if (tabId === 'inventory') renderInventoryTable();
-      if (tabId === 'waves') renderCutoverWavesTab();
-      if (tabId === 'zerto') renderZertoTable();
-      if (tabId === 'veeam') renderVeeamTable();
-      if (tabId === 'calculator') renderCalculatorTab();
-      if (tabId === 'health') renderHealthTab();
-    }
-
-    function setTopologyViewMode(mode) {
-      currentTopoMode = mode;
-      document.getElementById('topoModeVisual').className = mode === 'visual' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
-      document.getElementById('topoModeTree').className = mode === 'tree' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
-      document.getElementById('topoModeList').className = mode === 'list' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
-      
-      document.getElementById('canvasArea').classList.toggle('hidden', mode !== 'visual');
-      document.getElementById('svgConnectors').classList.toggle('hidden', mode !== 'visual');
-      document.getElementById('canvasTreeView').classList.toggle('hidden', mode !== 'tree');
-      document.getElementById('canvasListView').classList.toggle('hidden', mode !== 'list');
-      renderTopologyCanvas();
-    }
-
-    function parseDepList(depStr) {
-      if (!depStr) return [];
-      return depStr.split(',').map(d => d.trim()).filter(d => d && d.toUpperCase() !== '[ALL]');
-    }
-
-    function getFilteredServers() {
-      const domFilter = document.getElementById('filterDomain').value;
-      const subnetFilter = document.getElementById('filterSubnet')?.value || 'ALL';
-      const sysFilter = document.getElementById('filterSystem').value;
-      const showDeps = document.getElementById('filterShowDeps').checked;
-
-      let primary = servers.filter(s => {
-        if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave}`.toLowerCase();
-          if (!combined.includes(globalSearchQuery)) return false;
-        }
-        if (domFilter !== 'ALL' && (s.domain || 'Becketts') !== domFilter) return false;
-        if (subnetFilter !== 'ALL' && (s.subnet || 'Unassigned') !== subnetFilter) return false;
-        if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
-        return true;
-      });
-
-      let visibleSet = new Set(primary);
-      if (showDeps && sysFilter !== 'ALL') {
-        let added = true;
-        while (added) {
-          added = false;
-          Array.from(visibleSet).forEach(srv => {
-            const sDom = srv.domain || 'Becketts';
-            servers.forEach(cand => {
-              if (!visibleSet.has(cand) && (cand.dependencies || '').toUpperCase().includes('[ALL]') && (cand.domain || 'Becketts') === sDom) {
-                visibleSet.add(cand);
-                added = true;
-              }
-            });
-            parseDepList(srv.dependencies).forEach(depName => {
-              const found = servers.find(x => x.serverName.toLowerCase() === depName.toLowerCase());
-              if (found && !visibleSet.has(found)) {
-                visibleSet.add(found);
-                added = true;
-              }
-            });
-          });
-        }
-      }
-      return Array.from(visibleSet);
-    }
-
-    function onFilterChange() { alignTopLeft(); }
-
-    function setTopologyLayoutMode(mode) {
-      activeLayoutMode = mode;
-      const snapBtn = document.getElementById('layoutBtnSnap');
-      const clusterBtn = document.getElementById('layoutBtnCluster');
-
-      if (mode === 'snap') {
-        snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition";
-        clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
-        alignTopLeft();
-      } else {
-        clusterBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition";
-        snapBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
-        clusterTopologyCards();
-      }
-    }
-
-    function alignTopLeft() {
-      activeLayoutMode = 'snap';
-      document.getElementById('layoutBtnSnap').className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition";
-      document.getElementById('layoutBtnCluster').className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
-
-      const density = document.getElementById('canvasDensity').value;
-      const filtered = getFilteredServers();
-      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
-      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
-      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
-
-      filtered.forEach((s, idx) => {
-        // Keep existing pos if already set and valid, otherwise auto-place
-        if (s.x === undefined || s.y === undefined) {
-          s.x = 20 + (idx % colsCount) * colWidth;
-          s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderTopologyCanvas();
-    }
-
-    function clusterTopologyCards() {
-      activeLayoutMode = 'cluster';
-      document.getElementById('layoutBtnCluster').className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition";
-      document.getElementById('layoutBtnSnap').className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
-
-      servers.forEach((s, idx) => {
-        if (s.x === undefined || s.y === undefined) {
-          s.x = 20 + (idx % 8) * 180;
-          s.y = 20 + Math.floor(idx / 8) * 100;
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderTopologyCanvas();
-    }
-
-    function renderTopologyCanvas() {
-      updateDropdowns();
-      updateGlobalCounters();
-      const density = document.getElementById('canvasDensity').value;
-      const filtered = getFilteredServers();
-      document.getElementById('nodeCountBadge').innerText = `${filtered.length} VMs`;
-
-      if (currentTopoMode === 'list') { renderTopologyListView(filtered); return; }
-      if (currentTopoMode === 'tree') { renderVisioTreeView(filtered); return; }
-
-      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
-      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
-      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
-
-      const container = document.getElementById('nodesContainer');
-      container.innerHTML = '';
-
-      filtered.forEach((s, idx) => {
-        if (s.x === undefined || s.y === undefined) {
-          s.x = 20 + (idx % colsCount) * colWidth;
-          s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
-        }
-
-        const sDom = s.domain || 'Becketts';
-        const isUK = sDom.includes('UK') || sDom.includes('uk');
-        const domBadgeClass = isUK ? 'bg-amber-950/90 text-amber-300 border-amber-800' : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
-
-        const el = document.createElement('div');
-        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-lg p-2 w-56 shadow-lg flex flex-col gap-1 hover:border-cyan-500 transition`;
-        el.style.left = `${s.x}px`;
-        el.style.top = `${s.y}px`;
-
-        el.onclick = (e) => { if (e.target.tagName !== 'INPUT') editServer(s.serverName); };
-
-        el.innerHTML = `
-          <div class="flex justify-between items-center gap-1">
-            <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
-            <span class="text-[9px] px-1 py-0.2 rounded border font-mono ${domBadgeClass} truncate">${sDom}</span>
-          </div>
-          <div class="flex items-center justify-between gap-1 text-[9px] text-slate-400">
-            <span class="font-semibold text-cyan-200 truncate">${s.system || 'General'}</span>
-            <span>${s.subnet || ''}</span>
-          </div>
-          <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
-            <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
-            <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || ''}</span>
-          </div>
-        `;
-        makeDraggable(el, s);
-        container.appendChild(el);
-      });
-
-      drawSvgConnectors(filtered);
-    }
-
-    function computeServerTier(srv, visibleMap, visited = new Set()) {
-      const explicit = srv.visioTier || 'Auto';
-      if (explicit && explicit !== 'Auto') {
-        const parsed = parseInt(explicit.replace(/\D/g, ''), 10);
-        if (!isNaN(parsed) && parsed >= 1) return parsed;
-      }
-
-      const key = srv.serverName.toLowerCase();
-      if (visited.has(key)) return 1;
-      visited.add(key);
-
-      const deps = parseDepList(srv.dependencies)
-        .map(d => visibleMap.get(d.toLowerCase()))
-        .filter(Boolean);
-
-      if (deps.length === 0) return 1;
-
-      let maxParentTier = 0;
-      deps.forEach(parent => {
-        const pTier = computeServerTier(parent, visibleMap, new Set(visited));
-        if (pTier > maxParentTier) maxParentTier = pTier;
-      });
-      return maxParentTier + 1;
-    }
-
-    function renderVisioTreeView(filtered) {
-      const container = document.getElementById('treeNodesContainer');
-      const svg = document.getElementById('svgTreeConnectors');
-      container.innerHTML = '';
-
-      if (filtered.length === 0) {
-        svg.innerHTML = '';
-        container.innerHTML = `<div class="text-slate-400 text-sm">No servers match current filters.</div>`;
-        return;
-      }
-
-      const visibleMap = new Map();
-      filtered.forEach(s => visibleMap.set(s.serverName.toLowerCase(), s));
-
-      const tierBuckets = new Map();
-      let maxTier = 1;
-
-      filtered.forEach(s => {
-        const tier = computeServerTier(s, visibleMap);
-        if (tier > maxTier) maxTier = tier;
-        if (!tierBuckets.has(tier)) tierBuckets.set(tier, []);
-        tierBuckets.get(tier).push(s);
-      });
-
-      const totalLanes = Math.max(maxTier, 2);
-      const tierMeta = {
-        1: { title: 'Tier 1: Root Infrastructure & Domain Controllers (Top)', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
-        2: { title: 'Tier 2: Secondary Controllers, Management & Core Databases', icon: 'fa-layer-group text-cyan-400', border: 'border-cyan-500/80' },
-        3: { title: 'Tier 3: Application Servers & Middleware', icon: 'fa-server text-emerald-400', border: 'border-emerald-500/70' },
-        4: { title: 'Tier 4: Edge, Client & Downstream VMs', icon: 'fa-network-wired text-indigo-400', border: 'border-indigo-500/70' }
-      };
-
-      let html = `<div class="text-[11px] text-slate-400 bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 inline-flex items-center gap-2">
-        <i class="fas fa-info-circle text-cyan-400"></i>
-        <span>Tiers are calculated automatically from <strong>Upstream Dependencies</strong>. Drag & drop any card onto another Tier lane to override its level.</span>
-      </div>`;
-
-      for (let t = 1; t <= totalLanes; t++) {
-        const meta = tierMeta[t] || { title: `Tier ${t}: Downstream Level ${t}`, icon: 'fa-sitemap text-slate-300', border: 'border-slate-500/70' };
-        const items = tierBuckets.get(t) || [];
-
-        html += `
-          <div class="tier-dropzone rounded-2xl border border-dashed border-slate-700/90 bg-slate-900/50 p-4 transition"
-               ondragover="onTreeTierDragOver(event)"
-               ondragleave="onTreeTierDragLeave(event)"
-               ondrop="onTreeTierDrop(event, ${t})">
-            <div class="flex items-center justify-between mb-3">
-              <div class="text-xs font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-                <i class="fas ${meta.icon}"></i>
-                <span>${meta.title}</span>
-              </div>
-              <span class="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">${items.length} VMs</span>
-            </div>
-            <div class="flex flex-wrap gap-8 min-h-[96px] items-start">
-              ${items.length > 0
-                ? items.map(s => renderTreeNodeCard(s, meta.border)).join('')
-                : `<div class="text-xs text-slate-500 italic py-6 px-4">Drop a server card here to assign it to Tier ${t}</div>`
-              }
-            </div>
-          </div>`;
-      }
-
-      container.innerHTML = html;
-      requestAnimationFrame(() => drawTreeConnectors(filtered));
-    }
-
-    function renderTreeNodeCard(s, borderClass) {
-      const sDom = s.domain || 'Becketts';
-      const deps = parseDepList(s.dependencies);
-      const isOverridden = s.visioTier && s.visioTier !== 'Auto';
-
-      return `
-        <div draggable="true"
-             ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')"
-             data-tree-server="${s.serverName.toLowerCase()}"
-             class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative"
-             onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
-          <div class="flex justify-between items-center gap-1">
-            <span class="font-bold text-cyan-300 text-xs truncate" title="${s.serverName}">${s.serverName}</span>
-            <div class="flex items-center gap-1 shrink-0">
-              ${isOverridden ? `<span class="text-[8px] px-1 py-0.2 rounded bg-cyan-950 border border-cyan-700 text-cyan-300 font-mono" title="Manual Tier Override">${s.visioTier}</span>` : ''}
-              <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">${sDom}</span>
-            </div>
-          </div>
-          <div class="text-[10px] text-slate-300 flex justify-between">
-            <span class="text-cyan-200 truncate max-w-[140px]">${s.system || 'General'}</span>
-            <span class="font-mono text-slate-400">${s.subnet || ''}</span>
-          </div>
-          ${deps.length > 0 ? `<div class="text-[9px] text-slate-400 truncate font-mono" title="Depends on: ${deps.join(', ')}"><i class="fas fa-arrow-up text-cyan-500 mr-1"></i>${deps.join(', ')}</div>` : ''}
-          <div class="pt-1 border-t border-slate-700/80 flex justify-between text-[10px] font-mono">
-            <span class="text-cyan-300">${s.ip || 'No IP'}</span>
-            <span class="text-slate-400">${s.dept || ''}</span>
-          </div>
-        </div>`;
-    }
-
-    function onTreeCardDragStart(e, serverName) {
-      draggedTreeServerName = serverName;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', serverName);
-    }
-
-    function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-    function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-
-    function onTreeTierDrop(e, targetTierNum) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
-      const name = draggedTreeServerName || e.dataTransfer.getData('text/plain');
-      if (!name) return;
-
-      const srv = servers.find(s => s.serverName === name);
-      if (srv) {
-        srv.visioTier = `Tier ${targetTierNum}`;
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderVisioTreeView(getFilteredServers());
-      }
-      draggedTreeServerName = null;
-    }
-
-    function drawTreeConnectors(visibleServers) {
-      const svg = document.getElementById('svgTreeConnectors');
-      const container = document.getElementById('canvasTreeView');
-      if (!svg || !container || container.classList.contains('hidden')) return;
-
-      Array.from(svg.querySelectorAll('path')).forEach(p => p.remove());
-
-      const cardMap = new Map();
-      container.querySelectorAll('[data-tree-server]').forEach(el => {
-        cardMap.set(el.getAttribute('data-tree-server'), el);
-      });
-
-      const containerRect = container.getBoundingClientRect();
-      const scrollLeft = container.scrollLeft;
-      const scrollTop = container.scrollTop;
-
-      svg.style.width = `${Math.max(container.scrollWidth, 1200)}px`;
-      svg.style.height = `${Math.max(container.scrollHeight, 900)}px`;
-
-      visibleServers.forEach(child => {
-        const childEl = cardMap.get(child.serverName.toLowerCase());
-        if (!childEl) return;
-
-        const cRect = childEl.getBoundingClientRect();
-        const x2 = cRect.left - containerRect.left + scrollLeft + cRect.width / 2;
-        const y2 = cRect.top - containerRect.top + scrollTop;
-
-        parseDepList(child.dependencies).forEach(depName => {
-          const parentEl = cardMap.get(depName.toLowerCase());
-          if (!parentEl) return;
-
-          const pRect = parentEl.getBoundingClientRect();
-          const x1 = pRect.left - containerRect.left + scrollLeft + pRect.width / 2;
-          const y1 = pRect.top - containerRect.top + scrollTop + pRect.height;
-
-          const midY = (y1 + y2) / 2;
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2 - 3}`);
-          path.setAttribute('stroke', '#06b6d4');
-          path.setAttribute('stroke-width', '2');
-          path.setAttribute('fill', 'none');
-          path.setAttribute('marker-end', 'url(#treeArrow)');
-          svg.appendChild(path);
-        });
-      });
-    }
-
-    window.addEventListener('resize', () => {
-      if (currentTopoMode === 'tree') drawTreeConnectors(getFilteredServers());
-    });
-
-    function renderTopologyListView(filtered) {
-      const tbody = document.getElementById('topologyListTbody');
-      tbody.innerHTML = '';
-      filtered.forEach(s => {
-        const sDom = s.domain || 'Becketts';
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-            <td class="p-3 font-semibold text-amber-300">${s.dept || ''}</td>
-            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-            <td class="p-3 font-mono text-indigo-300">${sDom}</td>
-            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300"><i class="fas fa-pen"></i></button>
-            </td>
-          </tr>`;
-      });
-    }
-
-    function makeDraggable(element, serverObj) {
-      let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
-      element.onmousedown = function(e) {
-        if (e.target.tagName === 'INPUT') return;
-        e.preventDefault();
-        mouseX = e.clientX; mouseY = e.clientY;
-        document.onmouseup = function() { document.onmouseup = null; document.onmousemove = null; localStorage.setItem('infops_servers', JSON.stringify(servers)); };
-        document.onmousemove = function(ev) {
-          ev.preventDefault();
-          posX = mouseX - ev.clientX; posY = mouseY - ev.clientY;
-          mouseX = ev.clientX; mouseY = ev.clientY;
-          serverObj.x = Math.max(5, element.offsetLeft - posX);
-          serverObj.y = Math.max(5, element.offsetTop - posY);
-          element.style.left = serverObj.x + "px";
-          element.style.top = serverObj.y + "px";
-          renderTopologyCanvas();
-        };
-      };
-    }
-
-    function drawSvgConnectors(visibleServers) {
-      const svg = document.getElementById('svgConnectors');
-      svg.innerHTML = '';
-      visibleServers.forEach(app => {
-        const appDom = app.domain || 'Becketts';
-        visibleServers.forEach(provider => {
-          if (provider.serverName !== app.serverName && (provider.dependencies || '').toUpperCase().includes('[ALL]')) {
-            if ((provider.domain || 'Becketts') === appDom && !(app.dependencies || '').toUpperCase().includes('[ALL]')) {
-              appendCurve(svg, provider, app, '#334155', '3');
-            }
-          }
-        });
-        if (app.dependencies) {
-          app.dependencies.split(',').map(d => d.trim().toLowerCase()).forEach(depName => {
-            if (!depName || depName === '[all]') return;
-            const parent = visibleServers.find(s => s.serverName.toLowerCase() === depName);
-            if (parent) appendCurve(svg, parent, app, '#06b6d4', '0');
-          });
-        }
-      });
-    }
-
-    function appendCurve(svg, parent, child, strokeColor, dashArray) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const x1 = parent.x + 224, y1 = parent.y + 35;
-      const x2 = child.x, y2 = child.y + 35;
-      const cx = (x1 + x2) / 2;
-      line.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`);
-      line.setAttribute('stroke', strokeColor);
-      line.setAttribute('stroke-width', dashArray === '0' ? '1.5' : '1');
-      if (dashArray !== '0') line.setAttribute('stroke-dasharray', dashArray);
-      line.setAttribute('fill', 'none');
-      svg.appendChild(line);
+    function resetInventoryFilters() {
+      document.getElementById('invFilterDept').value = 'ALL';
+      document.getElementById('invFilterSystem').value = 'ALL';
+      document.getElementById('invFilterDomain').value = 'ALL';
+      document.getElementById('invFilterSubnet').value = 'ALL';
+      document.getElementById('inventorySearch').value = '';
+      renderInventoryTable();
     }
 
     function toggleSelectAll(master) {
-      selectedServerNames.clear();
-      if (master.checked) servers.forEach(s => selectedServerNames.add(s.serverName));
+      const visibleList = getFilteredInventoryList();
+      if (master.checked) {
+        visibleList.forEach(s => selectedServerNames.add(s.serverName));
+      } else {
+        visibleList.forEach(s => selectedServerNames.delete(s.serverName));
+      }
       renderInventoryTable();
     }
 
     function toggleServerSelection(name, chk) {
       if (chk.checked) selectedServerNames.add(name);
       else selectedServerNames.delete(name);
-      document.getElementById('selectedCountBadge').innerText = selectedServerNames.size;
+      updateGlobalCounters();
     }
 
-    function renderInventoryTable() {
-      // Ensure alphabetical sort
-      servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-      updateGlobalCounters();
+    function getFilteredInventoryList() {
+      const deptF = document.getElementById('invFilterDept')?.value || 'ALL';
+      const sysF = document.getElementById('invFilterSystem')?.value || 'ALL';
+      const domF = document.getElementById('invFilterDomain')?.value || 'ALL';
+      const subF = document.getElementById('invFilterSubnet')?.value || 'ALL';
+      const localQ = (document.getElementById('inventorySearch')?.value || '').toLowerCase();
 
-      const localQ = (document.getElementById('inventorySearch').value || '').toLowerCase();
-      const tbody = document.getElementById('inventoryTableBody');
-      tbody.innerHTML = '';
-
-      let visibleList = servers.filter(s => {
-        if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.wave}`.toLowerCase();
-          if (!combined.includes(globalSearchQuery)) return false;
-        }
+      return servers.filter(s => {
+        if (deptF !== 'ALL' && (s.dept || '') !== deptF) return false;
+        if (sysF !== 'ALL' && (s.system || '') !== sysF) return false;
+        if (domF !== 'ALL' && (s.domain || '') !== domF) return false;
+        if (subF !== 'ALL' && (s.subnet || '') !== subF) return false;
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip}`.toLowerCase();
-          if (!combinedLocal.includes(localQ)) return false;
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip}`.toLowerCase();
+          if (!combined.includes(localQ)) return false;
         }
         return true;
       });
+    }
 
-      document.getElementById('selectedCountBadge').innerText = selectedServerNames.size;
+    function renderInventoryTable() {
+      updateDropdowns();
+      updateGlobalCounters();
+
+      const tbody = document.getElementById('inventoryTableBody');
+      tbody.innerHTML = '';
+
+      let visibleList = getFilteredInventoryList();
+      const allVisibleSelected = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
+      document.getElementById('selectAllCheckbox').checked = allVisibleSelected;
 
       visibleList.forEach(s => {
-        const sDom = s.domain || 'Becketts';
-        const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
         const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-        const hasSnap = (s.hasSnapshots || 'No') === 'Yes';
-        const snapBadge = hasSnap ? '<span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-700 text-amber-300 font-mono text-[10px]">Yes</span>' : '<span class="text-slate-500 font-mono text-[10px]">No</span>';
-
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600"></td>
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName}', this)" class="rounded text-cyan-600"></td>
+            <td class="p-3 font-bold text-white">${s.serverName}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || ''}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
+            <td class="p-3 font-mono text-indigo-300">${s.domain || ''}</td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 text-center">${snapBadge}</td>
+            <td class="p-3 font-mono text-slate-300">${s.subnet || '-'}</td>
             <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
-              <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+              <button onclick="deleteServer('${s.serverName}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
       });
     }
 
-    function renderCutoverWavesTab() {
-      updateGlobalCounters();
-      const waveSummary = document.getElementById('waveSummaryCards');
-      waveSummary.innerHTML = '';
-
-      const waves = ["Wave 1 - Pilot", "Wave 2 - Core Apps", "Wave 3 - Databases & DCs"];
-      waves.forEach(wName => {
-        let wServers = servers.filter(s => (s.wave || 'Wave 1 - Pilot') === wName);
-        let migratedCount = wServers.filter(s => s.cutoverStatus === 'Migrated & Verified').length;
-        let pct = wServers.length ? Math.round((migratedCount / wServers.length) * 100) : 0;
-        waveSummary.innerHTML += `
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg space-y-3">
-            <div class="flex justify-between items-center"><span class="font-bold text-cyan-400 text-sm">${wName}</span><span class="text-xs font-mono text-slate-400">${wServers.length} VMs</span></div>
-            <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700"><div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div></div>
-            <div class="flex justify-between items-center text-[11px] text-slate-400"><span>Cutover Progress:</span><span class="font-semibold text-emerald-400">${pct}% Complete</span></div>
-          </div>`;
-      });
-
-      const filterWave = document.getElementById('waveTabFilterWave')?.value || 'ALL';
-      const filterSubnet = document.getElementById('waveTabFilterSubnet')?.value || 'ALL';
-
-      let filteredWaves = servers.filter(s => {
-        if (filterWave !== 'ALL' && (s.wave || 'Wave 1 - Pilot') !== filterWave) return false;
-        if (filterSubnet !== 'ALL' && (s.subnet || 'Unassigned') !== filterSubnet) return false;
-        return true;
-      });
-
-      document.getElementById('waveVmCounter').innerText = `${filteredWaves.length} VMs`;
-
-      const tbody = document.getElementById('wavesTableBody');
-      tbody.innerHTML = '';
-      
-      filteredWaves.forEach((s) => {
-        const realIdx = servers.findIndex(x => x.serverName === s.serverName);
-        const status = s.cutoverStatus || 'Not Started';
-        const deps = s.dependencies || '';
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50">
-            <td class="p-3 font-bold text-white">${s.serverName}</td>
-            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-300">${s.subnet || 'Unassigned'}</td>
-            <td class="p-3"><select id="wave-name-${realIdx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs"><option value="Wave 1 - Pilot" ${s.wave === 'Wave 1 - Pilot' ? 'selected' : ''}>Wave 1 - Pilot</option><option value="Wave 2 - Core Apps" ${s.wave === 'Wave 2 - Core Apps' ? 'selected' : ''}>Wave 2 - Core Apps</option><option value="Wave 3 - Databases & DCs" ${s.wave === 'Wave 3 - Databases & DCs' ? 'selected' : ''}>Wave 3 - Databases & DCs</option></select></td>
-            <td class="p-3 font-mono text-xs text-slate-300" title="${deps}">${deps ? deps : '<span class="text-slate-500 italic">None</span>'}</td>
-            <td class="p-3"><select id="wave-status-${realIdx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select></td>
-            <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${realIdx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600"></td>
-            <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${realIdx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600"></td>
-            <td class="p-3 text-center"><input type="checkbox" id="chk-sync-${realIdx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600"></td>
-            <td class="p-3 text-center"><input type="checkbox" id="chk-sign-${realIdx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600"></td>
-          </tr>`;
-      });
-    }
-
-    function saveWaveChanges() {
-      servers.forEach((s, idx) => {
-        const wName = document.getElementById(`wave-name-${idx}`);
-        const wStat = document.getElementById(`wave-status-${idx}`);
-        if (wName) s.wave = wName.value;
-        if (wStat) s.cutoverStatus = wStat.value;
-        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
-        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
-        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
-        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderCutoverWavesTab();
-      alert("CS Migration Project progress saved successfully!");
-    }
-
     function openBulkEditModal() {
-      if (selectedServerNames.size === 0) servers.forEach(s => selectedServerNames.add(s.serverName));
+      if (selectedServerNames.size === 0) {
+        alert("Please select at least one server from the inventory table first.");
+        return;
+      }
       document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
       document.getElementById('bulkEditModal').classList.remove('hidden');
     }
-    function closeBulkEditModal() { document.getElementById('bulkEditModal').classList.add('hidden'); }
+
+    function closeBulkEditModal() {
+      document.getElementById('bulkEditModal').classList.add('hidden');
+    }
 
     function commitBulkEdit() {
       const field = document.getElementById('bulkField').value;
       const val = document.getElementById('bulkValue').value.trim();
       if (!val) return alert("Please enter a value to update.");
-      servers.forEach(s => { if (selectedServerNames.has(s.serverName)) s[field] = val; });
+      
+      servers.forEach(s => {
+        if (selectedServerNames.has(s.serverName)) s[field] = val;
+      });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeBulkEditModal();
       renderInventoryTable();
-      renderTopologyCanvas();
       alert(`Successfully updated ${field} for ${selectedServerNames.size} servers!`);
-    }
-
-    function renderZertoTable() {
-      updateGlobalCounters();
-      const statusFilter = document.getElementById('zertoFilterStatus')?.value || 'ALL';
-      const subnetFilter = document.getElementById('zertoFilterSubnet')?.value || 'ALL';
-
-      // Only show servers with DR Status P00, P01, P02
-      let filteredZerto = servers.filter(s => {
-        const dr = (s.drProtected || '').trim().toUpperCase();
-        if (!['P00', 'P01', 'P02'].includes(dr)) return false;
-        if (statusFilter !== 'ALL' && dr !== statusFilter) return false;
-        if (subnetFilter !== 'ALL' && (s.subnet || 'Unassigned') !== subnetFilter) return false;
-        return true;
-      });
-
-      // Sort by DR Status then Server Name
-      filteredZerto.sort((a, b) => {
-        const drA = (a.drProtected || '').toUpperCase();
-        const drB = (b.drProtected || '').toUpperCase();
-        if (drA !== drB) return drA.localeCompare(drB);
-        return a.serverName.localeCompare(b.serverName);
-      });
-
-      document.getElementById('counter-zerto').innerText = filteredZerto.length;
-      document.getElementById('zertoVmCounter').innerText = `${filteredZerto.length} VMs`;
-
-      const tbody = document.getElementById('zertoTableBody');
-      tbody.innerHTML = '';
-      filteredZerto.forEach(s => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50">
-            <td class="p-3 font-bold text-cyan-300 font-mono">${s.drProtected}</td>
-            <td class="p-3 font-bold text-white">${s.serverName}</td>
-            <td class="p-3 text-slate-300">${s.hasSnapshots || 'No'}</td>
-            <td class="p-3 font-mono text-cyan-200">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-300">${s.subnet || 'Unassigned'}</td>
-          </tr>`;
-      });
-    }
-
-    function saveZertoChanges() {
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Zerto DR settings saved successfully!");
-    }
-
-    function renderVeeamTable() {
-      updateGlobalCounters();
-      document.getElementById('veeamVmCounter').innerText = `${servers.length} VMs`;
-      const tbody = document.getElementById('veeamTableBody');
-      tbody.innerHTML = '';
-      servers.forEach((s, idx) => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50">
-            <td class="p-3 font-bold text-white">${s.serverName}</td>
-            <td class="p-3"><input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job (Ret: 30 Days)'}" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-white text-xs w-full font-mono" placeholder="Enter backup job name, schedule, retention..."></td>
-            <td class="p-3 font-mono text-emerald-400">~${Math.round((s.disk || 100) * 0.4)} GB</td>
-          </tr>`;
-      });
-    }
-
-    function saveVeeamChanges() {
-      servers.forEach((s, idx) => {
-        s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim() || '';
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Veeam backup settings saved successfully!");
-    }
-
-    function renderCalculatorTab() {
-      updateGlobalCounters();
-      let totalDisk = 0, totalBackup = 0, breakdown = {};
-      servers.forEach(s => {
-        let d = parseFloat(s.disk) || 100;
-        totalDisk += d;
-        let b = d * 0.35 * 3;
-        totalBackup += b;
-        let sys = s.system || 'General';
-        if (!breakdown[sys]) breakdown[sys] = { count: 0, disk: 0, backup: 0 };
-        breakdown[sys].count++;
-        breakdown[sys].disk += d;
-        breakdown[sys].backup += b;
-      });
-      document.getElementById('calcTotalServers').innerText = servers.length;
-      document.getElementById('calcTotalPrimaryDisk').innerText = `${totalDisk.toLocaleString()} GB`;
-      document.getElementById('calcTotalBackupStorage').innerText = `${Math.round(totalBackup).toLocaleString()} GB`;
-
-      const tbody = document.getElementById('calcBreakdownBody');
-      tbody.innerHTML = '';
-      Object.keys(breakdown).sort().forEach(sys => {
-        let data = breakdown[sys];
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50">
-            <td class="p-3 font-bold text-white">${sys}</td>
-            <td class="p-3">${data.count}</td>
-            <td class="p-3 font-mono">${data.disk.toLocaleString()} GB</td>
-            <td class="p-3 font-mono text-emerald-400">~${Math.round(data.backup).toLocaleString()} GB</td>
-          </tr>`;
-      });
-    }
-
-    function renderHealthTab() {
-      updateGlobalCounters();
-      let ipMap = {}, missingCount = 0, dupCount = 0, logHtml = '';
-      servers.forEach(s => {
-        let ip = (s.ip || '').trim();
-        if (!ip || ip.toLowerCase() === 'unknown' || ip === 'N/A') {
-          missingCount++;
-          logHtml += `<div class="p-2 rounded bg-red-950/40 border border-red-800 text-red-300"><strong>[MISSING IP]</strong> Server <strong>${s.serverName}</strong> has no valid IP address.</div>`;
-        } else {
-          if (!ipMap[ip]) ipMap[ip] = [];
-          ipMap[ip].push(s);
-        }
-      });
-      Object.keys(ipMap).forEach(ip => {
-        if (ipMap[ip].length > 1) {
-          dupCount++;
-          logHtml += `<div class="p-2 rounded bg-amber-950/40 border border-amber-800 text-amber-300"><strong>[IP COLLISION]</strong> IP <strong>${ip}</strong> is shared by: ${ipMap[ip].map(x=>x.serverName).join(', ')}</div>`;
-        }
-      });
-      if (!logHtml) logHtml = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-center font-semibold"><i class="fas fa-check-circle mr-2"></i>All server IP addresses are valid and unique!</div>';
-      document.getElementById('healthMissingCount').innerText = missingCount;
-      document.getElementById('healthDupCount').innerText = dupCount;
-      document.getElementById('healthLogContainer').innerHTML = logHtml;
-    }
-
-    function openServerModal(serverName = null) {
-      document.getElementById('serverModal').classList.remove('hidden');
-      if (serverName) {
-        const s = servers.find(x => x.serverName === serverName);
-        document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
-        document.getElementById('editOriginalName').value = serverName;
-        document.getElementById('modalServerName').value = s.serverName;
-        document.getElementById('modalVisioTier').value = s.visioTier || 'Auto';
-        document.getElementById('modalWave').value = s.wave || 'Wave 1 - Pilot';
-        document.getElementById('modalDept').value = s.dept || '';
-        document.getElementById('modalSystem').value = s.system || '';
-        document.getElementById('modalDomain').value = s.domain || 'Becketts';
-        document.getElementById('modalIP').value = s.ip || '';
-        document.getElementById('modalSubnet').value = s.subnet || '';
-        document.getElementById('modalDependencies').value = s.dependencies || '';
-      } else {
-        document.getElementById('serverModalTitle').innerText = "Add New Server";
-        document.getElementById('editOriginalName').value = '';
-        ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDependencies'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('modalVisioTier').value = 'Auto';
-        document.getElementById('modalWave').value = 'Wave 1 - Pilot';
-        document.getElementById('modalDomain').value = 'Becketts';
-      }
-    }
-    function closeServerModal() { document.getElementById('serverModal').classList.add('hidden'); }
-    function editServer(name) { openServerModal(name); }
-
-    function saveServerRecord() {
-      const origName = document.getElementById('editOriginalName').value;
-      const cleanDeps = document.getElementById('modalDependencies').value
-        .split(',')
-        .map(d => d.trim())
-        .filter(Boolean)
-        .join(', ');
-
-      const data = {
-        serverName: document.getElementById('modalServerName').value.trim(),
-        visioTier: document.getElementById('modalVisioTier').value,
-        wave: document.getElementById('modalWave').value,
-        dept: document.getElementById('modalDept').value.trim(),
-        system: document.getElementById('modalSystem').value.trim() || 'General',
-        domain: document.getElementById('modalDomain').value,
-        ip: document.getElementById('modalIP').value.trim(),
-        subnet: document.getElementById('modalSubnet').value.trim() || calculateSubnet(document.getElementById('modalIP').value.trim()),
-        dependencies: cleanDeps,
-        cutoverStatus: 'Not Started'
-      };
-      if (!data.serverName) return alert("Server Name is required.");
-      if (origName) {
-        const idx = servers.findIndex(x => x.serverName === origName);
-        if (idx !== -1) {
-          data.x = servers[idx].x;
-          data.y = servers[idx].y;
-          servers[idx] = Object.assign({}, servers[idx], data);
-        }
-      } else {
-        data.x = 20 + (servers.length % 5) * 280;
-        data.y = 20 + Math.floor(servers.length / 5) * 145;
-        servers.push(data);
-      }
-      servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeServerModal();
-      renderInventoryTable();
-      renderTopologyCanvas();
     }
 
     function deleteServer(name) {
       if (confirm(`Delete server ${name}?`)) {
         servers = servers.filter(x => x.serverName !== name);
+        selectedServerNames.delete(name);
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
-        renderTopologyCanvas();
       }
     }
 
-    function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
-    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
-    function saveProjectSettings() {
-      appSettings.brandName = document.getElementById('settingsBrandName').value;
-      appSettings.subtitle = document.getElementById('settingsSubtitle').value;
-      localStorage.setItem('infops_settings', JSON.stringify(appSettings));
-      applySettings();
-      closeSettingsModal();
-    }
-
-    function openEncryptionModal() { document.getElementById('encryptionModal').classList.remove('hidden'); document.getElementById('secretPassInput').value = ENCRYPTION_KEY; }
-    function closeEncryptionModal() { document.getElementById('encryptionModal').classList.add('hidden'); }
-    function saveSecretKey() {
-      ENCRYPTION_KEY = document.getElementById('secretPassInput').value;
-      localStorage.setItem('infops_secret', ENCRYPTION_KEY);
-      closeEncryptionModal();
-      alert("Passphrase saved.");
+    function openServerModal() {
+      const name = prompt("Enter new server name:");
+      if (!name) return;
+      const dept = prompt("Enter Department (e.g. BS, BI, INF):") || "";
+      const system = prompt("Enter System / App Name:") || "General";
+      const ip = prompt("Enter IP Address (e.g. 172.31.15.25):") || "";
+      const subnet = ip.startsWith("172.31.15.") ? "172.31.15.0/24" : "10.160.1.0/24";
+      
+      servers.push({ serverName: name, dept, system, domain: "Becketts", ip, subnet });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderInventoryTable();
     }
 
     function exportToCSV() {
-      let csv = "ServerName,PowerState,DR_Status,HasSnapshots,OSFamily,Domain,IPAddress,Subnet,NetworkName,Datastore,TotalDiskGB\n";
-      servers.forEach(s => { 
-        csv += `"${s.serverName}","${s.powerState||'PoweredOn'}","${s.drProtected||'No'}","${s.hasSnapshots||'No'}","${s.osFamily||'Other'}","${s.domain||'No domain join'}","${s.ip||''}","${s.subnet||'Unassigned'}","${s.networkName||'None'}","${s.datastore||'Unknown'}","${s.disk||100}"\n`; 
+      let csv = "ServerName,Department,System,Domain,IPAddress,Subnet\n";
+      servers.forEach(s => {
+        csv += `"${s.serverName}","${s.dept}","${s.system}","${s.domain}","${s.ip}","${s.subnet}"\n`;
       });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `vcenter_inventory_export.csv`; a.click();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'inventory_export.csv';
+      a.click();
     }
 
-    function parseCSVRow(row) {
-      const result = []; let current = '', inQuotes = false;
-      for (let i = 0; i < row.length; i++) {
-        const ch = row[i];
-        if (ch === '"') inQuotes = !inQuotes;
-        else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-        else current += ch;
-      }
-      result.push(current.trim()); return result;
-    }
-
-    function previewCSVImport(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const lines = evt.target.result.split(/\r?\n/);
-        if (lines.length === 0) return;
-
-        let headerIdx = -1;
-        let headers = [];
-        for (let i = 0; i < Math.min(lines.length, 10); i++) {
-          const rowCols = parseCSVRow(lines[i]);
-          if (rowCols.some(c => c.toLowerCase().includes('servername') || c.toLowerCase().includes('vmname'))) {
-            headerIdx = i;
-            headers = rowCols.map(h => h.trim().toLowerCase());
-            break;
-          }
-        }
-
-        if (headerIdx === -1) {
-          alert("Could not find header row containing 'ServerName' or 'VMName'.");
-          return;
-        }
-
-        const getCol = (cols, nameVariants) => {
-          for (let v of nameVariants) {
-            const idx = headers.indexOf(v.toLowerCase());
-            if (idx !== -1 && cols[idx] !== undefined) return cols[idx];
-          }
-          return '';
-        };
-
-        let updatedCount = 0;
-        let newCount = 0;
-
-        for (let i = headerIdx + 1; i < lines.length; i++) {
-          const line = lines[i].trim(); if (!line) continue;
-          const cols = parseCSVRow(line);
-          const serverName = getCol(cols, ['servername', 'vmname']);
-          if (!serverName) continue;
-
-          const ipVal = getCol(cols, ['ipaddress', 'ip']);
-          const subVal = getCol(cols, ['subnet']);
-          const calculatedSub = subVal && subVal !== 'Unassigned' ? subVal : calculateSubnet(ipVal);
-
-          const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === serverName.toLowerCase());
-          if (existingIdx === -1) {
-            // Brand new server
-            const newServer = {
-              serverName: serverName,
-              powerState: getCol(cols, ['powerstate']) || 'PoweredOn',
-              drProtected: getCol(cols, ['dr_status', 'drprotected']) || 'No',
-              hasSnapshots: getCol(cols, ['hassnapshots']) || 'No',
-              osFamily: getCol(cols, ['osfamily']) || 'Other',
-              domain: getCol(cols, ['domain']) || 'No domain join',
-              ip: ipVal || '',
-              subnet: calculatedSub,
-              networkName: getCol(cols, ['networkname']) || 'None',
-              datastore: getCol(cols, ['datastore']) || 'Unknown',
-              disk: parseFloat(getCol(cols, ['totaldiskgb', 'disk'])) || 100,
-              visioTier: 'Auto',
-              wave: 'Wave 1 - Pilot',
-              dept: '',
-              system: 'General',
-              cutoverStatus: 'Not Started',
-              x: 20 + (servers.length % 5) * 280,
-              y: 20 + Math.floor(servers.length / 5) * 145
-            };
-            servers.push(newServer);
-            newCount++;
-          } else {
-            // Existing server: UPDATE ONLY TELEMETRY, PRESERVE USER METADATA (dept, wave, system, visioTier, dependencies, etc.)
-            servers[existingIdx].powerState = getCol(cols, ['powerstate']) || servers[existingIdx].powerState;
-            servers[existingIdx].drProtected = getCol(cols, ['dr_status', 'drprotected']) || servers[existingIdx].drProtected;
-            servers[existingIdx].hasSnapshots = getCol(cols, ['hassnapshots']) || servers[existingIdx].hasSnapshots;
-            servers[existingIdx].osFamily = getCol(cols, ['osfamily']) || servers[existingIdx].osFamily;
-            servers[existingIdx].domain = getCol(cols, ['domain']) || servers[existingIdx].domain;
-            servers[existingIdx].ip = ipVal || servers[existingIdx].ip;
-            servers[existingIdx].subnet = calculatedSub || servers[existingIdx].subnet;
-            servers[existingIdx].networkName = getCol(cols, ['networkname']) || servers[existingIdx].networkName;
-            servers[existingIdx].datastore = getCol(cols, ['datastore']) || servers[existingIdx].datastore;
-            servers[existingIdx].disk = parseFloat(getCol(cols, ['totaldiskgb', 'disk'])) || servers[existingIdx].disk;
-            updatedCount++;
-          }
-        }
-
-        servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderInventoryTable();
-        renderTopologyCanvas();
-        alert(`Smart Import Complete!\n- Added: ${newCount} new servers\n- Updated: ${updatedCount} existing servers with latest telemetry (your Department, Wave, and custom fields were safely preserved).`);
-        e.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    function exportEncryptedJSON() {
-      const jsonStr = JSON.stringify(servers, null, 2);
-      let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' })); a.download = `ca-migration-secure-backup.json`; a.click();
-    }
-
-    function importEncryptedJSON(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          let content = evt.target.result;
-          if (content.startsWith("INFENC:")) {
-            const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
-          }
-          servers = JSON.parse(content);
-          servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-          localStorage.setItem('infops_servers', JSON.stringify(servers));
-          renderTopologyCanvas(); renderInventoryTable(); alert(`Decrypted and loaded ${servers.length} servers!`);
-        } catch (err) { alert("Decryption failed."); }
-      };
-      reader.readAsText(file);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => { applySettings(); renderTopologyCanvas(); verifyClientIP(); });
+    document.addEventListener('DOMContentLoaded', () => { renderInventoryTable(); });
   </script>
 </body>
 </html>
