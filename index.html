@@ -1,4 +1,4 @@
-<!-- 20261116 v36 - Trying to fix Autocomplete & Smart Bulk Edit Prefill -->
+<!-- 20261116 v37 - trying to fix bulk upstream dependency more than 1 server -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -551,13 +551,19 @@
             <option value="dependencies">Upstream Dependencies</option>
           </select>
         </div>
-        <div>
+        <div class="relative">
           <div class="flex justify-between items-center mb-1">
             <label class="font-semibold text-slate-300">New Value:</label>
             <span id="bulkPrefillHint" class="text-[11px] text-amber-300 font-mono"></span>
           </div>
-          <input type="text" id="bulkValue" list="bulkValueSuggestions" autocomplete="off" placeholder="Select from existing or type new value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          <input type="text" id="bulkValue" list="bulkValueSuggestions" autocomplete="off"
+                 oninput="onBulkValueInput(this.value)"
+                 onfocus="onBulkValueInput(this.value)"
+                 onblur="setTimeout(hideBulkDepSuggestions, 180)"
+                 placeholder="Select from existing or type new value..."
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 font-mono">
           <datalist id="bulkValueSuggestions"></datalist>
+          <div id="bulkDepSuggestionsDropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-950 border border-amber-700/80 rounded-xl shadow-2xl max-h-44 overflow-y-auto z-50 hidden"></div>
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
@@ -751,7 +757,6 @@
       const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
       const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
 
-      // Populate Server Modal Datalists
       const setList = (id, arr) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = arr.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
@@ -761,7 +766,6 @@
       setList('modalDomainList', domains);
       setList('modalSubnetList', subnets);
 
-      // Topology filter dropdowns
       const domSelect = document.getElementById('filterDomain');
       if (domSelect) {
         const cur = domSelect.value;
@@ -776,7 +780,6 @@
         if (systems.includes(cur)) sysSelect.value = cur;
       }
 
-      // Sync shared filter dropdowns across Inventory, Colocation Waves, Zerto DR, and Veeam
       ['inv', 'waves', 'zerto', 'veeam'].forEach(prefix => {
         const dSel = document.getElementById(`${prefix}FilterDept`);
         if (dSel) {
@@ -1555,7 +1558,7 @@
       reader.readAsText(file);
     }
 
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE
+    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (SERVER MODAL)
     function showDepSuggestions(val) {
       const box = document.getElementById('depSuggestionsDropdown');
       if (!box) return;
@@ -1604,6 +1607,62 @@
 
     function hideDepSuggestions() {
       const box = document.getElementById('depSuggestionsDropdown');
+      if (box) box.classList.add('hidden');
+    }
+
+    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (BULK EDIT MODAL)
+    function onBulkValueInput(val) {
+      const field = document.getElementById('bulkField').value;
+      const box = document.getElementById('bulkDepSuggestionsDropdown');
+      if (!box) return;
+
+      if (field !== 'dependencies') {
+        box.classList.add('hidden');
+        return;
+      }
+
+      const parts = val.split(',');
+      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
+      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
+
+      const matches = servers.filter(s => {
+        const sNameLow = s.serverName.toLowerCase();
+        if (alreadyAdded.has(sNameLow)) return false;
+        if (!lastTerm) return true;
+        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
+      }).slice(0, 20);
+
+      if (matches.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      box.innerHTML = matches.map(s => `
+        <div onmousedown="selectBulkDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
+             class="px-3 py-2 hover:bg-amber-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
+          <div>
+            <div class="font-bold text-amber-300 font-mono text-xs">${s.serverName}</div>
+            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
+          </div>
+          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
+        </div>
+      `).join('');
+      box.classList.remove('hidden');
+    }
+
+    function selectBulkDepSuggestion(selectedName) {
+      const input = document.getElementById('bulkValue');
+      if (!input) return;
+      const parts = input.value.split(',');
+      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
+      input.value = parts.join(',') + ', ';
+      hideBulkDepSuggestions();
+      input.focus();
+      onBulkValueInput(input.value);
+    }
+
+    function hideBulkDepSuggestions() {
+      const box = document.getElementById('bulkDepSuggestionsDropdown');
       if (box) box.classList.add('hidden');
     }
 
@@ -1680,8 +1739,8 @@
       const datalist = document.getElementById('bulkValueSuggestions');
       const hintEl = document.getElementById('bulkPrefillHint');
       if (!valInput || !datalist) return;
+      hideBulkDepSuggestions();
 
-      // 1. Collect all unique existing values from inventory for the chosen field
       let uniqueVals = new Set();
       if (field === 'wave') {
         ['Wave 1 - Pilot', 'Wave 2 - Core Apps', 'Wave 3 - Databases & DCs', 'Unassigned'].forEach(w => uniqueVals.add(w));
@@ -1699,7 +1758,6 @@
       const sortedOptions = Array.from(uniqueVals).sort();
       datalist.innerHTML = sortedOptions.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
 
-      // 2. Inspect currently selected servers to auto-prefill existing value
       const selectedObjects = servers.filter(s => selectedServerNames.has(s.serverName));
       const selectedFieldVals = [...new Set(selectedObjects.map(s => (s[field] || '').toString().trim()))];
 
@@ -1722,12 +1780,17 @@
       document.getElementById('bulkEditModal').classList.remove('hidden');
       onBulkFieldChange();
     }
-    function closeBulkEditModal() { document.getElementById('bulkEditModal').classList.add('hidden'); }
+    function closeBulkEditModal() { hideBulkDepSuggestions(); document.getElementById('bulkEditModal').classList.add('hidden'); }
 
     function commitBulkEdit() {
       const field = document.getElementById('bulkField').value;
-      const val = document.getElementById('bulkValue').value.trim();
+      let val = document.getElementById('bulkValue').value.trim();
       if (!val) return alert("Enter a value.");
+
+      if (field === 'dependencies') {
+        val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
+      }
+
       servers.forEach(s => { if (selectedServerNames.has(s.serverName)) s[field] = val; });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeBulkEditModal();
