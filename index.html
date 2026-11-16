@@ -1,4 +1,4 @@
-<!-- 20261116 v35 - All Filter Bars Across All Tabs is works in this version -->
+<!-- 20261116 v36 - Trying to fix Autocomplete & Smart Bulk Edit Prefill -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -530,14 +530,17 @@
 
   </div>
 
-  <!-- BULK MASS EDIT MODAL -->
+  <!-- BULK MASS EDIT MODAL WITH DYNAMIC AUTOCOMPLETE & AUTO-PREFILL -->
   <div id="bulkEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
-      <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Universal Bulk Mass Update (<span id="bulkModalCount">0</span> servers selected)</h3>
+      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <h3 class="font-bold text-white text-sm">Universal Bulk Mass Update (<span id="bulkModalCount">0</span> servers selected)</h3>
+        <button onclick="closeBulkEditModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+      </div>
       <div class="flex flex-col gap-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Field to Update:</label>
-          <select id="bulkField" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <select id="bulkField" onchange="onBulkFieldChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
             <option value="dept">Department</option>
             <option value="system">System / Application Group</option>
             <option value="domain">AD Domain</option>
@@ -545,11 +548,16 @@
             <option value="wave">Migration Wave</option>
             <option value="drStatus">DR Status (e.g., P00, P01, None)</option>
             <option value="veeamJob">Veeam Backup Job Name</option>
+            <option value="dependencies">Upstream Dependencies</option>
           </select>
         </div>
         <div>
-          <label class="font-semibold text-slate-300 mb-1 block">New Value:</label>
-          <input type="text" id="bulkValue" placeholder="Type new value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-semibold text-slate-300">New Value:</label>
+            <span id="bulkPrefillHint" class="text-[11px] text-amber-300 font-mono"></span>
+          </div>
+          <input type="text" id="bulkValue" list="bulkValueSuggestions" autocomplete="off" placeholder="Select from existing or type new value..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          <datalist id="bulkValueSuggestions"></datalist>
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
@@ -559,7 +567,7 @@
     </div>
   </div>
 
-  <!-- SERVER MODAL -->
+  <!-- SERVER MODAL WITH MULTI-SERVER DEPENDENCY AUTOCOMPLETE -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
@@ -574,15 +582,18 @@
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
-          <input type="text" id="modalDept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDeptList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-          <input type="text" id="modalSystem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalSystemList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-          <input type="text" id="modalDomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDomainList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
@@ -590,15 +601,28 @@
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
-          <input type="text" id="modalSubnet" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <datalist id="modalSubnetList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">DR Status (e.g. P00, P01):</label>
-          <input type="text" id="modalDrStatus" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <input type="text" id="modalDrStatus" list="modalDrList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <datalist id="modalDrList">
+            <option value="P00"></option>
+            <option value="P01"></option>
+            <option value="P02"></option>
+            <option value="No"></option>
+          </datalist>
         </div>
-        <div>
+        <div class="relative">
           <label class="font-semibold text-slate-300 mb-1 block">Upstream Dependencies:</label>
-          <input type="text" id="modalDependencies" placeholder="DC01, SQL01" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <input type="text" id="modalDependencies" autocomplete="off"
+                 oninput="showDepSuggestions(this.value)"
+                 onfocus="showDepSuggestions(this.value)"
+                 onblur="setTimeout(hideDepSuggestions, 180)"
+                 placeholder="Type server name (e.g. dc)..."
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
+          <div id="depSuggestionsDropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-950 border border-cyan-700/80 rounded-xl shadow-2xl max-h-44 overflow-y-auto z-50 hidden"></div>
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
@@ -726,6 +750,16 @@
       const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
       const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
       const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
+
+      // Populate Server Modal Datalists
+      const setList = (id, arr) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = arr.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
+      };
+      setList('modalDeptList', depts);
+      setList('modalSystemList', systems);
+      setList('modalDomainList', domains);
+      setList('modalSubnetList', subnets);
 
       // Topology filter dropdowns
       const domSelect = document.getElementById('filterDomain');
@@ -1521,7 +1555,61 @@
       reader.readAsText(file);
     }
 
+    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE
+    function showDepSuggestions(val) {
+      const box = document.getElementById('depSuggestionsDropdown');
+      if (!box) return;
+
+      const currentServer = (document.getElementById('modalServerName')?.value || '').trim().toLowerCase();
+      const parts = val.split(',');
+      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
+      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
+
+      const matches = servers.filter(s => {
+        const sNameLow = s.serverName.toLowerCase();
+        if (sNameLow === currentServer) return false;
+        if (alreadyAdded.has(sNameLow)) return false;
+        if (!lastTerm) return true;
+        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
+      }).slice(0, 20);
+
+      if (matches.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      box.innerHTML = matches.map(s => `
+        <div onmousedown="selectDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
+             class="px-3 py-2 hover:bg-cyan-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
+          <div>
+            <div class="font-bold text-cyan-300 font-mono text-xs">${s.serverName}</div>
+            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
+          </div>
+          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
+        </div>
+      `).join('');
+      box.classList.remove('hidden');
+    }
+
+    function selectDepSuggestion(selectedName) {
+      const input = document.getElementById('modalDependencies');
+      if (!input) return;
+      const parts = input.value.split(',');
+      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
+      input.value = parts.join(',') + ', ';
+      hideDepSuggestions();
+      input.focus();
+      showDepSuggestions(input.value);
+    }
+
+    function hideDepSuggestions() {
+      const box = document.getElementById('depSuggestionsDropdown');
+      if (box) box.classList.add('hidden');
+    }
+
     function openServerModal(serverName = null) {
+      updateDropdowns();
+      hideDepSuggestions();
       document.getElementById('serverModal').classList.remove('hidden');
       if (serverName) {
         const s = servers.find(x => x.serverName === serverName);
@@ -1542,20 +1630,23 @@
         document.getElementById('modalDomain').value = 'Becketts';
       }
     }
-    function closeServerModal() { document.getElementById('serverModal').classList.add('hidden'); }
+    function closeServerModal() { hideDepSuggestions(); document.getElementById('serverModal').classList.add('hidden'); }
     function editServer(name) { openServerModal(name); }
 
     function saveServerRecord() {
       const origName = document.getElementById('editOriginalName').value;
+      const cleanDeps = document.getElementById('modalDependencies').value
+        .split(',').map(d => d.trim()).filter(Boolean).join(', ');
+
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
         dept: document.getElementById('modalDept').value.trim(),
         system: document.getElementById('modalSystem').value.trim() || 'General',
-        domain: document.getElementById('modalDomain').value,
+        domain: document.getElementById('modalDomain').value.trim(),
         ip: document.getElementById('modalIP').value.trim(),
         subnet: document.getElementById('modalSubnet').value.trim(),
         drStatus: document.getElementById('modalDrStatus').value.trim(),
-        dependencies: document.getElementById('modalDependencies').value.trim()
+        dependencies: cleanDeps
       };
       if (!data.serverName) return alert("Server Name is required.");
       if (origName) {
@@ -1582,10 +1673,54 @@
       }
     }
 
+    // UNIVERSAL BULK UPDATE WITH DYNAMIC AUTOCOMPLETE & SMART AUTO-PREFILL
+    function onBulkFieldChange() {
+      const field = document.getElementById('bulkField').value;
+      const valInput = document.getElementById('bulkValue');
+      const datalist = document.getElementById('bulkValueSuggestions');
+      const hintEl = document.getElementById('bulkPrefillHint');
+      if (!valInput || !datalist) return;
+
+      // 1. Collect all unique existing values from inventory for the chosen field
+      let uniqueVals = new Set();
+      if (field === 'wave') {
+        ['Wave 1 - Pilot', 'Wave 2 - Core Apps', 'Wave 3 - Databases & DCs', 'Unassigned'].forEach(w => uniqueVals.add(w));
+      } else if (field === 'drStatus') {
+        ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
+      } else if (field === 'dependencies') {
+        servers.forEach(s => { if (s.serverName) uniqueVals.add(s.serverName); });
+      }
+
+      servers.forEach(s => {
+        const v = (s[field] || '').toString().trim();
+        if (v) uniqueVals.add(v);
+      });
+
+      const sortedOptions = Array.from(uniqueVals).sort();
+      datalist.innerHTML = sortedOptions.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
+
+      // 2. Inspect currently selected servers to auto-prefill existing value
+      const selectedObjects = servers.filter(s => selectedServerNames.has(s.serverName));
+      const selectedFieldVals = [...new Set(selectedObjects.map(s => (s[field] || '').toString().trim()))];
+
+      if (selectedFieldVals.length === 1 && selectedFieldVals[0] !== '') {
+        valInput.value = selectedFieldVals[0];
+        if (hintEl) hintEl.innerText = selectedObjects.length === 1 ? 'Prefilled current value' : 'All selected share this value';
+      } else if (selectedObjects.length > 1) {
+        const nonEmpty = selectedFieldVals.filter(Boolean);
+        valInput.value = nonEmpty.length > 0 ? nonEmpty[0] : '';
+        if (hintEl) hintEl.innerText = nonEmpty.length > 1 ? `Mixed values (${nonEmpty.length} variants)` : 'Prefilled from selection';
+      } else {
+        valInput.value = '';
+        if (hintEl) hintEl.innerText = `${sortedOptions.length} suggestions available`;
+      }
+    }
+
     function openBulkEditModal() {
       if (selectedServerNames.size === 0) return alert("Please select at least one server first.");
       document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
       document.getElementById('bulkEditModal').classList.remove('hidden');
+      onBulkFieldChange();
     }
     function closeBulkEditModal() { document.getElementById('bulkEditModal').classList.add('hidden'); }
 
