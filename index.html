@@ -1,4 +1,4 @@
-<!-- 20261116 v33 - Trying to add Filter Bars Across All Tabs -->
+<!-- 20261116 v34 - Trying to add Filter Bars Across All Tabs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,68 +19,68 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
 
-<!-- TOP HEADER NAVBAR -->
-<header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4 relative z-50">
-  <div class="flex items-center space-x-3 shrink-0 pointer-events-auto">
-    <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
-      <i class="fas fa-network-wired"></i>
+  <!-- TOP HEADER NAVBAR WITH EXPLICIT Z-INDEX & POINTER EVENTS -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4 relative z-50 pointer-events-auto">
+    <div class="flex items-center space-x-3 shrink-0 pointer-events-auto">
+      <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
+        <i class="fas fa-network-wired"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
+          <span id="brandName">InfOps</span> 
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
+        </h1>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
+      </div>
     </div>
-    <div>
-      <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
-        <span id="brandName">InfOps</span> 
-        <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
-      </h1>
-      <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
-    </div>
-  </div>
 
     <!-- UNIVERSAL GLOBAL SEARCH -->
-    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner">
+    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner pointer-events-auto">
       <i class="fas fa-search text-slate-400 mr-2 text-xs"></i>
       <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere..." class="bg-transparent text-xs text-white focus:outline-none w-full">
       <span id="globalSearchCount" class="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded ml-1 font-mono">0</span>
     </div>
 
     <!-- NAV TABS -->
-    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto shrink-0">
-      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0">
+    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto shrink-0 pointer-events-auto">
+      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0 cursor-pointer">
         <i class="fas fa-draw-polygon mr-1"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-flag-checkered mr-1"></i> Infra Colocation Project <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-database mr-1"></i> Veeam <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-calculator mr-1"></i> Calc
       </button>
-      <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0">
+      <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-stethoscope mr-1"></i> Health
       </button>
     </div>
 
     <!-- UTILITY ACTIONS -->
-    <div class="flex items-center space-x-2 shrink-0">
-      <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition" title="Settings"><i class="fas fa-cog"></i></button>
-      <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition" title="Encryption Key"><i class="fas fa-key"></i></button>
+    <div class="flex items-center space-x-2 shrink-0 pointer-events-auto">
+      <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition cursor-pointer" title="Settings"><i class="fas fa-cog"></i></button>
+      <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition cursor-pointer" title="Encryption Key"><i class="fas fa-key"></i></button>
       <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
-      <button onclick="exportEncryptedJSON()" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition shadow" title="Export JSON"><i class="fas fa-download"></i></button>
+      <button onclick="exportEncryptedJSON()" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold text-white transition shadow cursor-pointer" title="Export JSON"><i class="fas fa-download"></i></button>
     </div>
   </header>
 
   <!-- MAIN APP CONTAINER -->
-  <div class="flex-1 flex overflow-hidden">
+  <div class="flex-1 flex overflow-hidden relative z-10">
 
     <!-- TAB 1: TOPOLOGY, VISIO TREE & LINE LIST -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
-      <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-10 shrink-0 gap-3">
+      <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-20 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Domain:</label>
@@ -115,9 +115,9 @@
 
         <div class="flex items-center space-x-2">
           <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
-            <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
-            <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
-            <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white"><i class="fas fa-list mr-1"></i> Line List</button>
+            <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
+            <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
+            <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-list mr-1"></i> Line List</button>
           </div>
 
           <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
@@ -129,8 +129,8 @@
             </select>
           </div>
 
-          <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-th mr-1"></i> Snap</button>
-          <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition shadow"><i class="fas fa-object-group mr-1"></i> Cluster</button>
+          <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-th mr-1"></i> Snap</button>
+          <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-object-group mr-1"></i> Cluster</button>
           
           <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
         </div>
@@ -187,17 +187,17 @@
           <p class="text-xs text-slate-400">Filter inventory by department, system, domain, or subnet with instant filtered counts.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5">
+          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
             <i class="fas fa-edit"></i> Bulk Update 
             <span id="selectedCountBadge" class="bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
           </button>
-          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
+          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
           <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow"><i class="fas fa-file-excel mr-1"></i> Import CSV<input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)"></label>
-          <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-plus mr-1"></i> Add Server</button>
+          <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-plus mr-1"></i> Add Server</button>
         </div>
       </div>
 
-      <!-- INVENTORY FILTER BAR -->
+      <!-- INVENTORY FILTER BAR WITH FILTER ITEM COUNTS -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
@@ -206,24 +206,29 @@
               <option value="ALL">All Departments</option>
             </select>
           </div>
+
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">System:</label>
             <select id="invFilterSystem" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
               <option value="ALL">All Systems</option>
             </select>
           </div>
+
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Domain:</label>
             <select id="invFilterDomain" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
               <option value="ALL">All Domains</option>
             </select>
           </div>
+
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-semibold text-slate-300">Subnet:</label>
             <select id="invFilterSubnet" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
               <option value="ALL">All Subnets</option>
             </select>
           </div>
+
+          <!-- FILTERED RESULT BADGE -->
           <span id="filteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
 
@@ -232,7 +237,7 @@
             <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
             <input type="text" id="inventorySearch" oninput="renderInventoryTable()" placeholder="Search inventory..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
           </div>
-          <button onclick="resetInventoryFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition" title="Reset Filters"><i class="fas fa-undo"></i></button>
+          <button onclick="resetInventoryFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Filters"><i class="fas fa-undo"></i></button>
         </div>
       </div>
 
@@ -241,7 +246,7 @@
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
               <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600"></th>
+                <th class="p-3 w-10"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3">Server Name</th>
                 <th class="p-3">Department</th>
                 <th class="p-3">System / App</th>
@@ -269,50 +274,10 @@
             <p class="text-xs text-slate-400">Coordinate migration execution waves and verification checklists.</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
-            <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition"><i class="fas fa-save mr-1.5"></i> Save Progress</button>
+            <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
+            <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-save mr-1.5"></i> Save Progress</button>
           </div>
         </div>
-
-        <!-- INFRA COLOCATION PROJECT FILTER BAR -->
-        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Department:</label>
-              <select id="wavesFilterDept" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-                <option value="ALL">All Departments</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">System:</label>
-              <select id="wavesFilterSystem" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Systems</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Domain:</label>
-              <select id="wavesFilterDomain" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Domains</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-              <select id="wavesFilterSubnet" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-                <option value="ALL">All Subnets</option>
-              </select>
-            </div>
-            <span id="wavesFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <div class="relative">
-              <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
-              <input type="text" id="wavesSearch" oninput="renderCutoverWavesTab()" placeholder="Search project..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
-            </div>
-            <button onclick="resetWavesFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition" title="Reset Filters"><i class="fas fa-undo"></i></button>
-          </div>
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="waveSummaryCards"></div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
           <h3 class="font-bold text-white text-sm">Server Cutover & Verification Matrix</h3>
@@ -320,7 +285,7 @@
             <table class="w-full text-left border-collapse text-xs">
               <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
                 <tr>
-                  <th class="p-3 w-10"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600"></th>
+                  <th class="p-3 w-10"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                   <th class="p-3">Server Name</th>
                   <th class="p-3">Migration Wave</th>
                   <th class="p-3">Cutover Status</th>
@@ -339,7 +304,7 @@
 
     <!-- TAB 4: ZERTO DR (DR FILTERED) -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
             Zerto Disaster Recovery (DR) Control Panel 
@@ -348,56 +313,16 @@
           <p class="text-xs text-slate-400">Showing only servers with valid DR status (e.g., P00, P01, or active DR designation).</p>
         </div>
         <div class="flex gap-2">
-          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
-          <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-save mr-1"></i> Save DR Changes</button>
+          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
+          <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save DR Changes</button>
         </div>
       </div>
-
-      <!-- ZERTO DR FILTER BAR -->
-      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Department:</label>
-            <select id="zertoFilterDept" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-              <option value="ALL">All Departments</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="zertoFilterSystem" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Systems</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="zertoFilterDomain" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Domains</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="zertoFilterSubnet" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-              <option value="ALL">All Subnets</option>
-            </select>
-          </div>
-          <span id="zertoFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <div class="relative">
-            <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
-            <input type="text" id="zertoSearch" oninput="renderZertoTable()" placeholder="Search DR servers..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
-          </div>
-          <button onclick="resetZertoFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition" title="Reset Filters"><i class="fas fa-undo"></i></button>
-        </div>
-      </div>
-
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600"></th>
+                <th class="p-3 w-10"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3">DR Status</th>
                 <th class="p-3">Server Name</th>
                 <th class="p-3">VPG Name</th>
@@ -413,7 +338,7 @@
 
     <!-- TAB 5: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
-      <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
             Veeam Backup Job & Retention Management
@@ -422,56 +347,16 @@
           <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server with bulk update capability.</p>
         </div>
         <div class="flex gap-2">
-          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
-          <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow"><i class="fas fa-save mr-1"></i> Save Backup Changes</button>
+          <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
+          <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save Backup Changes</button>
         </div>
       </div>
-
-      <!-- VEEAM FILTER BAR -->
-      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Department:</label>
-            <select id="veeamFilterDept" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-              <option value="ALL">All Departments</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="veeamFilterSystem" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Systems</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="veeamFilterDomain" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Domains</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="veeamFilterSubnet" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-              <option value="ALL">All Subnets</option>
-            </select>
-          </div>
-          <span id="veeamFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <div class="relative">
-            <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
-            <input type="text" id="veeamSearch" oninput="renderVeeamTable()" placeholder="Search Veeam..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
-          </div>
-          <button onclick="resetVeeamFilters()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition" title="Reset Filters"><i class="fas fa-undo"></i></button>
-        </div>
-      </div>
-
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
               <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600"></th>
+                <th class="p-3 w-10"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3">Server Name</th>
                 <th class="p-3">Veeam Backup Job Name</th>
                 <th class="p-3">Backup Time</th>
@@ -557,8 +442,8 @@
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeBulkEditModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="commitBulkEdit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow">Apply Bulk Update</button>
+        <button onclick="closeBulkEditModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Cancel</button>
+        <button onclick="commitBulkEdit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow cursor-pointer">Apply Bulk Update</button>
       </div>
     </div>
   </div>
@@ -568,7 +453,7 @@
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add / Edit Server</h3>
-        <button onclick="closeServerModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+        <button onclick="closeServerModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
       </div>
       <input type="hidden" id="editOriginalName">
       <div class="grid grid-cols-2 gap-3 text-xs">
@@ -606,8 +491,8 @@
         </div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Save Record</button>
+        <button onclick="closeServerModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Cancel</button>
+        <button onclick="saveServerRecord()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold cursor-pointer">Save Record</button>
       </div>
     </div>
   </div>
@@ -621,8 +506,8 @@
         <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Multi-Domain Migration / Zerto DR / Veeam Backup"></div>
       </div>
       <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveProjectSettings()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold">Save</button>
+        <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Cancel</button>
+        <button onclick="saveProjectSettings()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold cursor-pointer">Save</button>
       </div>
     </div>
   </div>
@@ -633,8 +518,8 @@
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Encryption Passphrase</h3>
       <input type="password" id="secretPassInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
       <div class="flex gap-2 justify-end mt-2">
-        <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveSecretKey()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold">Save</button>
+        <button onclick="closeEncryptionModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Cancel</button>
+        <button onclick="saveSecretKey()" class="px-4 py-2 bg-cyan-600 text-white rounded-xl text-xs font-semibold cursor-pointer">Save</button>
       </div>
     </div>
   </div>
@@ -680,10 +565,7 @@
 
     function updateGlobalCounters() {
       const total = servers.length;
-      const drCount = servers.filter(s => {
-        const st = (s.drStatus || '').trim().toUpperCase();
-        return st && st !== 'NONE' && st !== '-' && st !== 'FALSE' && st !== 'NO';
-      }).length;
+      const drCount = servers.filter(s => s.drStatus && s.drStatus.trim() && s.drStatus.toUpperCase() !== 'NONE' && s.drStatus !== '-').length;
       
       ['canvas', 'inventory', 'waves', 'calculator', 'health'].forEach(t => {
         const el = document.getElementById(`counter-${t}`);
@@ -723,45 +605,6 @@
       }
     }
 
-    function populateFilterGroup(deptId, sysId, domId, subId) {
-      const domains = [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
-      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
-
-      const deptSel = document.getElementById(deptId);
-      if (deptSel) {
-        const cur = deptSel.value;
-        deptSel.innerHTML = '<option value="ALL">All Departments</option>';
-        depts.forEach(d => { deptSel.innerHTML += `<option value="${d}">${d}</option>`; });
-        if (depts.includes(cur)) deptSel.value = cur;
-      }
-
-      const sysSel = document.getElementById(sysId);
-      if (sysSel) {
-        const cur = sysSel.value;
-        sysSel.innerHTML = '<option value="ALL">All Systems</option>';
-        systems.forEach(sys => { sysSel.innerHTML += `<option value="${sys}">${sys}</option>`; });
-        if (systems.includes(cur)) sysSel.value = cur;
-      }
-
-      const domSel = document.getElementById(domId);
-      if (domSel) {
-        const cur = domSel.value;
-        domSel.innerHTML = '<option value="ALL">All Domains</option>';
-        domains.forEach(d => { domSel.innerHTML += `<option value="${d}">${d}</option>`; });
-        if (domains.includes(cur)) domSel.value = cur;
-      }
-
-      const subSel = document.getElementById(subId);
-      if (subSel) {
-        const cur = subSel.value;
-        subSel.innerHTML = '<option value="ALL">All Subnets</option>';
-        subnets.forEach(sub => { subSel.innerHTML += `<option value="${sub}">${sub}</option>`; });
-        if (subnets.includes(cur)) subSel.value = cur;
-      }
-    }
-
     function updateDropdowns() {
       const domSelect = document.getElementById('filterDomain');
       const curDom = domSelect?.value;
@@ -781,10 +624,48 @@
         if (systems.includes(curSys)) sysSelect.value = curSys;
       }
 
-      populateFilterGroup('invFilterDept', 'invFilterSystem', 'invFilterDomain', 'invFilterSubnet');
-      populateFilterGroup('wavesFilterDept', 'wavesFilterSystem', 'wavesFilterDomain', 'wavesFilterSubnet');
-      populateFilterGroup('zertoFilterDept', 'zertoFilterSystem', 'zertoFilterDomain', 'zertoFilterSubnet');
-      populateFilterGroup('veeamFilterDept', 'veeamFilterSystem', 'veeamFilterDomain', 'veeamFilterSubnet');
+      const subSelect = document.getElementById('filterSubnet');
+      const curSub = subSelect?.value;
+      const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+      if (subSelect) {
+        subSelect.innerHTML = '<option value="ALL">All Subnets</option>';
+        subnets.forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
+        if (subnets.includes(curSub)) subSelect.value = curSub;
+      }
+
+      // Inventory Filters
+      const invDeptSel = document.getElementById('invFilterDept');
+      const curInvDept = invDeptSel?.value;
+      const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
+      if (invDeptSel) {
+        invDeptSel.innerHTML = '<option value="ALL">All Departments</option>';
+        depts.forEach(d => { invDeptSel.innerHTML += `<option value="${d}">${d}</option>`; });
+        if (depts.includes(curInvDept)) invDeptSel.value = curInvDept;
+      }
+
+      const invSysSel = document.getElementById('invFilterSystem');
+      const curInvSys = invSysSel?.value;
+      if (invSysSel) {
+        invSysSel.innerHTML = '<option value="ALL">All Systems</option>';
+        systems.forEach(sys => { invSysSel.innerHTML += `<option value="${sys}">${sys}</option>`; });
+        if (systems.includes(curInvSys)) invSysSel.value = curInvSys;
+      }
+
+      const invDomSel = document.getElementById('invFilterDomain');
+      const curInvDom = invDomSel?.value;
+      if (invDomSel) {
+        invDomSel.innerHTML = '<option value="ALL">All Domains</option>';
+        domains.forEach(d => { invDomSel.innerHTML += `<option value="${d}">${d}</option>`; });
+        if (domains.includes(curInvDom)) invDomSel.value = curInvDom;
+      }
+
+      const invSubSel = document.getElementById('invFilterSubnet');
+      const curInvSub = invSubSel?.value;
+      if (invSubSel) {
+        invSubSel.innerHTML = '<option value="ALL">All Subnets</option>';
+        subnets.forEach(sub => { invSubSel.innerHTML += `<option value="${sub}">${sub}</option>`; });
+        if (subnets.includes(curInvSub)) invSubSel.value = curInvSub;
+      }
     }
 
     function resetInventoryFilters() {
@@ -798,43 +679,10 @@
       renderInventoryTable();
     }
 
-    function resetWavesFilters() {
-      document.getElementById('wavesFilterDept').value = 'ALL';
-      document.getElementById('wavesFilterSystem').value = 'ALL';
-      document.getElementById('wavesFilterDomain').value = 'ALL';
-      document.getElementById('wavesFilterSubnet').value = 'ALL';
-      document.getElementById('wavesSearch').value = '';
-      globalSearchQuery = '';
-      document.getElementById('globalSearchInput').value = '';
-      renderCutoverWavesTab();
-    }
-
-    function resetZertoFilters() {
-      document.getElementById('zertoFilterDept').value = 'ALL';
-      document.getElementById('zertoFilterSystem').value = 'ALL';
-      document.getElementById('zertoFilterDomain').value = 'ALL';
-      document.getElementById('zertoFilterSubnet').value = 'ALL';
-      document.getElementById('zertoSearch').value = '';
-      globalSearchQuery = '';
-      document.getElementById('globalSearchInput').value = '';
-      renderZertoTable();
-    }
-
-    function resetVeeamFilters() {
-      document.getElementById('veeamFilterDept').value = 'ALL';
-      document.getElementById('veeamFilterSystem').value = 'ALL';
-      document.getElementById('veeamFilterDomain').value = 'ALL';
-      document.getElementById('veeamFilterSubnet').value = 'ALL';
-      document.getElementById('veeamSearch').value = '';
-      globalSearchQuery = '';
-      document.getElementById('globalSearchInput').value = '';
-      renderVeeamTable();
-    }
-
     function switchTab(tabId) {
       ['canvas', 'inventory', 'waves', 'zerto', 'veeam', 'calculator', 'health'].forEach(t => {
         document.getElementById(`tabContent-${t}`).classList.toggle('hidden', t !== tabId);
-        document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0";
+        document.getElementById(`tabBtn-${t}`).className = t === tabId ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0 cursor-pointer" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer";
       });
       if (tabId === 'canvas') renderTopologyCanvas();
       if (tabId === 'inventory') renderInventoryTable();
@@ -847,9 +695,9 @@
 
     function setTopologyViewMode(mode) {
       currentTopoMode = mode;
-      document.getElementById('topoModeVisual').className = mode === 'visual' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
-      document.getElementById('topoModeTree').className = mode === 'tree' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
-      document.getElementById('topoModeList').className = mode === 'list' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white";
+      document.getElementById('topoModeVisual').className = mode === 'visual' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
+      document.getElementById('topoModeTree').className = mode === 'tree' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
+      document.getElementById('topoModeList').className = mode === 'list' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
       
       document.getElementById('canvasArea').classList.toggle('hidden', mode !== 'visual');
       document.getElementById('svgConnectors').classList.toggle('hidden', mode !== 'visual');
@@ -863,16 +711,16 @@
       return depStr.split(',').map(d => d.trim()).filter(d => d && d.toUpperCase() !== '[ALL]');
     }
 
-    function applyFilterBar(list, deptId, sysId, domId, subId, searchId) {
-      const deptF = document.getElementById(deptId)?.value || 'ALL';
-      const sysF = document.getElementById(sysId)?.value || 'ALL';
-      const domF = document.getElementById(domId)?.value || 'ALL';
-      const subF = document.getElementById(subId)?.value || 'ALL';
-      const localQ = (document.getElementById(searchId)?.value || '').toLowerCase();
+    function getFilteredInventoryList() {
+      const deptF = document.getElementById('invFilterDept')?.value || 'ALL';
+      const sysF = document.getElementById('invFilterSystem')?.value || 'ALL';
+      const domF = document.getElementById('invFilterDomain')?.value || 'ALL';
+      const subF = document.getElementById('invFilterSubnet')?.value || 'ALL';
+      const localQ = (document.getElementById('inventorySearch')?.value || '').toLowerCase();
 
-      return list.filter(s => {
+      return servers.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         if (deptF !== 'ALL' && (s.dept || '') !== deptF) return false;
@@ -880,15 +728,11 @@
         if (domF !== 'ALL' && (s.domain || 'Becketts') !== domF) return false;
         if (subF !== 'ALL' && (s.subnet || 'Unassigned') !== subF) return false;
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus}`.toLowerCase();
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
         }
         return true;
       });
-    }
-
-    function getFilteredInventoryList() {
-      return applyFilterBar(servers, 'invFilterDept', 'invFilterSystem', 'invFilterDomain', 'invFilterSubnet', 'inventorySearch');
     }
 
     function toggleSelectAll(master) {
@@ -928,16 +772,16 @@
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\'")}', this)" class="rounded text-cyan-600"></td>
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\'")}')">${s.serverName}</td>
+            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
+            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || ''}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
             <td class="p-3 font-mono text-slate-300">${s.subnet || 'Unassigned'}</td>
             <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2"><i class="fas fa-pen"></i></button>
-              <button onclick="deleteServer('${s.serverName.replace(/'/g, "\'")}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
       });
@@ -982,17 +826,16 @@
     function onFilterChange() { alignTopLeft(); }
 
     function setTopologyLayoutMode(mode) {
-      activeLayoutMode = mode;
       const snapBtn = document.getElementById('layoutBtnSnap');
       const clusterBtn = document.getElementById('layoutBtnCluster');
 
       if (mode === 'snap') {
-        snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition";
-        clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+        snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition cursor-pointer";
+        clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer";
         alignTopLeft();
       } else {
-        clusterBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition";
-        snapBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition";
+        clusterBtn.className = "px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-indigo-400 transition cursor-pointer";
+        snapBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer";
         clusterTopologyCards();
       }
     }
@@ -1048,7 +891,7 @@
         const domBadgeClass = isUK ? 'bg-amber-950/90 text-amber-300 border-amber-800' : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
 
         const el = document.createElement('div');
-        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-lg p-2 w-56 shadow-lg flex flex-col gap-1 hover:border-cyan-500 transition`;
+        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-lg p-2 w-56 shadow-lg flex flex-col gap-1 hover:border-cyan-500 transition cursor-pointer`;
         el.style.left = `${s.x}px`;
         el.style.top = `${s.y}px`;
         el.onclick = (e) => { if (e.target.tagName !== 'INPUT') editServer(s.serverName); };
@@ -1194,8 +1037,8 @@
     function renderTreeNodeCard(s, borderClass) {
       const sDom = s.domain || 'Becketts';
       return `
-        <div draggable="true" ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\'")}')" data-tree-server="${s.serverName.toLowerCase()}"
-             class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative" onclick="editServer('${s.serverName.replace(/'/g, "\'")}')">
+        <div draggable="true" ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" data-tree-server="${s.serverName.toLowerCase()}"
+             class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
           <div class="flex justify-between items-center gap-1">
             <span class="font-bold text-cyan-300 text-xs truncate">${s.serverName}</span>
             <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">${sDom}</span>
@@ -1267,7 +1110,7 @@
       filtered.forEach(s => {
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\'")}')">${s.serverName}</td>
+            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
             <td class="p-3 font-semibold text-cyan-300">${s.wave || 'Wave 1 - Pilot'}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
@@ -1275,19 +1118,13 @@
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
             <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
             <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\'")}')" class="text-cyan-400 hover:text-cyan-300"><i class="fas fa-pen"></i></button>
+              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer"><i class="fas fa-pen"></i></button>
             </td>
           </tr>`;
       });
     }
 
-    // TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES)
-    function getFilteredWavesList() {
-      return applyFilterBar(servers, 'wavesFilterDept', 'wavesFilterSystem', 'wavesFilterDomain', 'wavesFilterSubnet', 'wavesSearch');
-    }
-
     function renderCutoverWavesTab() {
-      updateDropdowns();
       updateGlobalCounters();
       const waveSummary = document.getElementById('waveSummaryCards');
       if (waveSummary) {
@@ -1304,26 +1141,20 @@
             </div>`;
         });
       }
-
-      const visibleWaves = getFilteredWavesList();
-      const matchBadge = document.getElementById('wavesFilteredMatchBadge');
-      if (matchBadge) matchBadge.innerText = `Showing ${visibleWaves.length} of ${servers.length}`;
-
       const tbody = document.getElementById('wavesTableBody');
       if (tbody) {
         tbody.innerHTML = '';
-        const allChecked = visibleWaves.length > 0 && visibleWaves.every(s => selectedServerNames.has(s.serverName));
+        const allChecked = servers.length > 0 && servers.every(s => selectedServerNames.has(s.serverName));
         const selectAllEl = document.getElementById('wavesSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        visibleWaves.forEach((s) => {
-          const idx = servers.indexOf(s);
+        servers.forEach((s, idx) => {
           const status = s.cutoverStatus || 'Not Started';
           const wVal = s.wave || 'Unassigned';
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           tbody.innerHTML += `
             <tr class="hover:bg-slate-700/50">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\'")}', this)" class="rounded text-cyan-600"></td>
+              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 font-bold text-white">${s.serverName}</td>
               <td class="p-3">
                 <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
@@ -1334,19 +1165,18 @@
                 </select>
               </td>
               <td class="p-3"><select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600"></td>
+              <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
+              <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
+              <td class="p-3 text-center"><input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
+              <td class="p-3 text-center"><input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
             </tr>`;
         });
       }
     }
 
     function toggleWavesSelectAll(master) {
-      const visibleWaves = getFilteredWavesList();
-      if (master.checked) visibleWaves.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleWaves.forEach(s => selectedServerNames.delete(s.serverName));
+      if (master.checked) servers.forEach(s => selectedServerNames.add(s.serverName));
+      else servers.forEach(s => selectedServerNames.delete(s.serverName));
       renderCutoverWavesTab();
     }
 
@@ -1356,59 +1186,40 @@
         const wStat = document.getElementById(`wave-status-${idx}`);
         if (wName) s.wave = wName.value;
         if (wStat) s.cutoverStatus = wStat.value;
-        const cDns = document.getElementById(`chk-dns-${idx}`);
-        if (cDns) s.chkDNS = cDns.checked;
-        const cFw = document.getElementById(`chk-fw-${idx}`);
-        if (cFw) s.chkFW = cFw.checked;
-        const cSync = document.getElementById(`chk-sync-${idx}`);
-        if (cSync) s.chkSync = cSync.checked;
-        const cSign = document.getElementById(`chk-sign-${idx}`);
-        if (cSign) s.chkSign = cSign.checked;
+        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
+        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
+        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
+        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderCutoverWavesTab();
       alert("Infra Colocation project cutover progress saved successfully!");
     }
 
-    // TAB 4: ZERTO DR (DR FILTERED)
-    function getBaseDrServers() {
-      return servers.filter(s => {
-        const st = (s.drStatus || '').trim().toUpperCase();
-        return st && st !== 'NONE' && st !== '-' && st !== 'FALSE' && st !== 'NO';
-      });
-    }
-
-    function getFilteredZertoList() {
-      return applyFilterBar(getBaseDrServers(), 'zertoFilterDept', 'zertoFilterSystem', 'zertoFilterDomain', 'zertoFilterSubnet', 'zertoSearch');
-    }
-
     function renderZertoTable() {
-      updateDropdowns();
       updateGlobalCounters();
-      const baseDrServers = getBaseDrServers();
-      const visibleDrServers = getFilteredZertoList();
-
-      const matchBadge = document.getElementById('zertoFilteredMatchBadge');
-      if (matchBadge) matchBadge.innerText = `Showing ${visibleDrServers.length} of ${baseDrServers.length}`;
-
       const tbody = document.getElementById('zertoTableBody');
       if (tbody) {
         tbody.innerHTML = '';
-        const allChecked = visibleDrServers.length > 0 && visibleDrServers.every(s => selectedServerNames.has(s.serverName));
+        const drServers = servers.filter(s => {
+          const st = (s.drStatus || '').trim().toUpperCase();
+          return st && st !== 'NONE' && st !== '-' && st !== 'FALSE' && st !== 'NO';
+        });
+
+        const allChecked = drServers.length > 0 && drServers.every(s => selectedServerNames.has(s.serverName));
         const selectAllEl = document.getElementById('zertoSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        if (visibleDrServers.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No DR servers match current filter criteria.</td></tr>`;
+        if (drServers.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No servers currently designated with a valid DR status (e.g. P00, P01). Use CSV import or Edit Server to assign DR status.</td></tr>`;
           return;
         }
 
-        visibleDrServers.forEach((s) => {
-          const idx = servers.indexOf(s);
+        drServers.forEach((s, idx) => {
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           tbody.innerHTML += `
             <tr class="hover:bg-slate-700/50">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\'")}', this)" class="rounded text-cyan-600"></td>
+              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 font-mono font-bold text-amber-300">${s.drStatus}</td>
               <td class="p-3 font-bold text-white">${s.serverName}</td>
               <td class="p-3"><input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
@@ -1420,49 +1231,42 @@
     }
 
     function toggleZertoSelectAll(master) {
-      const visibleDrServers = getFilteredZertoList();
-      if (master.checked) visibleDrServers.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleDrServers.forEach(s => selectedServerNames.delete(s.serverName));
+      const drServers = servers.filter(s => {
+        const st = (s.drStatus || '').trim().toUpperCase();
+        return st && st !== 'NONE' && st !== '-' && st !== 'FALSE' && st !== 'NO';
+      });
+      if (master.checked) drServers.forEach(s => selectedServerNames.add(s.serverName));
+      else drServers.forEach(s => selectedServerNames.delete(s.serverName));
       renderZertoTable();
     }
 
     function saveZertoChanges() {
-      servers.forEach((s, idx) => {
-        const vpgEl = document.getElementById(`dr-vpg-${idx}`);
-        const siteEl = document.getElementById(`dr-site-${idx}`);
-        if (vpgEl) s.vpg = vpgEl.value.trim();
-        if (siteEl) s.drSite = siteEl.value.trim();
+      const drServers = servers.filter(s => {
+        const st = (s.drStatus || '').trim().toUpperCase();
+        return st && st !== 'NONE' && st !== '-' && st !== 'FALSE' && st !== 'NO';
+      });
+      drServers.forEach((s, idx) => {
+        s.vpg = document.getElementById(`dr-vpg-${idx}`)?.value.trim();
+        s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       alert("Zerto DR settings saved successfully!");
     }
 
-    // TAB 5: VEEAM BACKUPS
-    function getFilteredVeeamList() {
-      return applyFilterBar(servers, 'veeamFilterDept', 'veeamFilterSystem', 'veeamFilterDomain', 'veeamFilterSubnet', 'veeamSearch');
-    }
-
     function renderVeeamTable() {
-      updateDropdowns();
       updateGlobalCounters();
-      const visibleVeeam = getFilteredVeeamList();
-
-      const matchBadge = document.getElementById('veeamFilteredMatchBadge');
-      if (matchBadge) matchBadge.innerText = `Showing ${visibleVeeam.length} of ${servers.length}`;
-
       const tbody = document.getElementById('veeamTableBody');
       if (tbody) {
         tbody.innerHTML = '';
-        const allChecked = visibleVeeam.length > 0 && visibleVeeam.every(s => selectedServerNames.has(s.serverName));
+        const allChecked = servers.length > 0 && servers.every(s => selectedServerNames.has(s.serverName));
         const selectAllEl = document.getElementById('veeamSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        visibleVeeam.forEach((s) => {
-          const idx = servers.indexOf(s);
+        servers.forEach((s, idx) => {
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           tbody.innerHTML += `
             <tr class="hover:bg-slate-700/50">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\'")}', this)" class="rounded text-cyan-600"></td>
+              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 font-bold text-white">${s.serverName}</td>
               <td class="p-3"><input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
               <td class="p-3"><input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono"></td>
@@ -1473,20 +1277,16 @@
     }
 
     function toggleVeeamSelectAll(master) {
-      const visibleVeeam = getFilteredVeeamList();
-      if (master.checked) visibleVeeam.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleVeeam.forEach(s => selectedServerNames.delete(s.serverName));
+      if (master.checked) servers.forEach(s => selectedServerNames.add(s.serverName));
+      else servers.forEach(s => selectedServerNames.delete(s.serverName));
       renderVeeamTable();
     }
 
     function saveVeeamChanges() {
       servers.forEach((s, idx) => {
-        const jobEl = document.getElementById(`veeam-job-${idx}`);
-        const timeEl = document.getElementById(`veeam-time-${idx}`);
-        const retEl = document.getElementById(`veeam-ret-${idx}`);
-        if (jobEl) s.veeamJob = jobEl.value.trim();
-        if (timeEl) s.veeamTime = timeEl.value.trim();
-        if (retEl) s.veeamRetention = parseInt(retEl.value) || 30;
+        s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim();
+        s.veeamTime = document.getElementById(`veeam-time-${idx}`)?.value.trim();
+        s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       alert("Veeam settings saved successfully!");
@@ -1509,7 +1309,6 @@
       document.getElementById('healthLogContainer').innerHTML = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 font-semibold"><i class="fas fa-check-circle mr-2"></i>All IPs valid.</div>';
     }
 
-    // ROBUST DYNAMIC HEADER-AWARE CSV IMPORT
     function parseCSVRow(row) {
       const result = []; let current = '', inQuotes = false;
       for (let i = 0; i < row.length; i++) {
@@ -1525,9 +1324,7 @@
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
-        const lines = evt.target.result.split(/
-?
-/);
+        const lines = evt.target.result.split(/\r?\n/);
         if (lines.length === 0) return;
 
         let headerCols = [];
@@ -1671,24 +1468,13 @@
       servers.forEach(s => { if (selectedServerNames.has(s.serverName)) s[field] = val; });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeBulkEditModal();
-      
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) {
-        const tabId = activeTab.id.replace('tabContent-', '');
-        if (tabId === 'inventory') renderInventoryTable();
-        else if (tabId === 'waves') renderCutoverWavesTab();
-        else if (tabId === 'zerto') renderZertoTable();
-        else if (tabId === 'veeam') renderVeeamTable();
-        else renderInventoryTable();
-      }
+      renderInventoryTable();
       alert("Bulk update successful!");
     }
 
     function exportToCSV() {
-      let csv = "ServerName,Department,System,Domain,IPAddress,Subnet,DrStatus
-";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"
-`; });
+      let csv = "ServerName,Department,System,Domain,IPAddress,Subnet,DrStatus\n";
+      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
     }
 
@@ -1739,6 +1525,8 @@
       const subInput = document.getElementById('modalSubnet');
       if (subInput && ipVal.trim()) subInput.value = calculateSubnet(ipVal.trim());
     }
+
+    document.getElementById('globalSearchInput').addEventListener('click', (e) => e.stopPropagation());
 
     document.addEventListener('DOMContentLoaded', () => { 
       applySettings(); 
