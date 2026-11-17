@@ -1,4 +1,4 @@
-<!-- 20261117 v39 - Works well Calc, Inventory Datastore/OS/Disk, Zerto Sorting & Subnet/System, Veeam One-Tap Presets -->
+<!-- 20261117 v40 - trying Draggable Table Columns (Left/Right re-ordering) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +14,10 @@
     .tier-dropzone.drag-over { background-color: rgba(6, 182, 212, 0.08); border-color: #06b6d4; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    th { resize: horizontal; overflow: auto; min-width: 80px; }
+    th { resize: horizontal; overflow: auto; min-width: 80px; cursor: grab; user-select: none; }
+    th:active { cursor: grabbing; }
+    th.drag-over-left { border-left: 3px solid #06b6d4; }
+    th.drag-over-right { border-right: 3px solid #06b6d4; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
@@ -184,9 +187,10 @@
             Server Inventory Matrix & Universal Bulk Edit
             <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 servers</span>
           </h2>
-          <p class="text-xs text-slate-400">Filter inventory by department, system, domain, or subnet with instant filtered counts.</p>
+          <p class="text-xs text-slate-400">Filter inventory by department, system, domain, or subnet with instant filtered counts. Drag column titles to re-order.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
+          <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
             <i class="fas fa-edit"></i> Bulk Update 
             <span id="selectedCountBadge" class="bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
@@ -237,20 +241,20 @@
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
-          <table class="w-full text-left border-collapse text-xs">
+          <table class="w-full text-left border-collapse text-xs" id="table-inventory">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
-              <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Department</th>
-                <th class="p-3">System / App</th>
-                <th class="p-3">OS Family</th>
-                <th class="p-3">Total Disk (GB)</th>
-                <th class="p-3">Datastore</th>
-                <th class="p-3">Domain</th>
-                <th class="p-3">IP Address</th>
-                <th class="p-3">Subnet</th>
-                <th class="p-3 text-right">Actions</th>
+              <tr id="thead-inventory">
+                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
+                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Server Name</th>
+                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
+                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">System / App</th>
+                <th class="p-3" data-col-key="osFamily" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">OS Family</th>
+                <th class="p-3" data-col-key="totalDiskGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Total Disk (GB)</th>
+                <th class="p-3" data-col-key="datastore" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Datastore</th>
+                <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Domain</th>
+                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">IP Address</th>
+                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Subnet</th>
+                <th class="p-3 text-right" data-col-key="actions" draggable="false">Actions</th>
               </tr>
             </thead>
             <tbody id="inventoryTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -268,9 +272,10 @@
               Infra Colocation Project & Cutover Checklists
               <span id="wavesSelectedBadge" class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
             </h2>
-            <p class="text-xs text-slate-400">Coordinate migration execution waves and verification checklists.</p>
+            <p class="text-xs text-slate-400">Coordinate migration execution waves and verification checklists. Drag column titles to re-order.</p>
           </div>
           <div class="flex gap-2">
+            <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
             <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
             <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-save mr-1.5"></i> Save Progress</button>
           </div>
@@ -318,19 +323,19 @@
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
           <h3 class="font-bold text-white text-sm">Server Cutover & Verification Matrix</h3>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left border-collapse text-xs" id="table-waves">
               <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-                <tr>
-                  <th class="p-3 w-10"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                  <th class="p-3">Server Name</th>
-                  <th class="p-3">Migration Wave</th>
-                  <th class="p-3">IP Address</th>
-                  <th class="p-3">Subnet</th>
-                  <th class="p-3">Cutover Status</th>
-                  <th class="p-3 text-center">DNS Updated</th>
-                  <th class="p-3 text-center">Firewall Rules</th>
-                  <th class="p-3 text-center">Final Storage Sync</th>
-                  <th class="p-3 text-center">App Sign-off</th>
+                <tr id="thead-waves">
+                  <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
+                  <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Server Name</th>
+                  <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Migration Wave</th>
+                  <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">IP Address</th>
+                  <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Subnet</th>
+                  <th class="p-3" data-col-key="cutoverStatus" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Cutover Status</th>
+                  <th class="p-3 text-center" data-col-key="dns" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">DNS Updated</th>
+                  <th class="p-3 text-center" data-col-key="fw" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Firewall Rules</th>
+                  <th class="p-3 text-center" data-col-key="sync" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Final Storage Sync</th>
+                  <th class="p-3 text-center" data-col-key="sign" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">App Sign-off</th>
                 </tr>
               </thead>
               <tbody id="wavesTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -348,9 +353,10 @@
             Zerto Disaster Recovery (DR) Control Panel 
             <span id="zertoSelectedBadge" class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Showing servers with valid DR status (sorted by DR Status then Server Name).</p>
+          <p class="text-xs text-slate-400">Showing servers with valid DR status. Drag column titles to re-order.</p>
         </div>
         <div class="flex items-center gap-3">
+          <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <label class="text-xs text-slate-300 font-semibold">Sort By:</label>
             <select id="zertoSortMode" onchange="renderZertoTable()" class="bg-slate-900 text-cyan-300 text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
@@ -404,17 +410,17 @@
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
-          <table class="w-full text-left border-collapse text-xs">
+          <table class="w-full text-left border-collapse text-xs" id="table-zerto">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3">DR Status</th>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">System / App</th>
-                <th class="p-3">Subnet</th>
-                <th class="p-3">VPG Name</th>
-                <th class="p-3">Target Site / Notes</th>
-                <th class="p-3">Current IP</th>
+              <tr id="thead-zerto">
+                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
+                <th class="p-3" data-col-key="drStatus" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">DR Status</th>
+                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Server Name</th>
+                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">System / App</th>
+                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Subnet</th>
+                <th class="p-3" data-col-key="vpg" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">VPG Name</th>
+                <th class="p-3" data-col-key="site" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Target Site / Notes</th>
+                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Current IP</th>
               </tr>
             </thead>
             <tbody id="zertoTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -431,9 +437,10 @@
             Veeam Backup Job & Retention Management
             <span id="veeamSelectedBadge" class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server with one-tap presets.</p>
+          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server. Drag column titles to re-order.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <!-- One-Tap Preset Dropdown -->
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> One-Tap Preset:</span>
@@ -489,15 +496,15 @@
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
-          <table class="w-full text-left border-collapse text-xs">
+          <table class="w-full text-left border-collapse text-xs" id="table-veeam">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr>
-                <th class="p-3 w-10"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">System / App</th>
-                <th class="p-3">Veeam Backup Job Name</th>
-                <th class="p-3">Backup Time</th>
-                <th class="p-3">Retention Period (Days)</th>
+              <tr id="thead-veeam">
+                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
+                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Server Name</th>
+                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">System / App</th>
+                <th class="p-3" data-col-key="veeamJob" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Veeam Backup Job Name</th>
+                <th class="p-3" data-col-key="veeamTime" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Backup Time</th>
+                <th class="p-3" data-col-key="veeamRetention" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Retention Period (Days)</th>
               </tr>
             </thead>
             <tbody id="veeamTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -714,6 +721,98 @@
     let currentTopoMode = 'visual';
     let globalSearchQuery = '';
     let draggedTreeServerName = null;
+    let draggedColKey = null;
+
+    let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
+
+    function getColOrder(tabName, defaultKeys) {
+      if (columnOrders[tabName]) return columnOrders[tabName];
+      return defaultKeys;
+    }
+
+    function onColDragStart(e) {
+      draggedColKey = e.currentTarget.getAttribute('data-col-key');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onColDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const th = e.currentTarget;
+      const rect = th.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+      if (e.clientX < mid) {
+        th.classList.add('drag-over-left');
+        th.classList.remove('drag-over-right');
+      } else {
+        th.classList.add('drag-over-right');
+        th.classList.remove('drag-over-left');
+      }
+    }
+
+    function onColDragLeave(e) {
+      const th = e.currentTarget;
+      th.classList.remove('drag-over-left', 'drag-over-right');
+    }
+
+    function onColDrop(e, tabName) {
+      e.preventDefault();
+      const targetTh = e.currentTarget;
+      targetTh.classList.remove('drag-over-left', 'drag-over-right');
+      const targetKey = targetTh.getAttribute('data-col-key');
+      if (!draggedColKey || draggedColKey === targetKey) return;
+
+      const theadTr = targetTh.parentElement;
+      const ths = Array.from(theadTr.querySelectorAll('th[data-col-key]'));
+      let keys = ths.map(th => th.getAttribute('data-col-key'));
+
+      const fromIdx = keys.indexOf(draggedColKey);
+      const toIdx = keys.indexOf(targetKey);
+      if (fromIdx === -1 || toIdx === -1) return;
+
+      keys.splice(fromIdx, 1);
+      const newToIdx = keys.indexOf(targetKey);
+      const rect = targetTh.getBoundingClientRect();
+      const insertAt = e.clientX < rect.left + rect.width / 2 ? newToIdx : newToIdx + 1;
+      keys.splice(insertAt, 0, draggedColKey);
+
+      columnOrders[tabName] = keys;
+      localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
+
+      draggedColKey = null;
+      if (tabName === 'inventory') renderInventoryTable();
+      else if (tabName === 'waves') renderCutoverWavesTab();
+      else if (tabName === 'zerto') renderZertoTable();
+      else if (tabName === 'veeam') renderVeeamTable();
+    }
+
+    function resetTableOrder(tabName) {
+      delete columnOrders[tabName];
+      localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
+      if (tabName === 'inventory') renderInventoryTable();
+      else if (tabName === 'waves') renderCutoverWavesTab();
+      else if (tabName === 'zerto') renderZertoTable();
+      else if (tabName === 'veeam') renderVeeamTable();
+    }
+
+    function reorderTableHeaderAndRow(tabName, keys, trElement, cellMap) {
+      const theadTr = document.getElementById(`thead-${tabName}`);
+      if (!theadTr) return;
+
+      const allThs = Array.from(theadTr.querySelectorAll('th[data-col-key]'));
+      const thMap = new Map();
+      allThs.forEach(th => thMap.set(th.getAttribute('data-col-key'), th));
+
+      theadTr.innerHTML = '';
+      keys.forEach(k => {
+        if (thMap.has(k)) theadTr.appendChild(thMap.get(k));
+      });
+
+      trElement.innerHTML = '';
+      keys.forEach(k => {
+        if (cellMap[k]) trElement.appendChild(cellMap[k]);
+      });
+    }
 
     async function verifyClientIP() {
       try {
@@ -958,6 +1057,9 @@
       document.getElementById('selectAllCheckbox').checked = allVisibleSelected;
       document.getElementById('filteredMatchBadge').innerText = `Showing ${visibleList.length} of ${servers.length}`;
 
+      const defaultKeys = ['select', 'serverName', 'dept', 'system', 'osFamily', 'totalDiskGB', 'datastore', 'domain', 'ip', 'subnet', 'actions'];
+      const activeKeys = getColOrder('inventory', defaultKeys);
+
       visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
@@ -966,24 +1068,36 @@
         const diskSize = s.totalDiskGB || 100;
         const osFam = s.osFamily || 'Windows';
 
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-            <td class="p-3 font-semibold text-amber-300">${s.dept || ''}</td>
-            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span></td>
-            <td class="p-3 font-mono text-cyan-400 font-bold">${diskSize} GB</td>
-            <td class="p-3 text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
-            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-300">${s.subnet || 'Unassigned'}</td>
-            <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
-              <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
-            </td>
-          </tr>`;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-700/50 transition";
+
+        const cellMap = {
+          select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
+          serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
+          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
+          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
+          osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
+          totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
+          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),
+          domain: createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3"),
+          ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
+          subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || 'Unassigned'}</span>`, "p-3"),
+          actions: createCell(`
+            <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
+          `, "p-3 text-right")
+        };
+
+        reorderTableHeaderAndRow('inventory', activeKeys, tr, cellMap);
+        tbody.appendChild(tr);
       });
+    }
+
+    function createCell(html, className) {
+      const td = document.createElement('td');
+      td.className = className;
+      td.innerHTML = html;
+      return td;
     }
 
     function getFilteredServers() {
@@ -1043,949 +1157,4 @@
       const density = document.getElementById('canvasDensity')?.value || 'normal';
       const filtered = getFilteredServers();
       const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
-      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
-      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
-
-      filtered.forEach((s, idx) => {
-        s.x = 20 + (idx % colsCount) * colWidth;
-        s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderTopologyCanvas();
-    }
-
-    function clusterTopologyCards() {
-      servers.forEach((s, idx) => {
-        s.x = 20 + (idx % 8) * 180;
-        s.y = 20 + Math.floor(idx / 8) * 100;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderTopologyCanvas();
-    }
-
-    function renderTopologyCanvas() {
-      updateDropdowns();
-      updateGlobalCounters();
-      const density = document.getElementById('canvasDensity')?.value || 'normal';
-      const filtered = getFilteredServers();
-      document.getElementById('nodeCountBadge').innerText = `${filtered.length} VMs`;
-
-      if (currentTopoMode === 'list') { renderTopologyListView(filtered); return; }
-      if (currentTopoMode === 'tree') { renderVisioTreeView(filtered); return; }
-
-      const colWidth = density === 'compact' ? 240 : (density === 'spacious' ? 340 : 280);
-      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 180 : 145);
-      const colsCount = density === 'compact' ? 6 : (density === 'spacious' ? 4 : 5);
-
-      const container = document.getElementById('nodesContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      filtered.forEach((s, idx) => {
-        if (s.x === undefined) s.x = 20 + (idx % colsCount) * colWidth;
-        if (s.y === undefined) s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
-
-        const sDom = s.domain || 'Becketts';
-        const isUK = sDom.includes('UK') || sDom.includes('uk');
-        const domBadgeClass = isUK ? 'bg-amber-950/90 text-amber-300 border-amber-800' : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
-
-        const el = document.createElement('div');
-        el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-lg p-2 w-56 shadow-lg flex flex-col gap-1 hover:border-cyan-500 transition cursor-pointer`;
-        el.style.left = `${s.x}px`;
-        el.style.top = `${s.y}px`;
-        el.onclick = (e) => { if (e.target.tagName !== 'INPUT') editServer(s.serverName); };
-
-        el.innerHTML = `
-          <div class="flex justify-between items-center gap-1">
-            <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
-            <span class="text-[9px] px-1 py-0.2 rounded border font-mono ${domBadgeClass} truncate">${sDom}</span>
-          </div>
-          <div class="flex items-center justify-between gap-1 text-[9px] text-slate-400">
-            <span class="font-semibold text-cyan-200 truncate">${s.wave || 'Wave 1'}</span>
-            <span class="truncate">${s.system || 'General'}</span>
-          </div>
-          <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
-            <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
-            <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || 'INF'}</span>
-          </div>
-        `;
-        makeDraggable(el, s);
-        container.appendChild(el);
-      });
-
-      drawSvgConnectors(filtered);
-    }
-
-    function makeDraggable(element, serverObj) {
-      let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
-      element.onmousedown = function(e) {
-        if (e.target.tagName === 'INPUT') return;
-        e.preventDefault();
-        mouseX = e.clientX; mouseY = e.clientY;
-        document.onmouseup = function() { document.onmouseup = null; document.onmousemove = null; localStorage.setItem('infops_servers', JSON.stringify(servers)); };
-        document.onmousemove = function(ev) {
-          ev.preventDefault();
-          posX = mouseX - ev.clientX; posY = mouseY - ev.clientY;
-          mouseX = ev.clientX; mouseY = ev.clientY;
-          serverObj.x = Math.max(5, element.offsetLeft - posX);
-          serverObj.y = Math.max(5, element.offsetTop - posY);
-          element.style.left = serverObj.x + "px";
-          element.style.top = serverObj.y + "px";
-          renderTopologyCanvas();
-        };
-      };
-    }
-
-    function drawSvgConnectors(visibleServers) {
-      const svg = document.getElementById('svgConnectors');
-      if (!svg) return;
-      svg.innerHTML = '';
-      visibleServers.forEach(app => {
-        if (app.dependencies) {
-          app.dependencies.split(',').map(d => d.trim().toLowerCase()).forEach(depName => {
-            if (!depName) return;
-            const parent = visibleServers.find(s => s.serverName.toLowerCase() === depName);
-            if (parent) {
-              const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-              const x1 = parent.x + 224, y1 = parent.y + 35;
-              const x2 = app.x, y2 = app.y + 35;
-              const cx = (x1 + x2) / 2;
-              line.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`);
-              line.setAttribute('stroke', '#06b6d4');
-              line.setAttribute('stroke-width', '1.5');
-              line.setAttribute('fill', 'none');
-              svg.appendChild(line);
-            }
-          });
-        }
-      });
-    }
-
-    function computeServerTier(srv, visibleMap, visited = new Set()) {
-      const explicit = srv.visioTier || 'Auto';
-      if (explicit && explicit !== 'Auto') {
-        const parsed = parseInt(explicit.replace(/\D/g, ''), 10);
-        if (!isNaN(parsed) && parsed >= 1) return parsed;
-      }
-      const key = srv.serverName.toLowerCase();
-      if (visited.has(key)) return 1;
-      visited.add(key);
-
-      const deps = parseDepList(srv.dependencies).map(d => visibleMap.get(d.toLowerCase())).filter(Boolean);
-      if (deps.length === 0) return 1;
-
-      let maxParentTier = 0;
-      deps.forEach(parent => {
-        const pTier = computeServerTier(parent, visibleMap, new Set(visited));
-        if (pTier > maxParentTier) maxParentTier = pTier;
-      });
-      return maxParentTier + 1;
-    }
-
-    function renderVisioTreeView(filtered) {
-      const container = document.getElementById('treeNodesContainer');
-      const svg = document.getElementById('svgTreeConnectors');
-      if (!container || !svg) return;
-      container.innerHTML = '';
-      if (filtered.length === 0) { svg.innerHTML = ''; container.innerHTML = `<div class="text-slate-400 text-sm">No servers match current filters.</div>`; return; }
-
-      const visibleMap = new Map();
-      filtered.forEach(s => visibleMap.set(s.serverName.toLowerCase(), s));
-
-      const tierBuckets = new Map();
-      let maxTier = 1;
-      filtered.forEach(s => {
-        const tier = computeServerTier(s, visibleMap);
-        if (tier > maxTier) maxTier = tier;
-        if (!tierBuckets.has(tier)) tierBuckets.set(tier, []);
-        tierBuckets.get(tier).push(s);
-      });
-
-      const totalLanes = Math.max(maxTier, 2);
-      const tierMeta = {
-        1: { title: 'Tier 1: Root Infrastructure & Domain Controllers', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
-        2: { title: 'Tier 2: Secondary Controllers & Core Databases', icon: 'fa-layer-group text-cyan-400', border: 'border-cyan-500/80' },
-        3: { title: 'Tier 3: Application Servers & Middleware', icon: 'fa-server text-emerald-400', border: 'border-emerald-500/70' },
-        4: { title: 'Tier 4: Edge & Client VMs', icon: 'fa-network-wired text-indigo-400', border: 'border-indigo-500/70' }
-      };
-
-      let html = `<div class="text-[11px] text-slate-400 bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 inline-flex items-center gap-2">
-        <i class="fas fa-info-circle text-cyan-400"></i>
-        <span>Tiers calculated automatically from Dependencies. Drag & drop cards between Tiers to override.</span>
-      </div>`;
-
-      for (let t = 1; t <= totalLanes; t++) {
-        const meta = tierMeta[t] || { title: `Tier ${t}`, icon: 'fa-sitemap text-slate-300', border: 'border-slate-500/70' };
-        const items = tierBuckets.get(t) || [];
-        html += `
-          <div class="tier-dropzone rounded-2xl border border-dashed border-slate-700/90 bg-slate-900/50 p-4 transition"
-               ondragover="onTreeTierDragOver(event)" ondragleave="onTreeTierDragLeave(event)" ondrop="onTreeTierDrop(event, ${t})">
-            <div class="flex items-center justify-between mb-3">
-              <div class="text-xs font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-2"><i class="fas ${meta.icon}"></i><span>${meta.title}</span></div>
-              <span class="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">${items.length} VMs</span>
-            </div>
-            <div class="flex flex-wrap gap-8 min-h-[96px] items-start">
-              ${items.length > 0 ? items.map(s => renderTreeNodeCard(s, meta.border)).join('') : `<div class="text-xs text-slate-500 italic py-6 px-4">Drop a server card here</div>`}
-            </div>
-          </div>`;
-      }
-      container.innerHTML = html;
-      requestAnimationFrame(() => drawTreeConnectors(filtered));
-    }
-
-    function renderTreeNodeCard(s, borderClass) {
-      const sDom = s.domain || 'Becketts';
-      return `
-        <div draggable="true" ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" data-tree-server="${s.serverName.toLowerCase()}"
-             class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
-          <div class="flex justify-between items-center gap-1">
-            <span class="font-bold text-cyan-300 text-xs truncate">${s.serverName}</span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">${sDom}</span>
-          </div>
-          <div class="text-[10px] text-slate-300 flex justify-between">
-            <span>Wave: <strong>${s.wave || 'Wave 1'}</strong></span>
-            <span class="text-cyan-200 truncate max-w-[110px]">${s.system || 'General'}</span>
-          </div>
-          <div class="pt-1 border-t border-slate-700/80 flex justify-between text-[10px] font-mono">
-            <span class="text-cyan-300">${s.ip || 'No IP'}</span>
-            <span class="text-slate-400">${s.dept || 'INF'}</span>
-          </div>
-        </div>`;
-    }
-
-    function onTreeCardDragStart(e, serverName) { draggedTreeServerName = serverName; e.dataTransfer.setData('text/plain', serverName); }
-    function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-    function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-    function onTreeTierDrop(e, targetTierNum) {
-      e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-      const name = draggedTreeServerName || e.dataTransfer.getData('text/plain');
-      const srv = servers.find(s => s.serverName === name);
-      if (srv) { srv.visioTier = `Tier ${targetTierNum}`; localStorage.setItem('infops_servers', JSON.stringify(servers)); renderVisioTreeView(getFilteredServers()); }
-      draggedTreeServerName = null;
-    }
-
-    function drawTreeConnectors(visibleServers) {
-      const svg = document.getElementById('svgTreeConnectors');
-      const container = document.getElementById('canvasTreeView');
-      if (!svg || !container || container.classList.contains('hidden')) return;
-      Array.from(svg.querySelectorAll('path')).forEach(p => p.remove());
-
-      const cardMap = new Map();
-      container.querySelectorAll('[data-tree-server]').forEach(el => cardMap.set(el.getAttribute('data-tree-server'), el));
-      const containerRect = container.getBoundingClientRect();
-      svg.style.width = `${Math.max(container.scrollWidth, 1200)}px`;
-      svg.style.height = `${Math.max(container.scrollHeight, 900)}px`;
-
-      visibleServers.forEach(child => {
-        const childEl = cardMap.get(child.serverName.toLowerCase());
-        if (!childEl) return;
-        const cRect = childEl.getBoundingClientRect();
-        const x2 = cRect.left - containerRect.left + container.scrollLeft + cRect.width / 2;
-        const y2 = cRect.top - containerRect.top + container.scrollTop;
-
-        parseDepList(child.dependencies).forEach(depName => {
-          const parentEl = cardMap.get(depName.toLowerCase());
-          if (!parentEl) return;
-          const pRect = parentEl.getBoundingClientRect();
-          const x1 = pRect.left - containerRect.left + container.scrollLeft + pRect.width / 2;
-          const y1 = pRect.top - containerRect.top + container.scrollTop + pRect.height;
-          const midY = (y1 + y2) / 2;
-
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2 - 3}`);
-          path.setAttribute('stroke', '#06b6d4');
-          path.setAttribute('stroke-width', '2');
-          path.setAttribute('fill', 'none');
-          path.setAttribute('marker-end', 'url(#treeArrow)');
-          svg.appendChild(path);
-        });
-      });
-    }
-
-    function renderTopologyListView(filtered) {
-      const tbody = document.getElementById('topologyListTbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      filtered.forEach(s => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-            <td class="p-3 font-semibold text-cyan-300">${s.wave || 'Wave 1 - Pilot'}</td>
-            <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
-            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-            <td class="p-3 font-mono text-indigo-300">${s.domain || 'Becketts'}</td>
-            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
-            <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer"><i class="fas fa-pen"></i></button>
-            </td>
-          </tr>`;
-      });
-    }
-
-    // TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES) WITH IP & SUBNET
-    function renderCutoverWavesTab() {
-      updateDropdowns();
-      updateGlobalCounters();
-      const visibleList = getFilteredTabServers('waves');
-
-      const matchBadge = document.getElementById('wavesFilteredMatchBadge');
-      if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${servers.length}`;
-
-      const waveSummary = document.getElementById('waveSummaryCards');
-      if (waveSummary) {
-        waveSummary.innerHTML = '';
-        ["Wave 1 - Pilot", "Wave 2 - Core Apps", "Wave 3 - Databases & DCs"].forEach(wName => {
-          let wServers = visibleList.filter(s => (s.wave || 'Unassigned') === wName);
-          let migratedCount = wServers.filter(s => s.cutoverStatus === 'Migrated & Verified').length;
-          let pct = wServers.length ? Math.round((migratedCount / wServers.length) * 100) : 0;
-          waveSummary.innerHTML += `
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg space-y-3">
-              <div class="flex justify-between items-center"><span class="font-bold text-cyan-400 text-sm">${wName}</span><span class="text-xs font-mono text-slate-400">${wServers.length} VMs</span></div>
-              <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700"><div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div></div>
-              <div class="flex justify-between items-center text-[11px] text-slate-400"><span>Progress:</span><span class="font-semibold text-emerald-400">${pct}%</span></div>
-            </div>`;
-        });
-      }
-
-      const tbody = document.getElementById('wavesTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
-        const selectAllEl = document.getElementById('wavesSelectAll');
-        if (selectAllEl) selectAllEl.checked = allChecked;
-
-        visibleList.forEach((s, idx) => {
-          const status = s.cutoverStatus || 'Not Started';
-          const wVal = s.wave || 'Unassigned';
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-          tbody.innerHTML += `
-            <tr class="hover:bg-slate-700/50" data-wave-server="${s.serverName}">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-              <td class="p-3">
-                <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
-                  <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
-                  <option value="Wave 1 - Pilot" ${wVal === 'Wave 1 - Pilot' ? 'selected' : ''}>Wave 1 - Pilot</option>
-                  <option value="Wave 2 - Core Apps" ${wVal === 'Wave 2 - Core Apps' ? 'selected' : ''}>Wave 2 - Core Apps</option>
-                  <option value="Wave 3 - Databases & DCs" ${wVal === 'Wave 3 - Databases & DCs' ? 'selected' : ''}>Wave 3 - Databases & DCs</option>
-                </select>
-              </td>
-              <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-              <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
-              <td class="p-3"><select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 text-center"><input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
-            </tr>`;
-        });
-      }
-    }
-
-    function toggleWavesSelectAll(master) {
-      const visibleList = getFilteredTabServers('waves');
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderCutoverWavesTab();
-    }
-
-    function saveWaveChanges() {
-      const visibleList = getFilteredTabServers('waves');
-      visibleList.forEach((s, idx) => {
-        const wName = document.getElementById(`wave-name-${idx}`);
-        const wStat = document.getElementById(`wave-status-${idx}`);
-        if (wName) s.wave = wName.value;
-        if (wStat) s.cutoverStatus = wStat.value;
-        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
-        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
-        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
-        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderCutoverWavesTab();
-      alert("Infra Colocation project cutover progress saved successfully!");
-    }
-
-    // TAB 4: ZERTO DR WITH CUSTOM SORTING, SUBNET & SYSTEM
-    function renderZertoTable() {
-      updateDropdowns();
-      updateGlobalCounters();
-      const tbody = document.getElementById('zertoTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        let drBase = servers.filter(isValidDRServer);
-        
-        const sortMode = document.getElementById('zertoSortMode')?.value || 'dr_then_name';
-        drBase.sort((a, b) => {
-          const stA = (a.drStatus || '').trim().toUpperCase();
-          const stB = (b.drStatus || '').trim().toUpperCase();
-          const nameA = (a.serverName || '').trim().toLowerCase();
-          const nameB = (b.serverName || '').trim().toLowerCase();
-
-          if (sortMode === 'dr_then_name') {
-            if (stA !== stB) return stA.localeCompare(stB);
-            return nameA.localeCompare(nameB);
-          } else if (sortMode === 'status_only') {
-            return stA.localeCompare(stB);
-          } else {
-            return nameA.localeCompare(nameB);
-          }
-        });
-
-        const visibleList = getFilteredTabServers('zerto', drBase);
-
-        const matchBadge = document.getElementById('zertoFilteredMatchBadge');
-        if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${drBase.length}`;
-
-        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
-        const selectAllEl = document.getElementById('zertoSelectAll');
-        if (selectAllEl) selectAllEl.checked = allChecked;
-
-        if (visibleList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
-          return;
-        }
-
-        visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-          tbody.innerHTML += `
-            <tr class="hover:bg-slate-700/50">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 font-mono font-bold text-amber-300">${s.drStatus}</td>
-              <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-              <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-              <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
-              <td class="p-3"><input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
-              <td class="p-3"><input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
-              <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            </tr>`;
-        });
-      }
-    }
-
-    function toggleZertoSelectAll(master) {
-      const drBase = servers.filter(isValidDRServer);
-      const visibleList = getFilteredTabServers('zerto', drBase);
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderZertoTable();
-    }
-
-    function saveZertoChanges() {
-      const drBase = servers.filter(isValidDRServer);
-      const visibleList = getFilteredTabServers('zerto', drBase);
-      visibleList.forEach((s, idx) => {
-        s.vpg = document.getElementById(`dr-vpg-${idx}`)?.value.trim();
-        s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Zerto DR settings saved successfully!");
-    }
-
-    // TAB 5: VEEAM BACKUPS WITH ONE-TAP PRESETS
-    function renderVeeamTable() {
-      updateDropdowns();
-      updateGlobalCounters();
-      const tbody = document.getElementById('veeamTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        const visibleList = getFilteredTabServers('veeam');
-
-        const matchBadge = document.getElementById('veeamFilteredMatchBadge');
-        if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${servers.length}`;
-
-        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
-        const selectAllEl = document.getElementById('veeamSelectAll');
-        if (selectAllEl) selectAllEl.checked = allChecked;
-
-        visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-          tbody.innerHTML += `
-            <tr class="hover:bg-slate-700/50" data-veeam-name="${s.serverName}">
-              <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
-              <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-              <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-              <td class="p-3"><input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
-              <td class="p-3"><input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono"></td>
-              <td class="p-3"><input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-24 font-mono"></td>
-            </tr>`;
-        });
-      }
-    }
-
-    function applyVeeamPreset() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server using the checkboxes first.");
-      const preset = document.getElementById('veeamPresetSelect').value;
-      let jobName = "Daily-App-Job", timeStr = "02:00 AM", retDays = 30;
-
-      if (preset === 'sql_90') {
-        jobName = "Core-SQL-Daily-Backup"; timeStr = "01:00 AM"; retDays = 90;
-      } else if (preset === 'weekly_14') {
-        jobName = "Weekly-Archive-Job"; timeStr = "Saturday 00:00"; retDays = 14;
-      }
-
-      servers.forEach(s => {
-        if (selectedServerNames.has(s.serverName)) {
-          s.veeamJob = jobName;
-          s.veeamTime = timeStr;
-          s.veeamRetention = retDays;
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderVeeamTable();
-      alert(`Applied preset '${preset}' to ${selectedServerNames.size} selected server(s)! Click 'Save Backup Changes' when finalized.`);
-    }
-
-    function toggleVeeamSelectAll(master) {
-      const visibleList = getFilteredTabServers('veeam');
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderVeeamTable();
-    }
-
-    function saveVeeamChanges() {
-      const visibleList = getFilteredTabServers('veeam');
-      visibleList.forEach((s, idx) => {
-        s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim();
-        s.veeamTime = document.getElementById(`veeam-time-${idx}`)?.value.trim();
-        s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Veeam settings saved successfully!");
-    }
-
-    function renderCalculatorTab() {
-      updateGlobalCounters();
-      let totalDisk = 0;
-      servers.forEach(s => { totalDisk += (parseInt(s.totalDiskGB) || 100); });
-      let totalBackup = totalDisk * 1.5;
-      document.getElementById('calcTotalServers').innerText = servers.length;
-      document.getElementById('calcTotalPrimaryDisk').innerText = `${totalDisk.toLocaleString()} GB`;
-      document.getElementById('calcTotalBackupStorage').innerText = `${Math.round(totalBackup).toLocaleString()} GB`;
-    }
-
-    function renderHealthTab() {
-      updateGlobalCounters();
-      let missingCount = servers.filter(s => !s.ip || s.ip === 'N/A').length;
-      document.getElementById('healthMissingCount').innerText = missingCount;
-      document.getElementById('healthDupCount').innerText = "0";
-      document.getElementById('healthLogContainer').innerHTML = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 font-semibold"><i class="fas fa-check-circle mr-2"></i>All IPs valid.</div>';
-    }
-
-    function parseCSVRow(row) {
-      const result = []; let current = '', inQuotes = false;
-      for (let i = 0; i < row.length; i++) {
-        const ch = row[i];
-        if (ch === '"') { inQuotes = !inQuotes; }
-        else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-        else { current += ch; }
-      }
-      result.push(current.trim()); return result;
-    }
-
-    function previewCSVImport(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const lines = evt.target.result.split(/\r?\n/);
-        if (lines.length === 0) return;
-
-        let headerCols = [];
-        let headerRowIdx = 0;
-        for (let i = 0; i < Math.min(lines.length, 10); i++) {
-          const rowVals = parseCSVRow(lines[i]);
-          if (rowVals.some(v => /server|ip|domain|dept|wave|dr|os|datastore|disk/i.test(v))) {
-            headerCols = rowVals.map(v => v.toLowerCase());
-            headerRowIdx = i;
-            break;
-          }
-        }
-
-        function getColIdx(keywords) {
-          return headerCols.findIndex(h => keywords.some(kw => h.includes(kw)));
-        }
-
-        const idxServer = getColIdx(['server', 'name', 'hostname']);
-        const idxIp = getColIdx(['ip', 'address']);
-        const idxDomain = getColIdx(['domain']);
-        const idxDept = getColIdx(['dept', 'department']);
-        const idxSys = getColIdx(['system', 'app', 'application']);
-        const idxWave = getColIdx(['wave']);
-        const idxSubnet = getColIdx(['subnet']);
-        const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
-        const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
-        const idxDisk = getColIdx(['disk', 'totaldisk', 'capacity']);
-        const idxDs = getColIdx(['datastore']);
-
-        let importedCount = 0;
-
-        for (let i = headerRowIdx + 1; i < lines.length; i++) {
-          const line = lines[i].trim(); if (!line) continue;
-          const cols = parseCSVRow(line);
-          
-          const serverName = (idxServer !== -1 ? cols[idxServer] : cols[0]) || '';
-          if (!serverName) continue;
-
-          const ipVal = (idxIp !== -1 ? cols[idxIp] : '') || '';
-          const subVal = (idxSubnet !== -1 ? cols[idxSubnet] : '') || calculateSubnet(ipVal);
-          const drVal = (idxDr !== -1 ? cols[idxDr] : '') || '';
-          const osVal = (idxOs !== -1 ? cols[idxOs] : 'Windows') || 'Windows';
-          const diskVal = parseInt(idxDisk !== -1 ? cols[idxDisk] : '100') || 100;
-          const dsVal = (idxDs !== -1 ? cols[idxDs] : 'VM_Datastore01') || 'VM_Datastore01';
-
-          const candidate = {
-            serverName: serverName,
-            dept: (idxDept !== -1 ? cols[idxDept] : 'INF') || 'INF',
-            system: (idxSys !== -1 ? cols[idxSys] : 'General') || 'General',
-            domain: (idxDomain !== -1 ? cols[idxDomain] : 'Becketts') || 'Becketts',
-            ip: ipVal,
-            subnet: subVal,
-            drStatus: drVal,
-            osFamily: osVal.includes('Linux') ? 'Linux' : 'Windows',
-            totalDiskGB: diskVal,
-            datastore: dsVal,
-            wave: (idxWave !== -1 ? cols[idxWave] : 'Unassigned') || 'Unassigned',
-            cutoverStatus: 'Not Started'
-          };
-
-          const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
-          if (existingIdx === -1) {
-            servers.push(candidate);
-          } else {
-            servers[existingIdx] = Object.assign({}, servers[existingIdx], candidate);
-          }
-          importedCount++;
-        }
-
-        servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderInventoryTable();
-        alert(`Successfully imported/updated ${importedCount} servers dynamically from CSV! Total Disk GB sum is now correctly computed.`);
-        e.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (SERVER MODAL)
-    function showDepSuggestions(val) {
-      const box = document.getElementById('depSuggestionsDropdown');
-      if (!box) return;
-
-      const currentServer = (document.getElementById('modalServerName')?.value || '').trim().toLowerCase();
-      const parts = val.split(',');
-      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
-      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
-
-      const matches = servers.filter(s => {
-        const sNameLow = s.serverName.toLowerCase();
-        if (sNameLow === currentServer) return false;
-        if (alreadyAdded.has(sNameLow)) return false;
-        if (!lastTerm) return true;
-        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
-      }).slice(0, 20);
-
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
-      box.innerHTML = matches.map(s => `
-        <div onmousedown="selectDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
-             class="px-3 py-2 hover:bg-cyan-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
-          <div>
-            <div class="font-bold text-cyan-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
-          </div>
-          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
-        </div>
-      `).join('');
-      box.classList.remove('hidden');
-    }
-
-    function selectDepSuggestion(selectedName) {
-      const input = document.getElementById('modalDependencies');
-      if (!input) return;
-      const parts = input.value.split(',');
-      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
-      input.value = parts.join(',') + ', ';
-      hideDepSuggestions();
-      input.focus();
-      showDepSuggestions(input.value);
-    }
-
-    function hideDepSuggestions() {
-      const box = document.getElementById('depSuggestionsDropdown');
-      if (box) box.classList.add('hidden');
-    }
-
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (BULK EDIT MODAL)
-    function onBulkValueInput(val) {
-      const field = document.getElementById('bulkField').value;
-      const box = document.getElementById('bulkDepSuggestionsDropdown');
-      if (!box) return;
-
-      if (field !== 'dependencies') {
-        box.classList.add('hidden');
-        return;
-      }
-
-      const parts = val.split(',');
-      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
-      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
-
-      const matches = servers.filter(s => {
-        const sNameLow = s.serverName.toLowerCase();
-        if (alreadyAdded.has(sNameLow)) return false;
-        if (!lastTerm) return true;
-        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
-      }).slice(0, 20);
-
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
-      box.innerHTML = matches.map(s => `
-        <div onmousedown="selectBulkDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
-             class="px-3 py-2 hover:bg-amber-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
-          <div>
-            <div class="font-bold text-amber-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
-          </div>
-          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
-        </div>
-      `).join('');
-      box.classList.remove('hidden');
-    }
-
-    function selectBulkDepSuggestion(selectedName) {
-      const input = document.getElementById('bulkValue');
-      if (!input) return;
-      const parts = input.value.split(',');
-      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
-      input.value = parts.join(',') + ', ';
-      hideBulkDepSuggestions();
-      input.focus();
-      onBulkValueInput(input.value);
-    }
-
-    function hideBulkDepSuggestions() {
-      const box = document.getElementById('bulkDepSuggestionsDropdown');
-      if (box) box.classList.add('hidden');
-    }
-
-    function openServerModal(serverName = null) {
-      updateDropdowns();
-      hideDepSuggestions();
-      document.getElementById('serverModal').classList.remove('hidden');
-      if (serverName) {
-        const s = servers.find(x => x.serverName === serverName);
-        document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
-        document.getElementById('editOriginalName').value = serverName;
-        document.getElementById('modalServerName').value = s.serverName;
-        document.getElementById('modalDept').value = s.dept || '';
-        document.getElementById('modalSystem').value = s.system || '';
-        document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
-        document.getElementById('modalTotalDisk').value = s.totalDiskGB || 100;
-        document.getElementById('modalDatastore').value = s.datastore || 'VM_Datastore01';
-        document.getElementById('modalDomain').value = s.domain || 'Becketts';
-        document.getElementById('modalIP').value = s.ip || '';
-        document.getElementById('modalSubnet').value = s.subnet || calculateSubnet(s.ip || '');
-        document.getElementById('modalDrStatus').value = s.drStatus || '';
-        document.getElementById('modalDependencies').value = s.dependencies || '';
-      } else {
-        document.getElementById('serverModalTitle').innerText = "Add New Server";
-        document.getElementById('editOriginalName').value = '';
-        ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDrStatus','modalDependencies'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('modalDomain').value = 'Becketts';
-        document.getElementById('modalOsFamily').value = 'Windows';
-        document.getElementById('modalTotalDisk').value = 100;
-        document.getElementById('modalDatastore').value = 'VM_Datastore01';
-      }
-    }
-    function closeServerModal() { hideDepSuggestions(); document.getElementById('serverModal').classList.add('hidden'); }
-    function editServer(name) { openServerModal(name); }
-
-    function saveServerRecord() {
-      const origName = document.getElementById('editOriginalName').value;
-      const cleanDeps = document.getElementById('modalDependencies').value
-        .split(',').map(d => d.trim()).filter(Boolean).join(', ');
-
-      const data = {
-        serverName: document.getElementById('modalServerName').value.trim(),
-        dept: document.getElementById('modalDept').value.trim(),
-        system: document.getElementById('modalSystem').value.trim() || 'General',
-        osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
-        totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
-        datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
-        domain: document.getElementById('modalDomain').value.trim(),
-        ip: document.getElementById('modalIP').value.trim(),
-        subnet: document.getElementById('modalSubnet').value.trim(),
-        drStatus: document.getElementById('modalDrStatus').value.trim(),
-        dependencies: cleanDeps
-      };
-      if (!data.serverName) return alert("Server Name is required.");
-      if (origName) {
-        const idx = servers.findIndex(x => x.serverName === origName);
-        if (idx !== -1) servers[idx] = Object.assign({}, servers[idx], data);
-      } else {
-        data.wave = 'Unassigned';
-        data.cutoverStatus = 'Not Started';
-        servers.push(data);
-      }
-      servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeServerModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
-    }
-
-    function deleteServer(name) {
-      if (confirm(`Delete server ${name}?`)) {
-        servers = servers.filter(x => x.serverName !== name);
-        selectedServerNames.delete(name);
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderInventoryTable();
-      }
-    }
-
-    function onBulkFieldChange() {
-      const field = document.getElementById('bulkField').value;
-      const valInput = document.getElementById('bulkValue');
-      const datalist = document.getElementById('bulkValueSuggestions');
-      const hintEl = document.getElementById('bulkPrefillHint');
-      if (!valInput || !datalist) return;
-      hideBulkDepSuggestions();
-
-      let uniqueVals = new Set();
-      if (field === 'wave') {
-        ['Wave 1 - Pilot', 'Wave 2 - Core Apps', 'Wave 3 - Databases & DCs', 'Unassigned'].forEach(w => uniqueVals.add(w));
-      } else if (field === 'drStatus') {
-        ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
-      } else if (field === 'dependencies') {
-        servers.forEach(s => { if (s.serverName) uniqueVals.add(s.serverName); });
-      }
-
-      servers.forEach(s => {
-        const v = (s[field] || '').toString().trim();
-        if (v) uniqueVals.add(v);
-      });
-
-      const sortedOptions = Array.from(uniqueVals).sort();
-      datalist.innerHTML = sortedOptions.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
-
-      const selectedObjects = servers.filter(s => selectedServerNames.has(s.serverName));
-      const selectedFieldVals = [...new Set(selectedObjects.map(s => (s[field] || '').toString().trim()))];
-
-      if (selectedFieldVals.length === 1 && selectedFieldVals[0] !== '') {
-        valInput.value = selectedFieldVals[0];
-        if (hintEl) hintEl.innerText = selectedObjects.length === 1 ? 'Prefilled current value' : 'All selected share this value';
-      } else if (selectedObjects.length > 1) {
-        const nonEmpty = selectedFieldVals.filter(Boolean);
-        valInput.value = nonEmpty.length > 0 ? nonEmpty[0] : '';
-        if (hintEl) hintEl.innerText = nonEmpty.length > 1 ? `Mixed values (${nonEmpty.length} variants)` : 'Prefilled from selection';
-      } else {
-        valInput.value = '';
-        if (hintEl) hintEl.innerText = `${sortedOptions.length} suggestions available`;
-      }
-    }
-
-    function openBulkEditModal() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server first.");
-      document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
-      document.getElementById('bulkEditModal').classList.remove('hidden');
-      onBulkFieldChange();
-    }
-    function closeBulkEditModal() { hideBulkDepSuggestions(); document.getElementById('bulkEditModal').classList.add('hidden'); }
-
-    function commitBulkEdit() {
-      const field = document.getElementById('bulkField').value;
-      let val = document.getElementById('bulkValue').value.trim();
-      if (!val) return alert("Enter a value.");
-
-      if (field === 'dependencies') {
-        val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
-      }
-
-      servers.forEach(s => { 
-        if (selectedServerNames.has(s.serverName)) {
-          if (field === 'totalDiskGB' || field === 'veeamRetention') {
-            s[field] = parseInt(val) || 0;
-          } else {
-            s[field] = val; 
-          }
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeBulkEditModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
-      alert("Bulk update successful!");
-    }
-
-    function exportToCSV() {
-      let csv = "ServerName,Department,System,OSFamily,TotalDiskGB,Datastore,Domain,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.datastore||''}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
-    }
-
-    function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
-    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
-    function saveProjectSettings() {
-      appSettings.brandName = document.getElementById('settingsBrandName').value.trim() || "InfOps";
-      appSettings.subtitle = document.getElementById('settingsSubtitle').value.trim() || "Multi-Domain Migration / Zerto DR / Veeam Backup";
-      localStorage.setItem('infops_settings', JSON.stringify(appSettings));
-      applySettings();
-      closeSettingsModal();
-    }
-    function openEncryptionModal() { document.getElementById('encryptionModal').classList.remove('hidden'); document.getElementById('secretPassInput').value = ENCRYPTION_KEY; }
-    function closeEncryptionModal() { document.getElementById('encryptionModal').classList.add('hidden'); }
-    function saveSecretKey() {
-      ENCRYPTION_KEY = document.getElementById('secretPassInput').value;
-      localStorage.setItem('infops_secret', ENCRYPTION_KEY);
-      closeEncryptionModal();
-      alert("Passphrase saved.");
-    }
-
-    function exportEncryptedJSON() {
-      const jsonStr = JSON.stringify(servers, null, 2);
-      let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' })); a.download = `ca-migration-secure-backup.json`; a.click();
-    }
-
-    function importEncryptedJSON(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          let content = evt.target.result;
-          if (content.startsWith("INFENC:")) {
-            const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
-          }
-          servers = JSON.parse(content);
-          localStorage.setItem('infops_servers', JSON.stringify(servers));
-          renderInventoryTable();
-          alert(`Decrypted and loaded ${servers.length} servers!`);
-        } catch (err) { alert("Decryption failed."); }
-      };
-      reader.readAsText(file);
-    }
-
-    function onModalIPChange(ipVal) {
-      const subInput = document.getElementById('modalSubnet');
-      if (subInput && ipVal.trim()) subInput.value = calculateSubnet(ipVal.trim());
-    }
-
-    document.getElementById('globalSearchInput').addEventListener('click', (e) => e.stopPropagation());
-
-    document.addEventListener('DOMContentLoaded', () => { 
-      applySettings(); 
-      verifyClientIP();
-      renderInventoryTable(); 
-      switchTab('inventory'); 
-    });
-  </script>
-</body>
-</html>
+      const rowHeight = density === 'compact' ? 120 : (density === 'spacious' ? 1
