@@ -1,5 +1,4 @@
-<!-- 20261117 v58 - Works. Fine tune Topology Server card view -->
-<!-- 20261117 v59 - Trying to fix topology freedom movement -->
+<!-- 20261117 v60 - Trying to fix topology freedom movement -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1469,6 +1468,11 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         tierBuckets.get(tier).push(s);
       });
 
+      // Sort each tier by custom visioOrder
+      tierBuckets.forEach((arr) => {
+        arr.sort((a, b) => (a.visioOrder || 0) - (b.visioOrder || 0));
+      });
+      
       const totalLanes = Math.max(maxTier, 2);
       const tierMeta = {
         1: { title: 'Tier 1: Root Infrastructure & Domain Controllers', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
@@ -1502,7 +1506,7 @@ function onMultiSelectChange(filterKey, val, isChecked) {
     }
 
     // Server card display in Visio View  
-    function renderTreeNodeCard(s, borderClass) {
+function renderTreeNodeCard(s, borderClass) {
       return `
         <div draggable="true" 
              ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" 
@@ -1510,18 +1514,18 @@ function onMultiSelectChange(filterKey, val, isChecked) {
              ondragleave="onTreeNodeDragLeave(event)" 
              ondrop="onTreeNodeDrop(event, '${s.serverName.replace(/'/g, "\\'")}')"
              data-tree-server="${s.serverName.toLowerCase()}"
-             class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
-          <div class="flex items-center">
-            <span class="font-bold text-cyan-300 text-xs truncate">${s.serverName}</span>
+             class="node-card bg-slate-800 border-2 ${borderClass} rounded-2xl p-4 w-72 shadow-xl flex flex-col gap-2 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-cyan-300 text-xs truncate" title="${s.serverName}">${s.serverName}</span>
           </div>
-          <div class="text-[10px] text-cyan-200 font-medium truncate">
+          <div class="text-xs text-slate-300 font-medium truncate">
             ${s.system || 'General'}
           </div>
-          <div class="pt-1 border-t border-slate-700/80 flex justify-between text-[10px] font-mono">
+          <div class="pt-2 border-t border-slate-700/80 flex justify-between items-center text-xs font-mono">
             <span class="text-cyan-300">${s.ip || 'No IP'}</span>
-            <span class="text-slate-400">${s.dept || 'INF'}</span>
+            <span class="text-slate-400 font-sans font-semibold">${s.dept || 'INF'}</span>
           </div>
-        `;
+        </div>`;
     }
 
     function onTreeCardDragStart(e, serverName) { 
