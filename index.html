@@ -1,5 +1,5 @@
-<!-- 20261117 v49 - Fixed Migration Tracker Renaming, Flexible Waves & Multi-Select Filters -->
-<!-- 20261117 v50 - Trying to fix select all / reset -->
+<!-- 20261117 v50 - Fixed select all / reset -->
+<!-- 20261117 v51 - Trying to Migration Tracker Updated with Department, System, and Dependencies -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +32,7 @@
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS & BFL Infra Hub</span>
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Hub</span>
         </h1>
         <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Migration Tracker</p>
       </div>
@@ -82,11 +82,10 @@
   <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden relative z-10 pointer-events-auto">
 
-    <!-- TAB 1: TOPOLOGY, VISIO TREE & LINE LIST -->
+    <!-- TAB 1: TOPOLOGY -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-20 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select Filter: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-canvas-domain" class="text-cyan-300">All</strong></span>
@@ -94,8 +93,6 @@
             </button>
             <div id="drop-canvas-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
-          <!-- Multi-Select Filter: Wave -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-wave', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Wave: <strong id="lbl-canvas-wave" class="text-cyan-300">All</strong></span>
@@ -103,8 +100,6 @@
             </button>
             <div id="drop-canvas-wave" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
-          <!-- Multi-Select Filter: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-canvas-system" class="text-cyan-300">All</strong></span>
@@ -112,55 +107,32 @@
             </button>
             <div id="drop-canvas-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
             <input type="checkbox" id="filterShowDeps" checked onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
             <span>🔗 Include Upstream</span>
           </label>
         </div>
-
         <div class="flex items-center space-x-2">
           <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
             <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
             <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
             <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-list mr-1"></i> Line List</button>
           </div>
-
-          <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
-            <label class="text-[11px] font-semibold text-slate-400">Density:</label>
-            <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
-              <option value="compact">Compact</option>
-              <option value="normal" selected>Normal</option>
-              <option value="spacious">Spacious</option>
-            </select>
-          </div>
-
           <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-th mr-1"></i> Snap</button>
           <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-object-group mr-1"></i> Cluster</button>
-          
           <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
         </div>
       </div>
-
-      <!-- VISUAL CANVAS VIEW -->
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-4 select-none">
         <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
         <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
       </div>
-
-      <!-- HIERARCHICAL VISIO TREE VIEW -->
       <div id="canvasTreeView" class="flex-1 bg-slate-900 canvas-grid hidden overflow-auto p-8 relative">
         <svg id="svgTreeConnectors" class="absolute top-0 left-0 pointer-events-none z-0" style="width: 3500px; height: 3500px;">
-          <defs>
-            <marker id="treeArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-              <path d="M 0 0 L 8 4 L 0 8 z" fill="#06b6d4" />
-            </marker>
-          </defs>
+          <defs><marker id="treeArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#06b6d4" /></marker></defs>
         </svg>
         <div id="treeNodesContainer" class="relative z-10 space-y-16 min-w-max pb-20"></div>
       </div>
-
-      <!-- LINE LIST VIEW -->
       <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
         <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
           <table class="w-full text-left border-collapse text-xs">
@@ -182,7 +154,7 @@
       </div>
     </section>
 
-    <!-- TAB 2: INVENTORY MATRIX WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 2: INVENTORY -->
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -195,19 +167,15 @@
         <div class="flex flex-wrap gap-2 items-center">
           <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-            <i class="fas fa-edit"></i> Bulk Update 
-            <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
+            <i class="fas fa-edit"></i> Bulk Update <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
           </button>
           <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
           <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow"><i class="fas fa-file-excel mr-1"></i> Import CSV<input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)"></label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-plus mr-1"></i> Add Server</button>
         </div>
       </div>
-
-      <!-- INVENTORY FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-inv-dept" class="text-amber-300">All</strong></span>
@@ -215,7 +183,6 @@
             </button>
             <div id="drop-inv-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-inv-system" class="text-cyan-300">All</strong></span>
@@ -223,7 +190,6 @@
             </button>
             <div id="drop-inv-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-inv-domain" class="text-cyan-300">All</strong></span>
@@ -231,7 +197,6 @@
             </button>
             <div id="drop-inv-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-inv-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -249,7 +214,6 @@
           <button onclick="resetTabFilters('inv')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Filters"><i class="fas fa-undo"></i></button>
         </div>
       </div>
-
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-inventory">
@@ -274,7 +238,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: MIGRATION TRACKER (FORMERLY INFRA COLOCATION PROJECT) -->
+    <!-- TAB 3: MIGRATION TRACKER (UPDATED WITH DEPT, SYSTEM, AND DEPENDENCIES) -->
     <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-7xl mx-auto w-full space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
@@ -283,22 +247,19 @@
               Migration Tracker & Cutover Checklists
               <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
             </h2>
-            <p class="text-xs text-slate-400">Coordinate CS & BFL migration execution waves and verification checklists.</p>
+            <p class="text-xs text-slate-400">Featuring Server Name, IP, Subnet, Department, System, Dependencies, Waves, and Verification Checklists.</p>
           </div>
           <div class="flex gap-2">
             <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
             <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-              <i class="fas fa-edit"></i> Bulk Update 
-              <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
+              <i class="fas fa-edit"></i> Bulk Update <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
             </button>
             <button onclick="saveWaveChanges()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-save mr-1.5"></i> Save Progress</button>
           </div>
         </div>
 
-        <!-- MIGRATION TRACKER FILTER BAR -->
         <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Multi-Select: Dept -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Department: <strong id="lbl-waves-dept" class="text-amber-300">All</strong></span>
@@ -306,7 +267,6 @@
               </button>
               <div id="drop-waves-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: System -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>System: <strong id="lbl-waves-system" class="text-cyan-300">All</strong></span>
@@ -314,7 +274,6 @@
               </button>
               <div id="drop-waves-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: Domain -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Domain: <strong id="lbl-waves-domain" class="text-cyan-300">All</strong></span>
@@ -322,7 +281,6 @@
               </button>
               <div id="drop-waves-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: Subnet -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Subnet: <strong id="lbl-waves-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -350,9 +308,12 @@
                 <tr id="thead-waves">
                   <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                   <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Server Name</th>
-                  <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Migration Wave</th>
                   <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">IP Address</th>
                   <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Subnet</th>
+                  <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Department</th>
+                  <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">System / App</th>
+                  <th class="p-3" data-col-key="dependencies" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Dependencies</th>
+                  <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Migration Wave</th>
                   <th class="p-3" data-col-key="cutoverStatus" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Cutover Status</th>
                   <th class="p-3 text-center" data-col-key="dns" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">DNS Updated</th>
                   <th class="p-3 text-center" data-col-key="fw" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Firewall Rules</th>
@@ -367,13 +328,12 @@
       </div>
     </section>
 
-    <!-- TAB 4: ZERTO DR WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 4: ZERTO DR -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Zerto Disaster Recovery (DR) Control Panel 
-            <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
+            Zerto Disaster Recovery (DR) Control Panel <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
           <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles to re-order.</p>
         </div>
@@ -388,17 +348,13 @@
             </select>
           </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-            <i class="fas fa-edit"></i> Bulk Update 
-            <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
+            <i class="fas fa-edit"></i> Bulk Update <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
           </button>
           <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save DR Changes</button>
         </div>
       </div>
-
-      <!-- ZERTO FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-zerto-dept" class="text-amber-300">All</strong></span>
@@ -406,7 +362,6 @@
             </button>
             <div id="drop-zerto-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-zerto-system" class="text-cyan-300">All</strong></span>
@@ -414,7 +369,6 @@
             </button>
             <div id="drop-zerto-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-zerto-domain" class="text-cyan-300">All</strong></span>
@@ -422,7 +376,6 @@
             </button>
             <div id="drop-zerto-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-zerto-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -440,7 +393,6 @@
           <button onclick="resetTabFilters('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Filters"><i class="fas fa-undo"></i></button>
         </div>
       </div>
-
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-zerto">
@@ -462,19 +414,17 @@
       </div>
     </section>
 
-    <!-- TAB 5: VEEAM BACKUPS WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 5: VEEAM BACKUPS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            Veeam Backup Job & Retention Management
-            <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
+            Veeam Backup Job & Retention Management <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
           <p class="text-xs text-slate-400">Multi-select filtering for Veeam backup jobs. Drag column titles to re-order.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
-          <!-- One-Tap Preset Dropdown -->
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> One-Tap Preset:</span>
             <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
@@ -485,17 +435,13 @@
             <button onclick="applyVeeamPreset()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold cursor-pointer">Apply to Selected</button>
           </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
-            <i class="fas fa-edit"></i> Bulk Update 
-            <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
+            <i class="fas fa-edit"></i> Bulk Update <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
           </button>
           <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save Backup Changes</button>
         </div>
       </div>
-
-      <!-- VEEAM FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-veeam-dept" class="text-amber-300">All</strong></span>
@@ -503,7 +449,6 @@
             </button>
             <div id="drop-veeam-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-veeam-system" class="text-cyan-300">All</strong></span>
@@ -511,7 +456,6 @@
             </button>
             <div id="drop-veeam-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-veeam-domain" class="text-cyan-300">All</strong></span>
@@ -519,7 +463,6 @@
             </button>
             <div id="drop-veeam-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-veeam-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -537,7 +480,6 @@
           <button onclick="resetTabFilters('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Filters"><i class="fas fa-undo"></i></button>
         </div>
       </div>
-
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
         <div class="overflow-y-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-veeam">
@@ -557,7 +499,7 @@
       </div>
     </section>
 
-    <!-- TAB 6: STORAGE CALCULATOR -->
+    <!-- TAB 6: CALCULATOR -->
     <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
@@ -581,7 +523,7 @@
       </div>
     </section>
 
-    <!-- TAB 7: IP HEALTH CHECK -->
+    <!-- TAB 7: HEALTH -->
     <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
@@ -705,10 +647,7 @@
           <label class="font-semibold text-slate-300 mb-1 block">DR Status (e.g. P00, P01):</label>
           <input type="text" id="modalDrStatus" list="modalDrList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
           <datalist id="modalDrList">
-            <option value="P00"></option>
-            <option value="P01"></option>
-            <option value="P02"></option>
-            <option value="No"></option>
+            <option value="P00"></option><option value="P01"></option><option value="P02"></option><option value="No"></option>
           </datalist>
         </div>
         <div class="relative col-span-2">
@@ -767,7 +706,6 @@
     let draggedTreeServerName = null;
     let draggedColKey = null;
 
-    // Multi-Select filter state stores sets of selected values per key (e.g. 'canvas-domain': Set(['beckettsfoods.co.uk']))
     let multiFilters = {
       'canvas-domain': new Set(), 'canvas-wave': new Set(), 'canvas-system': new Set(),
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
@@ -938,7 +876,7 @@
       globalSearchQuery = val.trim().toLowerCase();
       const matchCount = servers.filter(s => {
         if (!globalSearchQuery) return true;
-        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus}`.toLowerCase().includes(globalSearchQuery);
+        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.dependencies}`.toLowerCase().includes(globalSearchQuery);
       }).length;
       document.getElementById('globalSearchCount').innerText = matchCount;
 
@@ -953,7 +891,6 @@
       }
     }
 
-    // MULTI-SELECT FILTER ENGINE WITH TOGGLE SELECT ALL / CLEAR ALL
     function toggleMultiSelectDropdown(filterKey, event) {
       event.stopPropagation();
       document.querySelectorAll('[id^="drop-"]').forEach(el => {
@@ -1020,14 +957,10 @@
       const set = multiFilters[filterKey];
 
       const allSelected = set.size === 0 || allOptions.every(opt => set.has(opt));
-
       if (allSelected) {
-        // If everything was selected, clear all (un-select everything)
         set.clear();
-        // Explicitly put a dummy non-matching value so 0 match
         set.add('__NONE_MATCH__');
       } else {
-        // Otherwise, select all
         set.clear();
       }
 
@@ -1041,23 +974,19 @@
       const set = multiFilters[filterKey];
       const allOptions = getOptionsForFilter(filterKey);
 
-      // If set was empty (meaning all were active), first populate all
       if (set.size === 0) {
         allOptions.forEach(o => set.add(o));
       }
-      // Remove dummy flag if present
       set.delete('__NONE_MATCH__');
 
       if (isChecked) set.add(val);
       else set.delete(val);
 
-      // If all are now checked, reset set to empty (which implies 'All')
       if (allOptions.every(opt => set.has(opt))) {
         set.clear();
       }
 
       updateMultiSelectLabel(filterKey);
-      // Re-render dropdown header label text ('Select All' vs 'Clear All')
       const box = document.getElementById(`drop-${filterKey}`);
       if (box && !box.classList.contains('hidden')) {
         const btn = box.querySelector('button');
@@ -1126,7 +1055,7 @@
 
       return baseList.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.dependencies}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         const dom = s.domain || 'Becketts';
@@ -1142,7 +1071,7 @@
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
 
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.dependencies}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
         }
         return true;
@@ -1253,7 +1182,6 @@
 
     function getFilteredServers() {
       const showDeps = document.getElementById('filterShowDeps')?.checked ?? true;
-
       let primary = servers.filter(s => {
         if (globalSearchQuery) {
           const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet}`.toLowerCase();
@@ -1291,7 +1219,6 @@
     function setTopologyLayoutMode(mode) {
       const snapBtn = document.getElementById('layoutBtnSnap');
       const clusterBtn = document.getElementById('layoutBtnCluster');
-
       if (mode === 'snap') {
         snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition cursor-pointer";
         clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer";
@@ -1587,6 +1514,7 @@
       });
     }
 
+    // MIGRATION TRACKER TAB RENDERER (UPDATED WITH DEPT, SYSTEM, DEPENDENCIES)
     function renderCutoverWavesTab() {
       updateDropdownLabels();
       updateGlobalCounters();
@@ -1618,7 +1546,7 @@
         const selectAllEl = document.getElementById('wavesSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
+        const defaultKeys = ['select', 'serverName', 'ip', 'subnet', 'dept', 'system', 'dependencies', 'wave', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
         const activeKeys = getColOrder('waves', defaultKeys);
 
         visibleList.forEach((s, idx) => {
@@ -1628,674 +1556,3 @@
 
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
-          tr.setAttribute('data-wave-server', s.serverName);
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            wave: createCell(`
-              <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
-                <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
-                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
-                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
-                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
-                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
-                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
-                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
-              </select>
-            `, "p-3"),
-            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
-            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-            cutoverStatus: createCell(`<select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select>`, "p-3"),
-            dns: createCell(`<input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            fw: createCell(`<input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            sync: createCell(`<input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            sign: createCell(`<input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center")
-          };
-
-          reorderTableHeaderAndRow('waves', activeKeys, tr, cellMap);
-          tbody.appendChild(tr);
-        });
-      }
-    }
-
-    function toggleWavesSelectAll(master) {
-      const visibleList = getFilteredTabServers('waves');
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderCutoverWavesTab();
-    }
-
-    function saveWaveChanges() {
-      const visibleList = getFilteredTabServers('waves');
-      visibleList.forEach((s, idx) => {
-        const wName = document.getElementById(`wave-name-${idx}`);
-        const wStat = document.getElementById(`wave-status-${idx}`);
-        if (wName) s.wave = wName.value;
-        if (wStat) s.cutoverStatus = wStat.value;
-        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
-        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
-        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
-        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderCutoverWavesTab();
-      alert("Migration Tracker progress saved successfully!");
-    }
-
-    function renderZertoTable() {
-      updateDropdownLabels();
-      updateGlobalCounters();
-      const tbody = document.getElementById('zertoTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        let drBase = servers.filter(isValidDRServer);
-        
-        const sortMode = document.getElementById('zertoSortMode')?.value || 'dr_then_name';
-        drBase.sort((a, b) => {
-          const stA = (a.drStatus || '').trim().toUpperCase();
-          const stB = (b.drStatus || '').trim().toUpperCase();
-          const nameA = (a.serverName || '').trim().toLowerCase();
-          const nameB = (b.serverName || '').trim().toLowerCase();
-
-          if (sortMode === 'dr_then_name') {
-            if (stA !== stB) return stA.localeCompare(stB);
-            return nameA.localeCompare(nameB);
-          } else if (sortMode === 'status_only') {
-            return stA.localeCompare(stB);
-          } else {
-            return nameA.localeCompare(nameB);
-          }
-        });
-
-        const visibleList = getFilteredTabServers('zerto', drBase);
-
-        const matchBadge = document.getElementById('zertoFilteredMatchBadge');
-        if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${drBase.length}`;
-
-        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
-        const selectAllEl = document.getElementById('zertoSelectAll');
-        if (selectAllEl) selectAllEl.checked = allChecked;
-
-        if (visibleList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
-          return;
-        }
-
-        const defaultKeys = ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'];
-        const activeKeys = getColOrder('zerto', defaultKeys);
-
-        visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-700/50";
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            drStatus: createCell(`<span class="font-mono font-bold text-amber-300">${s.drStatus}</span>`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-            vpg: createCell(`<input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            site: createCell(`<input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3")
-          };
-
-          reorderTableHeaderAndRow('zerto', activeKeys, tr, cellMap);
-          tbody.appendChild(tr);
-        });
-      }
-    }
-
-    function toggleZertoSelectAll(master) {
-      const drBase = servers.filter(isValidDRServer);
-      const visibleList = getFilteredTabServers('zerto', drBase);
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderZertoTable();
-    }
-
-    function saveZertoChanges() {
-      const drBase = servers.filter(isValidDRServer);
-      const visibleList = getFilteredTabServers('zerto', drBase);
-      visibleList.forEach((s, idx) => {
-        s.vpg = document.getElementById(`dr-vpg-${idx}`)?.value.trim();
-        s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Zerto DR settings saved successfully!");
-    }
-
-    function renderVeeamTable() {
-      updateDropdownLabels();
-      updateGlobalCounters();
-      const tbody = document.getElementById('veeamTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        const visibleList = getFilteredTabServers('veeam');
-
-        const matchBadge = document.getElementById('veeamFilteredMatchBadge');
-        if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${servers.length}`;
-
-        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
-        const selectAllEl = document.getElementById('veeamSelectAll');
-        if (selectAllEl) selectAllEl.checked = allChecked;
-
-        const defaultKeys = ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamRetention'];
-        const activeKeys = getColOrder('veeam', defaultKeys);
-
-        visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-700/50";
-          tr.setAttribute('data-veeam-name', s.serverName);
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            veeamJob: createCell(`<input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            veeamTime: createCell(`<input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono">`, "p-3"),
-            veeamRetention: createCell(`<input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-24 font-mono">`, "p-3")
-          };
-
-          reorderTableHeaderAndRow('veeam', activeKeys, tr, cellMap);
-          tbody.appendChild(tr);
-        });
-      }
-    }
-
-    function applyVeeamPreset() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server using the checkboxes first.");
-      const preset = document.getElementById('veeamPresetSelect').value;
-      let jobName = "Daily-App-Job", timeStr = "02:00 AM", retDays = 30;
-
-      if (preset === 'sql_90') {
-        jobName = "Core-SQL-Daily-Backup"; timeStr = "01:00 AM"; retDays = 90;
-      } else if (preset === 'weekly_14') {
-        jobName = "Weekly-Archive-Job"; timeStr = "Saturday 00:00"; retDays = 14;
-      }
-
-      servers.forEach(s => {
-        if (selectedServerNames.has(s.serverName)) {
-          s.veeamJob = jobName;
-          s.veeamTime = timeStr;
-          s.veeamRetention = retDays;
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      renderVeeamTable();
-      alert(`Applied preset '${preset}' to ${selectedServerNames.size} selected server(s)! Click 'Save Backup Changes' when finalized.`);
-    }
-
-    function toggleVeeamSelectAll(master) {
-      const visibleList = getFilteredTabServers('veeam');
-      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
-      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
-      renderVeeamTable();
-    }
-
-    function saveVeeamChanges() {
-      const visibleList = getFilteredTabServers('veeam');
-      visibleList.forEach((s, idx) => {
-        s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim();
-        s.veeamTime = document.getElementById(`veeam-time-${idx}`)?.value.trim();
-        s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Veeam settings saved successfully!");
-    }
-
-    function renderCalculatorTab() {
-      updateGlobalCounters();
-      let totalDisk = 0;
-      servers.forEach(s => { totalDisk += (parseInt(s.totalDiskGB) || 100); });
-      let totalBackup = totalDisk * 1.5;
-      document.getElementById('calcTotalServers').innerText = servers.length;
-      document.getElementById('calcTotalPrimaryDisk').innerText = `${totalDisk.toLocaleString()} GB`;
-      document.getElementById('calcTotalBackupStorage').innerText = `${Math.round(totalBackup).toLocaleString()} GB`;
-    }
-
-    function renderHealthTab() {
-      updateGlobalCounters();
-      let missingCount = servers.filter(s => !s.ip || s.ip === 'N/A').length;
-      document.getElementById('healthMissingCount').innerText = missingCount;
-      document.getElementById('healthDupCount').innerText = "0";
-      document.getElementById('healthLogContainer').innerHTML = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 font-semibold"><i class="fas fa-check-circle mr-2"></i>All IPs valid.</div>';
-    }
-
-    function parseCSVRow(row) {
-      const result = []; let current = '', inQuotes = false;
-      for (let i = 0; i < row.length; i++) {
-        const ch = row[i];
-        if (ch === '"') { inQuotes = !inQuotes; }
-        else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-        else { current += ch; }
-      }
-      result.push(current.trim()); return result;
-    }
-
-    function previewCSVImport(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const lines = evt.target.result.split(/\r?\n/);
-        if (lines.length === 0) return;
-
-        let headerCols = [];
-        let headerRowIdx = 0;
-        for (let i = 0; i < Math.min(lines.length, 10); i++) {
-          const rowVals = parseCSVRow(lines[i]);
-          if (rowVals.some(v => /server|ip|domain|dept|wave|dr|os|datastore|disk/i.test(v))) {
-            headerCols = rowVals.map(v => v.toLowerCase());
-            headerRowIdx = i;
-            break;
-          }
-        }
-
-        function getColIdx(keywords) {
-          return headerCols.findIndex(h => keywords.some(kw => h.includes(kw)));
-        }
-
-        const idxServer = getColIdx(['server', 'name', 'hostname']);
-        const idxIp = getColIdx(['ip', 'address']);
-        const idxDomain = getColIdx(['domain']);
-        const idxDept = getColIdx(['dept', 'department']);
-        const idxSys = getColIdx(['system', 'app', 'application']);
-        const idxWave = getColIdx(['wave']);
-        const idxSubnet = getColIdx(['subnet']);
-        const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
-        const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
-        const idxDisk = getColIdx(['disk', 'totaldisk', 'capacity']);
-        const idxDs = getColIdx(['datastore']);
-
-        let importedCount = 0;
-
-        for (let i = headerRowIdx + 1; i < lines.length; i++) {
-          const line = lines[i].trim(); if (!line) continue;
-          const cols = parseCSVRow(line);
-          
-          const serverName = (idxServer !== -1 ? cols[idxServer] : cols[0]) || '';
-          if (!serverName) continue;
-
-          const ipVal = idxIp !== -1 ? cols[idxIp] : '';
-          const subVal = idxSubnet !== -1 ? cols[idxSubnet] : '';
-          const drVal = idxDr !== -1 ? cols[idxDr] : '';
-          const osVal = idxOs !== -1 ? cols[idxOs] : '';
-          const diskVal = idxDisk !== -1 ? parseInt(cols[idxDisk]) : NaN;
-          const dsVal = idxDs !== -1 ? cols[idxDs] : '';
-          const deptVal = idxDept !== -1 ? cols[idxDept] : '';
-          const sysVal = idxSys !== -1 ? cols[idxSys] : '';
-          const waveVal = idxWave !== -1 ? cols[idxWave] : '';
-          const domainVal = idxDomain !== -1 ? cols[idxDomain] : '';
-
-          const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === serverName.toLowerCase());
-
-          if (existingIdx === -1) {
-            servers.push({
-              serverName: serverName,
-              dept: deptVal || 'INF',
-              system: sysVal || 'General',
-              domain: domainVal || 'Becketts',
-              ip: ipVal || '',
-              subnet: subVal || calculateSubnet(ipVal || ''),
-              drStatus: drVal || '',
-              osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
-              totalDiskGB: !isNaN(diskVal) ? diskVal : 100,
-              datastore: dsVal || 'VM_Datastore01',
-              wave: waveVal || 'Unassigned',
-              cutoverStatus: 'Not Started',
-              dependencies: ''
-            });
-          } else {
-            const s = servers[existingIdx];
-            if (domainVal) s.domain = domainVal;
-            if (deptVal) s.dept = deptVal;
-            if (sysVal) s.system = sysVal;
-            if (ipVal) {
-              s.ip = ipVal;
-              if (!subVal && (!s.subnet || s.subnet === 'Unassigned')) s.subnet = calculateSubnet(ipVal);
-            }
-            if (subVal) s.subnet = subVal;
-            if (drVal) s.drStatus = drVal;
-            if (osVal) s.osFamily = osVal.includes('Linux') ? 'Linux' : 'Windows';
-            if (!isNaN(diskVal)) s.totalDiskGB = diskVal;
-            if (dsVal) s.datastore = dsVal;
-            if (waveVal) s.wave = waveVal;
-          }
-          importedCount++;
-        }
-
-        servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderInventoryTable();
-        alert(`Successfully imported/merged ${importedCount} servers dynamically from CSV while preserving your manual entries!`);
-        e.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (SERVER MODAL)
-    function showDepSuggestions(val) {
-      const box = document.getElementById('depSuggestionsDropdown');
-      if (!box) return;
-
-      const currentServer = (document.getElementById('modalServerName')?.value || '').trim().toLowerCase();
-      const parts = val.split(',');
-      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
-      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
-
-      const matches = servers.filter(s => {
-        const sNameLow = s.serverName.toLowerCase();
-        if (sNameLow === currentServer) return false;
-        if (alreadyAdded.has(sNameLow)) return false;
-        if (!lastTerm) return true;
-        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
-      }).slice(0, 20);
-
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
-      box.innerHTML = matches.map(s => `
-        <div onmousedown="selectDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
-             class="px-3 py-2 hover:bg-cyan-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
-          <div>
-            <div class="font-bold text-cyan-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
-          </div>
-          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
-        </div>
-      `).join('');
-      box.classList.remove('hidden');
-    }
-
-    function selectDepSuggestion(selectedName) {
-      const input = document.getElementById('modalDependencies');
-      if (!input) return;
-      const parts = input.value.split(',');
-      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
-      input.value = parts.join(',') + ', ';
-      hideDepSuggestions();
-      input.focus();
-      showDepSuggestions(input.value);
-    }
-
-    function hideDepSuggestions() {
-      const box = document.getElementById('depSuggestionsDropdown');
-      if (box) box.classList.add('hidden');
-    }
-
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (BULK EDIT MODAL)
-    function onBulkValueInput(val) {
-      const field = document.getElementById('bulkField').value;
-      const box = document.getElementById('bulkDepSuggestionsDropdown');
-      if (!box) return;
-
-      if (field !== 'dependencies') {
-        box.classList.add('hidden');
-        return;
-      }
-
-      const parts = val.split(',');
-      const lastTerm = parts[parts.length - 1].trim().toLowerCase();
-      const alreadyAdded = new Set(parts.slice(0, -1).map(p => p.trim().toLowerCase()).filter(Boolean));
-
-      const matches = servers.filter(s => {
-        const sNameLow = s.serverName.toLowerCase();
-        if (alreadyAdded.has(sNameLow)) return false;
-        if (!lastTerm) return true;
-        return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
-      }).slice(0, 20);
-
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
-      box.innerHTML = matches.map(s => `
-        <div onmousedown="selectBulkDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
-             class="px-3 py-2 hover:bg-amber-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
-          <div>
-            <div class="font-bold text-amber-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
-          </div>
-          <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
-        </div>
-      `).join('');
-      box.classList.remove('hidden');
-    }
-
-    function selectBulkDepSuggestion(selectedName) {
-      const input = document.getElementById('bulkValue');
-      if (!input) return;
-      const parts = input.value.split(',');
-      parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + selectedName;
-      input.value = parts.join(',') + ', ';
-      hideBulkDepSuggestions();
-      input.focus();
-      onBulkValueInput(input.value);
-    }
-
-    function hideBulkDepSuggestions() {
-      const box = document.getElementById('bulkDepSuggestionsDropdown');
-      if (box) box.classList.add('hidden');
-    }
-
-    function openServerModal(serverName = null) {
-      updateDropdownLabels();
-      hideDepSuggestions();
-      document.getElementById('serverModal').classList.remove('hidden');
-      if (serverName) {
-        const s = servers.find(x => x.serverName === serverName);
-        document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
-        document.getElementById('editOriginalName').value = serverName;
-        document.getElementById('modalServerName').value = s.serverName;
-        document.getElementById('modalDept').value = s.dept || '';
-        document.getElementById('modalSystem').value = s.system || '';
-        document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
-        document.getElementById('modalTotalDisk').value = s.totalDiskGB || 100;
-        document.getElementById('modalDatastore').value = s.datastore || 'VM_Datastore01';
-        document.getElementById('modalDomain').value = s.domain || 'Becketts';
-        document.getElementById('modalIP').value = s.ip || '';
-        document.getElementById('modalSubnet').value = s.subnet || calculateSubnet(s.ip || '');
-        document.getElementById('modalDrStatus').value = s.drStatus || '';
-        document.getElementById('modalDependencies').value = s.dependencies || '';
-      } else {
-        document.getElementById('serverModalTitle').innerText = "Add New Server";
-        document.getElementById('editOriginalName').value = '';
-        ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDrStatus','modalDependencies'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('modalDomain').value = 'Becketts';
-        document.getElementById('modalOsFamily').value = 'Windows';
-        document.getElementById('modalTotalDisk').value = 100;
-        document.getElementById('modalDatastore').value = 'VM_Datastore01';
-      }
-    }
-    function closeServerModal() { hideDepSuggestions(); document.getElementById('serverModal').classList.add('hidden'); }
-    function editServer(name) { openServerModal(name); }
-
-    function saveServerRecord() {
-      const origName = document.getElementById('editOriginalName').value;
-      const cleanDeps = document.getElementById('modalDependencies').value
-        .split(',').map(d => d.trim()).filter(Boolean).join(', ');
-
-      const data = {
-        serverName: document.getElementById('modalServerName').value.trim(),
-        dept: document.getElementById('modalDept').value.trim(),
-        system: document.getElementById('modalSystem').value.trim() || 'General',
-        osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
-        totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
-        datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
-        domain: document.getElementById('modalDomain').value.trim(),
-        ip: document.getElementById('modalIP').value.trim(),
-        subnet: document.getElementById('modalSubnet').value.trim(),
-        drStatus: document.getElementById('modalDrStatus').value.trim(),
-        dependencies: cleanDeps
-      };
-      if (!data.serverName) return alert("Server Name is required.");
-      if (origName) {
-        const idx = servers.findIndex(x => x.serverName === origName);
-        if (idx !== -1) servers[idx] = Object.assign({}, servers[idx], data);
-      } else {
-        data.wave = 'Unassigned';
-        data.cutoverStatus = 'Not Started';
-        servers.push(data);
-      }
-      servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeServerModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
-    }
-
-    function deleteServer(name) {
-      if (confirm(`Delete server ${name}?`)) {
-        servers = servers.filter(x => x.serverName !== name);
-        selectedServerNames.delete(name);
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderInventoryTable();
-      }
-    }
-
-    function onBulkFieldChange() {
-      const field = document.getElementById('bulkField').value;
-      const valInput = document.getElementById('bulkValue');
-      const datalist = document.getElementById('bulkValueSuggestions');
-      const hintEl = document.getElementById('bulkPrefillHint');
-      if (!valInput || !datalist) return;
-      hideBulkDepSuggestions();
-
-      let uniqueVals = new Set();
-      if (field === 'wave') {
-        ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'].forEach(w => uniqueVals.add(w));
-      } else if (field === 'drStatus') {
-        ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
-      } else if (field === 'dependencies') {
-        servers.forEach(s => { if (s.serverName) uniqueVals.add(s.serverName); });
-      }
-
-      servers.forEach(s => {
-        const v = (s[field] || '').toString().trim();
-        if (v) uniqueVals.add(v);
-      });
-
-      const sortedOptions = Array.from(uniqueVals).sort();
-      datalist.innerHTML = sortedOptions.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
-
-      const selectedObjects = servers.filter(s => selectedServerNames.has(s.serverName));
-      const selectedFieldVals = [...new Set(selectedObjects.map(s => (s[field] || '').toString().trim()))];
-
-      if (selectedFieldVals.length === 1 && selectedFieldVals[0] !== '') {
-        valInput.value = selectedFieldVals[0];
-        if (hintEl) hintEl.innerText = selectedObjects.length === 1 ? 'Prefilled current value' : 'All selected share this value';
-      } else if (selectedObjects.length > 1) {
-        const nonEmpty = selectedFieldVals.filter(Boolean);
-        valInput.value = nonEmpty.length > 0 ? nonEmpty[0] : '';
-        if (hintEl) hintEl.innerText = nonEmpty.length > 1 ? `Mixed values (${nonEmpty.length} variants)` : 'Prefilled from selection';
-      } else {
-        valInput.value = '';
-        if (hintEl) hintEl.innerText = `${sortedOptions.length} suggestions available`;
-      }
-    }
-
-    function openBulkEditModal() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server first.");
-      document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
-      document.getElementById('bulkEditModal').classList.remove('hidden');
-      onBulkFieldChange();
-    }
-    function closeBulkEditModal() { hideBulkDepSuggestions(); document.getElementById('bulkEditModal').classList.add('hidden'); }
-
-    function commitBulkEdit() {
-      const field = document.getElementById('bulkField').value;
-      let val = document.getElementById('bulkValue').value.trim();
-      if (!val) return alert("Enter a value.");
-
-      if (field === 'dependencies') {
-        val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
-      }
-
-      servers.forEach(s => { 
-        if (selectedServerNames.has(s.serverName)) {
-          if (field === 'totalDiskGB' || field === 'veeamRetention') {
-            s[field] = parseInt(val) || 0;
-          } else {
-            s[field] = val; 
-          }
-        }
-      });
-      localStorage.setItem('infops_servers', JSON.stringify(servers));
-      closeBulkEditModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
-      alert("Bulk update successful!");
-    }
-
-    function exportToCSV() {
-      let csv = "ServerName,Department,System,OSFamily,TotalDiskGB,Datastore,Domain,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.datastore||''}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
-    }
-
-    function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
-    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
-    function saveProjectSettings() {
-      appSettings.brandName = document.getElementById('settingsBrandName').value.trim() || "InfOps";
-      appSettings.subtitle = document.getElementById('settingsSubtitle').value.trim() || "Multi-Domain Migration / Zerto DR / Veeam Backup";
-      localStorage.setItem('infops_settings', JSON.stringify(appSettings));
-      applySettings();
-      closeSettingsModal();
-    }
-    function openEncryptionModal() { document.getElementById('encryptionModal').classList.remove('hidden'); document.getElementById('secretPassInput').value = ENCRYPTION_KEY; }
-    function closeEncryptionModal() { document.getElementById('encryptionModal').classList.add('hidden'); }
-    function saveSecretKey() {
-      ENCRYPTION_KEY = document.getElementById('secretPassInput').value;
-      localStorage.setItem('infops_secret', ENCRYPTION_KEY);
-      closeEncryptionModal();
-      alert("Passphrase saved.");
-    }
-
-    function exportEncryptedJSON() {
-      const jsonStr = JSON.stringify(servers, null, 2);
-      let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' })); a.download = `ca-migration-secure-backup.json`; a.click();
-    }
-
-    function importEncryptedJSON(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          let content = evt.target.result;
-          if (content.startsWith("INFENC:")) {
-            const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) / ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
-          }
-          servers = JSON.parse(content);
-          localStorage.setItem('infops_servers', JSON.stringify(servers));
-          renderInventoryTable();
-          alert(`Decrypted and loaded ${servers.length} servers!`);
-        } catch (err) { alert("Decryption failed."); }
-      };
-      reader.readAsText(file);
-    }
-
-    function onModalIPChange(ipVal) {
-      const subInput = document.getElementById('modalSubnet');
-      if (subInput && ipVal.trim()) subInput.value = calculateSubnet(ipVal.trim());
-    }
-
-    document.getElementById('globalSearchInput').addEventListener('click', (e) => e.stopPropagation());
-
-    document.addEventListener('DOMContentLoaded', () => { 
-      applySettings(); 
-      verifyClientIP();
-      renderInventoryTable(); 
-      switchTab('inventory'); 
-    });
-  </script>
-</body>
-</html>
