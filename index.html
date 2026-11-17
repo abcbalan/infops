@@ -1,5 +1,5 @@
-<!-- 20261117 v47 - Fixed CSV Import with Manual Override Protection -->
 <!-- 20261117 v48 - Fixed fix Bulk Update Dependency Auto-fill -->
+<!-- 20261117 v49 - trying Migration Tracker Renaming, Flexible Waves & Multi-Select Filters -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +21,7 @@
     th.drag-over-right { border-right: 3px solid #06b6d4; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden" onclick="closeAllMultiSelects(event)">
 
   <!-- TOP HEADER NAVBAR -->
   <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4 relative z-50 pointer-events-auto">
@@ -32,9 +32,9 @@
       <div>
         <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Operations Hub</span>
+          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS & BFL Infra Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Wave Cutover Planner</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Migration Tracker</p>
       </div>
     </div>
 
@@ -54,7 +54,7 @@
         <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
-        <i class="fas fa-flag-checkered mr-1"></i> Infra Colocation Project <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        <i class="fas fa-flag-checkered mr-1"></i> Migration Tracker <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
       <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
         <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
@@ -86,33 +86,35 @@
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-20 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="filterDomain" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Domains</option>
-            </select>
+          <!-- Multi-Select Filter: Domain -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('canvas-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Domain: <strong id="lbl-canvas-domain" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-canvas-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Migration Wave:</label>
-            <select id="filterWave" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Waves</option>
-              <option value="Wave 1 - Pilot">Wave 1 - Pilot</option>
-              <option value="Wave 2 - Core Apps">Wave 2 - Core Apps</option>
-              <option value="Wave 3 - Databases & DCs">Wave 3 - Databases & DCs</option>
-              <option value="Unassigned">Unassigned</option>
-            </select>
+          <!-- Multi-Select Filter: Wave -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('canvas-wave', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Wave: <strong id="lbl-canvas-wave" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-canvas-wave" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="filterSystem" onchange="onFilterChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-              <option value="ALL">All Systems</option>
-            </select>
+          <!-- Multi-Select Filter: System -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('canvas-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>System: <strong id="lbl-canvas-system" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-canvas-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
 
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
-            <input type="checkbox" id="filterShowDeps" checked onchange="onFilterChange()" class="rounded text-cyan-600 focus:ring-0">
+            <input type="checkbox" id="filterShowDeps" checked onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
             <span>🔗 Include Upstream</span>
           </label>
         </div>
@@ -180,7 +182,7 @@
       </div>
     </section>
 
-    <!-- TAB 2: INVENTORY MATRIX WITH FULL FILTER BAR -->
+    <!-- TAB 2: INVENTORY MATRIX WITH MULTI-SELECT FILTERS -->
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -188,7 +190,7 @@
             Server Inventory Matrix & Universal Bulk Edit
             <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 servers</span>
           </h2>
-          <p class="text-xs text-slate-400">Filter inventory by department, system, domain, or subnet with instant filtered counts. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Multi-select departments, systems, domains, or subnets. Drag column titles to re-order.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
           <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
@@ -205,29 +207,37 @@
       <!-- INVENTORY FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Department:</label>
-            <select id="invFilterDept" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-              <option value="ALL">All Departments</option>
-            </select>
+          <!-- Multi-Select: Dept -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('inv-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Department: <strong id="lbl-inv-dept" class="text-amber-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-inv-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="invFilterSystem" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Systems</option>
-            </select>
+          <!-- Multi-Select: System -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('inv-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>System: <strong id="lbl-inv-system" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-inv-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="invFilterDomain" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Domains</option>
-            </select>
+          <!-- Multi-Select: Domain -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('inv-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Domain: <strong id="lbl-inv-domain" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-inv-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="invFilterSubnet" onchange="renderInventoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-              <option value="ALL">All Subnets</option>
-            </select>
+          <!-- Multi-Select: Subnet -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('inv-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Subnet: <strong id="lbl-inv-subnet" class="text-cyan-300 font-mono">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-inv-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
           <span id="filteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
@@ -264,16 +274,16 @@
       </div>
     </section>
 
-    <!-- TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES) WITH FULL FILTER BAR -->
+    <!-- TAB 3: MIGRATION TRACKER (FORMERLY INFRA COLOCATION PROJECT) -->
     <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-7xl mx-auto w-full space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
-              Infra Colocation Project & Cutover Checklists
+              Migration Tracker & Cutover Checklists
               <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
             </h2>
-            <p class="text-xs text-slate-400">Coordinate migration execution waves and verification checklists. Drag column titles to re-order.</p>
+            <p class="text-xs text-slate-400">Coordinate CS & BFL migration execution waves and verification checklists.</p>
           </div>
           <div class="flex gap-2">
             <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
@@ -285,45 +295,53 @@
           </div>
         </div>
 
-        <!-- WAVES FILTER BAR -->
+        <!-- MIGRATION TRACKER FILTER BAR -->
         <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
           <div class="flex flex-wrap items-center gap-3">
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Department:</label>
-              <select id="wavesFilterDept" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-                <option value="ALL">All Departments</option>
-              </select>
+            <!-- Multi-Select: Dept -->
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>Department: <strong id="lbl-waves-dept" class="text-amber-300">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">System:</label>
-              <select id="wavesFilterSystem" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Systems</option>
-              </select>
+            <!-- Multi-Select: System -->
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>System: <strong id="lbl-waves-system" class="text-cyan-300">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Domain:</label>
-              <select id="wavesFilterDomain" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-                <option value="ALL">All Domains</option>
-              </select>
+            <!-- Multi-Select: Domain -->
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>Domain: <strong id="lbl-waves-domain" class="text-cyan-300">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-              <select id="wavesFilterSubnet" onchange="renderCutoverWavesTab()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-                <option value="ALL">All Subnets</option>
-              </select>
+            <!-- Multi-Select: Subnet -->
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>Subnet: <strong id="lbl-waves-subnet" class="text-cyan-300 font-mono">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
             <span id="wavesFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="relative">
               <i class="fas fa-search absolute left-3 top-2 text-slate-400 text-xs"></i>
-              <input type="text" id="wavesSearch" oninput="renderCutoverWavesTab()" placeholder="Search project..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
+              <input type="text" id="wavesSearch" oninput="renderCutoverWavesTab()" placeholder="Search tracker..." class="bg-slate-900 border border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs text-white focus:outline-none w-48">
             </div>
             <button onclick="resetTabFilters('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Filters"><i class="fas fa-undo"></i></button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="waveSummaryCards"></div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="waveSummaryCards"></div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
           <h3 class="font-bold text-white text-sm">Server Cutover & Verification Matrix</h3>
           <div class="overflow-x-auto">
@@ -349,7 +367,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: ZERTO DR WITH FULL FILTER BAR -->
+    <!-- TAB 4: ZERTO DR WITH MULTI-SELECT FILTERS -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -357,7 +375,7 @@
             Zerto Disaster Recovery (DR) Control Panel 
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Showing servers with valid DR status. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles to re-order.</p>
         </div>
         <div class="flex items-center gap-3">
           <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
@@ -380,29 +398,37 @@
       <!-- ZERTO FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Department:</label>
-            <select id="zertoFilterDept" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-              <option value="ALL">All Departments</option>
-            </select>
+          <!-- Multi-Select: Dept -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('zerto-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Department: <strong id="lbl-zerto-dept" class="text-amber-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-zerto-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="zertoFilterSystem" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Systems</option>
-            </select>
+          <!-- Multi-Select: System -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('zerto-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>System: <strong id="lbl-zerto-system" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-zerto-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="zertoFilterDomain" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Domains</option>
-            </select>
+          <!-- Multi-Select: Domain -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('zerto-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Domain: <strong id="lbl-zerto-domain" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-zerto-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="zertoFilterSubnet" onchange="renderZertoTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-              <option value="ALL">All Subnets</option>
-            </select>
+          <!-- Multi-Select: Subnet -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('zerto-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Subnet: <strong id="lbl-zerto-subnet" class="text-cyan-300 font-mono">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-zerto-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
           <span id="zertoFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
@@ -436,7 +462,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: VEEAM BACKUPS WITH FULL FILTER BAR & ONE-TAP PRESETS -->
+    <!-- TAB 5: VEEAM BACKUPS WITH MULTI-SELECT FILTERS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -444,7 +470,7 @@
             Veeam Backup Job & Retention Management
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Multi-select filtering for Veeam backup jobs. Drag column titles to re-order.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
@@ -469,29 +495,37 @@
       <!-- VEEAM FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Department:</label>
-            <select id="veeamFilterDept" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-semibold text-amber-300">
-              <option value="ALL">All Departments</option>
-            </select>
+          <!-- Multi-Select: Dept -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Department: <strong id="lbl-veeam-dept" class="text-amber-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">System:</label>
-            <select id="veeamFilterSystem" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Systems</option>
-            </select>
+          <!-- Multi-Select: System -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>System: <strong id="lbl-veeam-system" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Domain:</label>
-            <select id="veeamFilterDomain" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
-              <option value="ALL">All Domains</option>
-            </select>
+          <!-- Multi-Select: Domain -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Domain: <strong id="lbl-veeam-domain" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">Subnet:</label>
-            <select id="veeamFilterSubnet" onchange="renderVeeamTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none font-mono text-cyan-300">
-              <option value="ALL">All Subnets</option>
-            </select>
+          <!-- Multi-Select: Subnet -->
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Subnet: <strong id="lbl-veeam-subnet" class="text-cyan-300 font-mono">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
           <span id="veeamFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
@@ -608,7 +642,6 @@
                  placeholder="Select from existing or type new value..."
                  class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 font-mono">
           <datalist id="bulkValueSuggestions"></datalist>
-          <!-- FIXED: Added missing floating dependency suggestions dropdown for bulk update -->
           <div id="bulkDepSuggestionsDropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-950 border border-amber-700/80 rounded-xl shadow-2xl max-h-44 overflow-y-auto z-50 hidden"></div>
         </div>
       </div>
@@ -733,6 +766,15 @@
     let globalSearchQuery = '';
     let draggedTreeServerName = null;
     let draggedColKey = null;
+
+    // Multi-Select filter state stores sets of selected values per key (e.g. 'canvas-domain': Set(['beckettsfoods.co.uk']))
+    let multiFilters = {
+      'canvas-domain': new Set(), 'canvas-wave': new Set(), 'canvas-system': new Set(),
+      'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
+      'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(),
+      'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
+      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
+    };
 
     let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
 
@@ -911,88 +953,143 @@
       }
     }
 
-    function updateDropdowns() {
-      const domains = [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
-      const systems = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      const subnets = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      const depts = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
-
-      const setList = (id, arr) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = arr.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
-      };
-      setList('modalDeptList', depts);
-      setList('modalSystemList', systems);
-      setList('modalDomainList', domains);
-      setList('modalSubnetList', subnets);
-
-      const domSelect = document.getElementById('filterDomain');
-      if (domSelect) {
-        const cur = domSelect.value;
-        domSelect.innerHTML = '<option value="ALL">All Domains</option>' + domains.map(d => `<option value="${d}">${d}</option>`).join('');
-        if (domains.includes(cur)) domSelect.value = cur;
-      }
-
-      const sysSelect = document.getElementById('filterSystem');
-      if (sysSelect) {
-        const cur = sysSelect.value;
-        sysSelect.innerHTML = '<option value="ALL">All Systems</option>' + systems.map(sys => `<option value="${sys}">${sys}</option>`).join('');
-        if (systems.includes(cur)) sysSelect.value = cur;
-      }
-
-      ['inv', 'waves', 'zerto', 'veeam'].forEach(prefix => {
-        const dSel = document.getElementById(`${prefix}FilterDept`);
-        if (dSel) {
-          const cur = dSel.value;
-          dSel.innerHTML = '<option value="ALL">All Departments</option>' + depts.map(d => `<option value="${d}">${d}</option>`).join('');
-          if (depts.includes(cur)) dSel.value = cur;
-        }
-
-        const sSel = document.getElementById(`${prefix}FilterSystem`);
-        if (sSel) {
-          const cur = sSel.value;
-          sSel.innerHTML = '<option value="ALL">All Systems</option>' + systems.map(sys => `<option value="${sys}">${sys}</option>`).join('');
-          if (systems.includes(cur)) sSel.value = cur;
-        }
-
-        const domSel = document.getElementById(`${prefix}FilterDomain`);
-        if (domSel) {
-          const cur = domSel.value;
-          domSel.innerHTML = '<option value="ALL">All Domains</option>' + domains.map(d => `<option value="${d}">${d}</option>`).join('');
-          if (domains.includes(cur)) domSel.value = cur;
-        }
-
-        const subSel = document.getElementById(`${prefix}FilterSubnet`);
-        if (subSel) {
-          const cur = subSel.value;
-          subSel.innerHTML = '<option value="ALL">All Subnets</option>' + subnets.map(sub => `<option value="${sub}">${sub}</option>`).join('');
-          if (subnets.includes(cur)) subSel.value = cur;
-        }
+    // MULTI-SELECT FILTER ENGINE
+    function toggleMultiSelectDropdown(filterKey, event) {
+      event.stopPropagation();
+      // Close all other dropdowns
+      document.querySelectorAll('[id^="drop-"]').forEach(el => {
+        if (el.id !== `drop-${filterKey}`) el.classList.add('hidden');
       });
+      const box = document.getElementById(`drop-${filterKey}`);
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        populateMultiSelectContent(filterKey);
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function closeAllMultiSelects(event) {
+      if (!event.target.closest('button') && !event.target.closest('[id^="drop-"]')) {
+        document.querySelectorAll('[id^="drop-"]').forEach(el => el.classList.add('hidden'));
+      }
+    }
+
+    function populateMultiSelectContent(filterKey) {
+      const box = document.getElementById(`drop-${filterKey}`);
+      if (!box) return;
+
+      let allOptions = [];
+      const parts = filterKey.split('-');
+      const field = parts[1]; // domain, wave, system, dept, subnet
+
+      if (field === 'domain') allOptions = [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
+      else if (field === 'wave') allOptions = ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
+      else if (field === 'system') allOptions = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+      else if (field === 'dept') allOptions = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
+      else if (field === 'subnet') allOptions = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+
+      const selectedSet = multiFilters[filterKey] || new Set();
+
+      let html = `
+        <div class="flex justify-between items-center px-2 py-1 border-b border-slate-800 text-[11px]">
+          <span class="font-bold text-slate-300">Select Multiple</span>
+          <button onclick="clearMultiFilter('${filterKey}', event)" class="text-cyan-400 hover:underline">Select All / Reset</button>
+        </div>
+      `;
+
+      allOptions.forEach(opt => {
+        const isChecked = selectedSet.size === 0 || selectedSet.has(opt) ? 'checked' : '';
+        html += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-900 rounded cursor-pointer text-xs text-slate-200">
+            <input type="checkbox" ${isChecked} onchange="onMultiSelectChange('${filterKey}', '${opt.replace(/'/g, "\\'")}', this.checked)" class="rounded text-cyan-600">
+            <span class="truncate">${opt}</span>
+          </label>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    function onMultiSelectChange(filterKey, val, isChecked) {
+      if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
+      const set = multiFilters[filterKey];
+
+      // If set was empty (meaning all were active), first populate all
+      if (set.size === 0) {
+        let allOptions = [];
+        const field = filterKey.split('-')[1];
+        if (field === 'domain') allOptions = [...new Set(servers.map(s => s.domain).filter(Boolean))];
+        else if (field === 'wave') allOptions = ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
+        else if (field === 'system') allOptions = [...new Set(servers.map(s => s.system).filter(Boolean))];
+        else if (field === 'dept') allOptions = [...new Set(servers.map(s => s.dept).filter(Boolean))];
+        else if (field === 'subnet') allOptions = [...new Set(servers.map(s => s.subnet).filter(Boolean))];
+        allOptions.forEach(o => set.add(o));
+      }
+
+      if (isChecked) set.add(val);
+      else set.delete(val);
+
+      updateMultiSelectLabel(filterKey);
+      triggerActiveTabRender();
+    }
+
+    function clearMultiFilter(filterKey, event) {
+      event.stopPropagation();
+      multiFilters[filterKey].clear();
+      updateMultiSelectLabel(filterKey);
+      populateMultiSelectContent(filterKey);
+      triggerActiveTabRender();
+    }
+
+    function updateMultiSelectLabel(filterKey) {
+      const set = multiFilters[filterKey];
+      const lbl = document.getElementById(`lbl-${filterKey}`);
+      if (!lbl) return;
+      if (!set || set.size === 0) {
+        lbl.innerText = "All";
+      } else if (set.size === 1) {
+        lbl.innerText = Array.from(set)[0];
+      } else {
+        lbl.innerText = `${set.size} selected`;
+      }
+    }
+
+    function triggerActiveTabRender() {
+      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
+      if (!activeTab) return;
+      const tId = activeTab.id.replace('tabContent-', '');
+      if (tId === 'canvas') renderTopologyCanvas();
+      else if (tId === 'inventory') renderInventoryTable();
+      else if (tId === 'waves') renderCutoverWavesTab();
+      else if (tId === 'zerto') renderZertoTable();
+      else if (tId === 'veeam') renderVeeamTable();
+    }
+
+    function updateDropdownLabels() {
+      Object.keys(multiFilters).forEach(k => updateMultiSelectLabel(k));
     }
 
     function resetTabFilters(prefix) {
-      document.getElementById(`${prefix}FilterDept`).value = 'ALL';
-      document.getElementById(`${prefix}FilterSystem`).value = 'ALL';
-      document.getElementById(`${prefix}FilterDomain`).value = 'ALL';
-      document.getElementById(`${prefix}FilterSubnet`).value = 'ALL';
+      Object.keys(multiFilters).forEach(k => {
+        if (k.startsWith(prefix)) multiFilters[k].clear();
+      });
+      updateDropdownLabels();
       const searchId = prefix === 'inv' ? 'inventorySearch' : `${prefix}Search`;
       const searchEl = document.getElementById(searchId);
       if (searchEl) searchEl.value = '';
       globalSearchQuery = '';
       document.getElementById('globalSearchInput').value = '';
+      triggerActiveTabRender();
+    }
 
-      if (prefix === 'inv') renderInventoryTable();
-      else if (prefix === 'waves') renderCutoverWavesTab();
-      else if (prefix === 'zerto') renderZertoTable();
-      else if (prefix === 'veeam') renderVeeamTable();
+    function matchesMultiFilter(val, filterKey) {
+      const set = multiFilters[filterKey];
+      if (!set || set.size === 0) return true;
+      return set.has(val || 'Unassigned');
     }
 
     function getFilteredTabServers(prefix, baseList = servers) {
-      const deptF = document.getElementById(`${prefix}FilterDept`)?.value || 'ALL';
-      const sysF = document.getElementById(`${prefix}FilterSystem`)?.value || 'ALL';
-      const domF = document.getElementById(`${prefix}FilterDomain`)?.value || 'ALL';
-      const subF = document.getElementById(`${prefix}FilterSubnet`)?.value || 'ALL';
       const searchId = prefix === 'inv' ? 'inventorySearch' : `${prefix}Search`;
       const localQ = (document.getElementById(searchId)?.value || '').toLowerCase();
 
@@ -1001,10 +1098,18 @@
           const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
-        if (deptF !== 'ALL' && (s.dept || '') !== deptF) return false;
-        if (sysF !== 'ALL' && (s.system || '') !== sysF) return false;
-        if (domF !== 'ALL' && (s.domain || 'Becketts') !== domF) return false;
-        if (subF !== 'ALL' && (s.subnet || 'Unassigned') !== subF) return false;
+        const dom = s.domain || 'Becketts';
+        const wv = s.wave || 'Unassigned';
+        const sys = s.system || 'General';
+        const dep = s.dept || 'INF';
+        const sub = s.subnet || calculateSubnet(s.ip);
+
+        if (!matchesMultiFilter(dom, `${prefix}-domain`)) return false;
+        if (!matchesMultiFilter(wv, `${prefix}-wave`)) return false;
+        if (!matchesMultiFilter(sys, `${prefix}-system`)) return false;
+        if (!matchesMultiFilter(dep, `${prefix}-dept`)) return false;
+        if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
+
         if (localQ) {
           const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
@@ -1060,7 +1165,7 @@
 
     function renderInventoryTable() {
       servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
-      updateDropdowns();
+      updateDropdownLabels();
       updateGlobalCounters();
 
       const tbody = document.getElementById('inventoryTableBody');
@@ -1116,9 +1221,6 @@
     }
 
     function getFilteredServers() {
-      const domFilter = document.getElementById('filterDomain')?.value || 'ALL';
-      const waveFilter = document.getElementById('filterWave')?.value || 'ALL';
-      const sysFilter = document.getElementById('filterSystem')?.value || 'ALL';
       const showDeps = document.getElementById('filterShowDeps')?.checked ?? true;
 
       let primary = servers.filter(s => {
@@ -1126,14 +1228,18 @@
           const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
-        if (domFilter !== 'ALL' && (s.domain || 'Becketts') !== domFilter) return false;
-        if (waveFilter !== 'ALL' && (s.wave || 'Unassigned') !== waveFilter) return false;
-        if (sysFilter !== 'ALL' && s.system !== sysFilter) return false;
+        const dom = s.domain || 'Becketts';
+        const wv = s.wave || 'Unassigned';
+        const sys = s.system || 'General';
+
+        if (!matchesMultiFilter(dom, 'canvas-domain')) return false;
+        if (!matchesMultiFilter(wv, 'canvas-wave')) return false;
+        if (!matchesMultiFilter(sys, 'canvas-system')) return false;
         return true;
       });
 
       let visibleSet = new Set(primary);
-      if (showDeps && (sysFilter !== 'ALL' || waveFilter !== 'ALL')) {
+      if (showDeps) {
         let added = true;
         while (added) {
           added = false;
@@ -1150,8 +1256,6 @@
       }
       return Array.from(visibleSet);
     }
-
-    function onFilterChange() { alignTopLeft(); }
 
     function setTopologyLayoutMode(mode) {
       const snapBtn = document.getElementById('layoutBtnSnap');
@@ -1193,7 +1297,7 @@
     }
 
     function renderTopologyCanvas() {
-      updateDropdowns();
+      updateDropdownLabels();
       updateGlobalCounters();
       const density = document.getElementById('canvasDensity')?.value || 'normal';
       const filtered = getFilteredServers();
@@ -1255,7 +1359,7 @@
         document.onmousemove = function(ev) {
           ev.preventDefault();
           posX = mouseX - ev.clientX; posY = mouseY - ev.clientY;
-          mouseX = ev.clientX; mouseY = ev.clientY;
+          mouseX = e.clientX; mouseY = e.clientY;
           serverObj.x = Math.max(5, element.offsetLeft - posX);
           serverObj.y = Math.max(5, element.offsetTop - posY);
           element.style.left = serverObj.x + "px";
@@ -1453,7 +1557,7 @@
     }
 
     function renderCutoverWavesTab() {
-      updateDropdowns();
+      updateDropdownLabels();
       updateGlobalCounters();
       const visibleList = getFilteredTabServers('waves');
 
@@ -1463,7 +1567,7 @@
       const waveSummary = document.getElementById('waveSummaryCards');
       if (waveSummary) {
         waveSummary.innerHTML = '';
-        ["Wave 1 - Pilot", "Wave 2 - Core Apps", "Wave 3 - Databases & DCs"].forEach(wName => {
+        ["Pilot / Test", "Wave 1", "Wave 2", "Wave 3"].forEach(wName => {
           let wServers = visibleList.filter(s => (s.wave || 'Unassigned') === wName);
           let migratedCount = wServers.filter(s => s.cutoverStatus === 'Migrated & Verified').length;
           let pct = wServers.length ? Math.round((migratedCount / wServers.length) * 100) : 0;
@@ -1501,9 +1605,12 @@
             wave: createCell(`
               <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
                 <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
-                <option value="Wave 1 - Pilot" ${wVal === 'Wave 1 - Pilot' ? 'selected' : ''}>Wave 1 - Pilot</option>
-                <option value="Wave 2 - Core Apps" ${wVal === 'Wave 2 - Core Apps' ? 'selected' : ''}>Wave 2 - Core Apps</option>
-                <option value="Wave 3 - Databases & DCs" ${wVal === 'Wave 3 - Databases & DCs' ? 'selected' : ''}>Wave 3 - Databases & DCs</option>
+                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
+                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
+                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
+                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
+                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
+                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
               </select>
             `, "p-3"),
             ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
@@ -1542,11 +1649,11 @@
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderCutoverWavesTab();
-      alert("Infra Colocation project cutover progress saved successfully!");
+      alert("Migration Tracker progress saved successfully!");
     }
 
     function renderZertoTable() {
-      updateDropdowns();
+      updateDropdownLabels();
       updateGlobalCounters();
       const tbody = document.getElementById('zertoTableBody');
       if (tbody) {
@@ -1630,7 +1737,7 @@
     }
 
     function renderVeeamTable() {
-      updateDropdowns();
+      updateDropdownLabels();
       updateGlobalCounters();
       const tbody = document.getElementById('veeamTableBody');
       if (tbody) {
@@ -1928,7 +2035,7 @@
           <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
         </div>
       `).join('');
-      box.classList.remove('hidden'); // FIXED: ensures dropdown becomes visible
+      box.classList.remove('hidden');
     }
 
     function selectBulkDepSuggestion(selectedName) {
@@ -1948,7 +2055,7 @@
     }
 
     function openServerModal(serverName = null) {
-      updateDropdowns();
+      updateDropdownLabels();
       hideDepSuggestions();
       document.getElementById('serverModal').classList.remove('hidden');
       if (serverName) {
@@ -2032,7 +2139,7 @@
 
       let uniqueVals = new Set();
       if (field === 'wave') {
-        ['Wave 1 - Pilot', 'Wave 2 - Core Apps', 'Wave 3 - Databases & DCs', 'Unassigned'].forEach(w => uniqueVals.add(w));
+        ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'].forEach(w => uniqueVals.add(w));
       } else if (field === 'drStatus') {
         ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
       } else if (field === 'dependencies') {
