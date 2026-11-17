@@ -1,4 +1,5 @@
 <!-- 20261117 v58 - Works. Fine tune Topology Server card view -->
+<!-- 20261117 v59 - Trying to fix topology freedom movement -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +13,11 @@
     .node-card { cursor: grab; transition: box-shadow 0.05s ease, transform 0.1s ease; }
     .node-card:active { cursor: grabbing; }
     .tier-dropzone.drag-over { background-color: rgba(6, 182, 212, 0.08); border-color: #06b6d4; }
+
+    /* ADD THESE TWO LINES HERE: */
+    .card-drop-left { border-left: 4px solid #06b6d4 !important; }
+    .card-drop-right { border-right: 4px solid #06b6d4 !important; }
+    
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     th { resize: horizontal; overflow: auto; min-width: 80px; cursor: grab; user-select: none; }
@@ -1498,7 +1504,12 @@ function onMultiSelectChange(filterKey, val, isChecked) {
     // Server card display in Visio View  
     function renderTreeNodeCard(s, borderClass) {
       return `
-        <div draggable="true" ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" data-tree-server="${s.serverName.toLowerCase()}"
+        <div draggable="true" 
+             ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" 
+             ondragover="onTreeNodeDragOver(event)" 
+             ondragleave="onTreeNodeDragLeave(event)" 
+             ondrop="onTreeNodeDrop(event, '${s.serverName.replace(/'/g, "\\'")}')"
+             data-tree-server="${s.serverName.toLowerCase()}"
              class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
           <div class="flex items-center">
             <span class="font-bold text-cyan-300 text-xs truncate">${s.serverName}</span>
@@ -1510,17 +1521,95 @@ function onMultiSelectChange(filterKey, val, isChecked) {
             <span class="text-cyan-300">${s.ip || 'No IP'}</span>
             <span class="text-slate-400">${s.dept || 'INF'}</span>
           </div>
-        </div>`;
-      }
+        `;
+    }
 
-    function onTreeCardDragStart(e, serverName) { draggedTreeServerName = serverName; e.dataTransfer.setData('text/plain', serverName); }
-    function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-    function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+    function onTreeCardDragStart(e, serverName) { 
+      draggedTreeServerName = serverName; 
+      e.dataTransfer.setData('text/plain', serverName); 
+    }
+
+    function onTreeTierDragOver(e) { 
+      e.preventDefault(); 
+      e.currentTarget.classList.add('drag-over'); 
+    }
+
+    function onTreeTierDragLeave(e) { 
+      e.currentTarget.classList.remove('drag-over'); 
+    }
+
     function onTreeTierDrop(e, targetTierNum) {
-      e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+      e.preventDefault(); 
+      e.currentTarget.classList.remove('drag-over');
       const name = draggedTreeServerName || e.dataTransfer.getData('text/plain');
       const srv = servers.find(s => s.serverName === name);
-      if (srv) { srv.visioTier = `Tier ${targetTierNum}`; localStorage.setItem('infops_servers', JSON.stringify(servers)); renderVisioTreeView(getFilteredServers()); }
+      if (srv) { 
+        srv.visioTier = `Tier ${targetTierNum}`; 
+        // Put at the end of this tier
+        const tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum);
+        srv.visioOrder = tierServers.length > 0 ? Math.max(...tierServers.map(s => s.visioOrder || 0)) + 10 : 10;
+        localStorage.setItem('infops_servers', JSON.stringify(servers)); 
+        renderVisioTreeView(getFilteredServers()); 
+      }
+      draggedTreeServerName = null;
+    }
+
+    function onTreeNodeDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+      if (e.clientX < mid) {
+        e.currentTarget.classList.add('card-drop-left');
+        e.currentTarget.classList.remove('card-drop-right');
+      } else {
+        e.currentTarget.classList.add('card-drop-right');
+        e.currentTarget.classList.remove('card-drop-left');
+      }
+    }
+
+    function onTreeNodeDragLeave(e) {
+      e.currentTarget.classList.remove('card-drop-left', 'card-drop-right');
+    }
+
+    function onTreeNodeDrop(e, targetServerName) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.currentTarget.classList.remove('card-drop-left', 'card-drop-right');
+
+      const draggedName = draggedTreeServerName || e.dataTransfer.getData('text/plain');
+      if (!draggedName || draggedName === targetServerName) return;
+
+      const draggedSrv = servers.find(s => s.serverName === draggedName);
+      const targetSrv = servers.find(s => s.serverName === targetServerName);
+      if (!draggedSrv || !targetSrv) return;
+
+      // Determine drop side (before or after target)
+      const rect = e.currentTarget.getBoundingClientRect();
+      const insertBefore = e.clientX < rect.left + rect.width / 2;
+
+      // Update tier to match target tier
+      const targetTierNum = computeServerTier(targetSrv, new Map());
+      draggedSrv.visioTier = `Tier ${targetTierNum}`;
+
+      // Get all servers in this target tier, sorted by current visioOrder
+      let tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum && s.serverName !== draggedName);
+      const targetIdx = tierServers.findIndex(s => s.serverName === targetServerName);
+
+      if (targetIdx !== -1) {
+        const insertIdx = insertBefore ? targetIdx : targetIdx + 1;
+        tierServers.splice(insertIdx, 0, draggedSrv);
+      } else {
+        tierServers.push(draggedSrv);
+      }
+
+      // Re-assign ordered index values
+      tierServers.forEach((s, idx) => {
+        s.visioOrder = (idx + 1) * 10;
+      });
+
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderVisioTreeView(getFilteredServers());
       draggedTreeServerName = null;
     }
 
