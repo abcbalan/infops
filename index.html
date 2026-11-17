@@ -1,5 +1,6 @@
 <!-- 20261117 v53 - Reversed to V50 because now migratoin tracker tab cannot click any button and tab -->
 <!-- 20261117 v54 - Trying to add Dept and system into the Migration Tracker myself -->
+<!-- 20261117 v55 - Trying to change inventory name to waves -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -350,8 +351,8 @@
                 <tr id="thead-waves">
                   <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                   <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Server Name</th>
-                  <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
-                  <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">System</th>
+                  <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Department</th>
+                  <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">System</th>
                   <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Migration Wave</th>
                   <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">IP Address</th>
                   <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Subnet</th>
