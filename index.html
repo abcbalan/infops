@@ -1,5 +1,5 @@
-<!-- 20261117 v48 - Fixed fix Bulk Update Dependency Auto-fill -->
-<!-- 20261117 v49 - trying Migration Tracker Renaming, Flexible Waves & Multi-Select Filters -->
+<!-- 20261117 v49 - Fixed Migration Tracker Renaming, Flexible Waves & Multi-Select Filters -->
+<!-- 20261117 v50 - Trying to fix select all / reset -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -953,10 +953,9 @@
       }
     }
 
-    // MULTI-SELECT FILTER ENGINE
+    // MULTI-SELECT FILTER ENGINE WITH TOGGLE SELECT ALL / CLEAR ALL
     function toggleMultiSelectDropdown(filterKey, event) {
       event.stopPropagation();
-      // Close all other dropdowns
       document.querySelectorAll('[id^="drop-"]').forEach(el => {
         if (el.id !== `drop-${filterKey}`) el.classList.add('hidden');
       });
@@ -976,26 +975,29 @@
       }
     }
 
+    function getOptionsForFilter(filterKey) {
+      const field = filterKey.split('-')[1];
+      if (field === 'domain') return [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
+      if (field === 'wave') return ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
+      if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+      if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
+      if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+      return [];
+    }
+
     function populateMultiSelectContent(filterKey) {
       const box = document.getElementById(`drop-${filterKey}`);
       if (!box) return;
 
-      let allOptions = [];
-      const parts = filterKey.split('-');
-      const field = parts[1]; // domain, wave, system, dept, subnet
-
-      if (field === 'domain') allOptions = [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
-      else if (field === 'wave') allOptions = ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
-      else if (field === 'system') allOptions = [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      else if (field === 'dept') allOptions = [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
-      else if (field === 'subnet') allOptions = [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-
+      const allOptions = getOptionsForFilter(filterKey);
       const selectedSet = multiFilters[filterKey] || new Set();
+      const allSelected = selectedSet.size === 0 || allOptions.every(opt => selectedSet.has(opt));
+      const toggleLabel = allSelected ? "Clear All" : "Select All";
 
       let html = `
         <div class="flex justify-between items-center px-2 py-1 border-b border-slate-800 text-[11px]">
-          <span class="font-bold text-slate-300">Select Multiple</span>
-          <button onclick="clearMultiFilter('${filterKey}', event)" class="text-cyan-400 hover:underline">Select All / Reset</button>
+          <span class="font-bold text-slate-300">Filter Selection</span>
+          <button onclick="toggleSelectAllFilter('${filterKey}', event)" class="text-cyan-400 hover:underline font-semibold">${toggleLabel}</button>
         </div>
       `;
 
@@ -1011,34 +1013,60 @@
       box.innerHTML = html;
     }
 
-    function onMultiSelectChange(filterKey, val, isChecked) {
+    function toggleSelectAllFilter(filterKey, event) {
+      event.stopPropagation();
+      const allOptions = getOptionsForFilter(filterKey);
       if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
       const set = multiFilters[filterKey];
 
+      const allSelected = set.size === 0 || allOptions.every(opt => set.has(opt));
+
+      if (allSelected) {
+        // If everything was selected, clear all (un-select everything)
+        set.clear();
+        // Explicitly put a dummy non-matching value so 0 match
+        set.add('__NONE_MATCH__');
+      } else {
+        // Otherwise, select all
+        set.clear();
+      }
+
+      updateMultiSelectLabel(filterKey);
+      populateMultiSelectContent(filterKey);
+      triggerActiveTabRender();
+    }
+
+    function onMultiSelectChange(filterKey, val, isChecked) {
+      if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
+      const set = multiFilters[filterKey];
+      const allOptions = getOptionsForFilter(filterKey);
+
       // If set was empty (meaning all were active), first populate all
       if (set.size === 0) {
-        let allOptions = [];
-        const field = filterKey.split('-')[1];
-        if (field === 'domain') allOptions = [...new Set(servers.map(s => s.domain).filter(Boolean))];
-        else if (field === 'wave') allOptions = ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
-        else if (field === 'system') allOptions = [...new Set(servers.map(s => s.system).filter(Boolean))];
-        else if (field === 'dept') allOptions = [...new Set(servers.map(s => s.dept).filter(Boolean))];
-        else if (field === 'subnet') allOptions = [...new Set(servers.map(s => s.subnet).filter(Boolean))];
         allOptions.forEach(o => set.add(o));
       }
+      // Remove dummy flag if present
+      set.delete('__NONE_MATCH__');
 
       if (isChecked) set.add(val);
       else set.delete(val);
 
-      updateMultiSelectLabel(filterKey);
-      triggerActiveTabRender();
-    }
+      // If all are now checked, reset set to empty (which implies 'All')
+      if (allOptions.every(opt => set.has(opt))) {
+        set.clear();
+      }
 
-    function clearMultiFilter(filterKey, event) {
-      event.stopPropagation();
-      multiFilters[filterKey].clear();
       updateMultiSelectLabel(filterKey);
-      populateMultiSelectContent(filterKey);
+      // Re-render dropdown header label text ('Select All' vs 'Clear All')
+      const box = document.getElementById(`drop-${filterKey}`);
+      if (box && !box.classList.contains('hidden')) {
+        const btn = box.querySelector('button');
+        if (btn) {
+          const allSelected = set.size === 0 || allOptions.every(opt => set.has(opt));
+          btn.innerText = allSelected ? "Clear All" : "Select All";
+        }
+      }
+
       triggerActiveTabRender();
     }
 
@@ -1048,6 +1076,8 @@
       if (!lbl) return;
       if (!set || set.size === 0) {
         lbl.innerText = "All";
+      } else if (set.has('__NONE_MATCH__')) {
+        lbl.innerText = "None";
       } else if (set.size === 1) {
         lbl.innerText = Array.from(set)[0];
       } else {
@@ -1086,6 +1116,7 @@
     function matchesMultiFilter(val, filterKey) {
       const set = multiFilters[filterKey];
       if (!set || set.size === 0) return true;
+      if (set.has('__NONE_MATCH__')) return false;
       return set.has(val || 'Unassigned');
     }
 
