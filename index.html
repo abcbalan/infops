@@ -1,4 +1,5 @@
-<!-- 20261117 v47 - trying CSV Import with Manual Override Protection -->
+<!-- 20261117 v47 - Fixed CSV Import with Manual Override Protection -->
+<!-- 20261117 v48 - Trying to fix Bulk Update Dependency Auto-fill -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -607,6 +608,7 @@
                  placeholder="Select from existing or type new value..."
                  class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 font-mono">
           <datalist id="bulkValueSuggestions"></datalist>
+          <!-- FIXED: Added missing floating dependency suggestions dropdown for bulk update -->
           <div id="bulkDepSuggestionsDropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-950 border border-amber-700/80 rounded-xl shadow-2xl max-h-44 overflow-y-auto z-50 hidden"></div>
         </div>
       </div>
@@ -1794,7 +1796,6 @@
           const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === serverName.toLowerCase());
 
           if (existingIdx === -1) {
-            // Brand new server record
             servers.push({
               serverName: serverName,
               dept: deptVal || 'INF',
@@ -1811,7 +1812,6 @@
               dependencies: ''
             });
           } else {
-            // Existing server: INTELLIGENT MERGE (Preserve manual entries if CSV fields are blank)
             const s = servers[existingIdx];
             if (domainVal) s.domain = domainVal;
             if (deptVal) s.dept = deptVal;
@@ -1928,7 +1928,7 @@
           <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
         </div>
       `).join('');
-      box.classList.add('hidden');
+      box.classList.remove('hidden'); // FIXED: ensures dropdown becomes visible
     }
 
     function selectBulkDepSuggestion(selectedName) {
