@@ -1,4 +1,4 @@
-<!-- 20261117 v46 - trying to add same bulk update with counter anywhere -->
+<!-- 20261117 v47 - trying CSV Import with Manual Override Protection -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -840,12 +840,12 @@
       if (/^172\.21\.(14|15)\./.test(ip)) return '172.21.14.0/24';
       if (/^172\.31\.15\./.test(ip))     return '172.31.15.0/24';
       if (/^10\.160\.1\./.test(ip))      return '10.160.1.0/24';
-      if (/^172\.31\.0\./.test(ip))      return '172.31.0.0/23'
-      if (/^172\.31\.1\./.test(ip))      return '172.31.0.0/23'
-      if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22'
-      if (/^192\.168\.1\./.test(ip))     return '192.168.0.0/22'
-      if (/^192\.168\.2\./.test(ip))     return '192.168.0.0/22'
-      if (/^192\.168\.3\./.test(ip))     return '192.168.0.0/22'
+      if (/^172\.31\.0\./.test(ip))      return '172.31.0.0/23';
+      if (/^172\.31\.1\./.test(ip))      return '172.31.0.0/23';
+      if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22';
+      if (/^192\.168\.1\./.test(ip))     return '192.168.0.0/22';
+      if (/^192\.168\.2\./.test(ip))     return '192.168.0.0/22';
+      if (/^192\.168\.3\./.test(ip))     return '192.168.0.0/22';
       const parts = ip.split('.');
       if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
       return 'Unassigned';
@@ -885,7 +885,6 @@
 
       document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
       
-      // Update ALL selected count badges across every tab
       document.querySelectorAll('.selectedCountBadge-el').forEach(el => {
         el.innerText = `${selectedServerNames.size} selected`;
       });
@@ -1781,33 +1780,52 @@
           const serverName = (idxServer !== -1 ? cols[idxServer] : cols[0]) || '';
           if (!serverName) continue;
 
-          const ipVal = (idxIp !== -1 ? cols[idxIp] : '') || '';
-          const subVal = (idxSubnet !== -1 ? cols[idxSubnet] : '') || calculateSubnet(ipVal);
-          const drVal = (idxDr !== -1 ? cols[idxDr] : '') || '';
-          const osVal = (idxOs !== -1 ? cols[idxOs] : 'Windows') || 'Windows';
-          const diskVal = parseInt(idxDisk !== -1 ? cols[idxDisk] : '100') || 100;
-          const dsVal = (idxDs !== -1 ? cols[idxDs] : 'VM_Datastore01') || 'VM_Datastore01';
+          const ipVal = idxIp !== -1 ? cols[idxIp] : '';
+          const subVal = idxSubnet !== -1 ? cols[idxSubnet] : '';
+          const drVal = idxDr !== -1 ? cols[idxDr] : '';
+          const osVal = idxOs !== -1 ? cols[idxOs] : '';
+          const diskVal = idxDisk !== -1 ? parseInt(cols[idxDisk]) : NaN;
+          const dsVal = idxDs !== -1 ? cols[idxDs] : '';
+          const deptVal = idxDept !== -1 ? cols[idxDept] : '';
+          const sysVal = idxSys !== -1 ? cols[idxSys] : '';
+          const waveVal = idxWave !== -1 ? cols[idxWave] : '';
+          const domainVal = idxDomain !== -1 ? cols[idxDomain] : '';
 
-          const candidate = {
-            serverName: serverName,
-            dept: (idxDept !== -1 ? cols[idxDept] : 'INF') || 'INF',
-            system: (idxSys !== -1 ? cols[idxSys] : 'General') || 'General',
-            domain: (idxDomain !== -1 ? cols[idxDomain] : 'Becketts') || 'Becketts',
-            ip: ipVal,
-            subnet: subVal,
-            drStatus: drVal,
-            osFamily: osVal.includes('Linux') ? 'Linux' : 'Windows',
-            totalDiskGB: diskVal,
-            datastore: dsVal,
-            wave: (idxWave !== -1 ? cols[idxWave] : 'Unassigned') || 'Unassigned',
-            cutoverStatus: 'Not Started'
-          };
+          const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === serverName.toLowerCase());
 
-          const existingIdx = servers.findIndex(s => s.serverName.toLowerCase() === candidate.serverName.toLowerCase());
           if (existingIdx === -1) {
-            servers.push(candidate);
+            // Brand new server record
+            servers.push({
+              serverName: serverName,
+              dept: deptVal || 'INF',
+              system: sysVal || 'General',
+              domain: domainVal || 'Becketts',
+              ip: ipVal || '',
+              subnet: subVal || calculateSubnet(ipVal || ''),
+              drStatus: drVal || '',
+              osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
+              totalDiskGB: !isNaN(diskVal) ? diskVal : 100,
+              datastore: dsVal || 'VM_Datastore01',
+              wave: waveVal || 'Unassigned',
+              cutoverStatus: 'Not Started',
+              dependencies: ''
+            });
           } else {
-            servers[existingIdx] = Object.assign({}, servers[existingIdx], candidate);
+            // Existing server: INTELLIGENT MERGE (Preserve manual entries if CSV fields are blank)
+            const s = servers[existingIdx];
+            if (domainVal) s.domain = domainVal;
+            if (deptVal) s.dept = deptVal;
+            if (sysVal) s.system = sysVal;
+            if (ipVal) {
+              s.ip = ipVal;
+              if (!subVal && (!s.subnet || s.subnet === 'Unassigned')) s.subnet = calculateSubnet(ipVal);
+            }
+            if (subVal) s.subnet = subVal;
+            if (drVal) s.drStatus = drVal;
+            if (osVal) s.osFamily = osVal.includes('Linux') ? 'Linux' : 'Windows';
+            if (!isNaN(diskVal)) s.totalDiskGB = diskVal;
+            if (dsVal) s.datastore = dsVal;
+            if (waveVal) s.wave = waveVal;
           }
           importedCount++;
         }
@@ -1815,7 +1833,7 @@
         servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
-        alert(`Successfully imported/updated ${importedCount} servers dynamically from CSV!`);
+        alert(`Successfully imported/merged ${importedCount} servers dynamically from CSV while preserving your manual entries!`);
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -2116,7 +2134,7 @@
           let content = evt.target.result;
           if (content.startsWith("INFENC:")) {
             const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) / ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
           }
           servers = JSON.parse(content);
           localStorage.setItem('infops_servers', JSON.stringify(servers));
