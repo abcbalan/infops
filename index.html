@@ -1,4 +1,4 @@
-<!-- 20261117 v52 - Trying to Migration Tracker Updated with Department, System, and Dependencies -->
+<!-- 20261117 v53 - Trying to Migration Tracker Updated with Department, System, and Dependencies -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -237,7 +237,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: MIGRATION TRACKER (UPDATED WITH DEPT, SYSTEM, AND DEPENDENCIES) -->
+    <!-- TAB 3: MIGRATION TRACKER -->
     <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-7xl mx-auto w-full space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
@@ -804,18 +804,7 @@
       });
     }
 
-    async function verifyClientIP() {
-      // Comment out or remove this check so it never blocks you
-      /*
-      try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        if (!ALLOWED_IPS.includes(data.ip)) {
-          document.body.innerHTML = `<div class="fixed inset-0 bg-slate-950 flex items-center justify-center text-white text-xl font-bold">Access Denied (${data.ip})</div>`;
-        }
-      } catch (e) {}
-      */
-    }
+    async function verifyClientIP() {}
 
     let servers = JSON.parse(localStorage.getItem('infops_servers') || '[]');
 
@@ -1516,7 +1505,6 @@
       });
     }
 
-    // MIGRATION TRACKER TAB RENDERER (UPDATED WITH DEPT, SYSTEM, DEPENDENCIES)
     function renderCutoverWavesTab() {
       updateDropdownLabels();
       updateGlobalCounters();
@@ -1558,3 +1546,154 @@
 
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
+          tr.setAttribute('data-wave-server', s.serverName);
+
+          const cellMap = {
+            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
+            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
+            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
+            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
+            dept: createCell(`<input type="text" id="wave-dept-${idx}" value="${s.dept || ''}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-24">`, "p-3"),
+            system: createCell(`<input type="text" id="wave-sys-${idx}" value="${s.system || ''}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-200 text-xs w-32">`, "p-3"),
+            dependencies: createCell(`<input type="text" id="wave-deps-${idx}" value="${s.dependencies || ''}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-36 font-mono">`, "p-3"),
+            wave: createCell(`
+              <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
+                <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
+                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
+                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
+                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
+                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
+                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
+                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
+              </select>
+            `, "p-3"),
+            cutoverStatus: createCell(`<select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select>`, "p-3"),
+            dns: createCell(`<input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
+            fw: createCell(`<input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
+            sync: createCell(`<input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
+            sign: createCell(`<input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center")
+          };
+
+          reorderTableHeaderAndRow('waves', activeKeys, tr, cellMap);
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function toggleWavesSelectAll(master) {
+      const visibleList = getFilteredTabServers('waves');
+      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
+      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
+      renderCutoverWavesTab();
+    }
+
+    function saveWaveChanges() {
+      const visibleList = getFilteredTabServers('waves');
+      visibleList.forEach((s, idx) => {
+        const dInput = document.getElementById(`wave-dept-${idx}`);
+        const sInput = document.getElementById(`wave-sys-${idx}`);
+        const depInput = document.getElementById(`wave-deps-${idx}`);
+        const wName = document.getElementById(`wave-name-${idx}`);
+        const wStat = document.getElementById(`wave-status-${idx}`);
+
+        if (dInput) s.dept = dInput.value.trim();
+        if (sInput) s.system = sInput.value.trim();
+        if (depInput) s.dependencies = depInput.value.split(',').map(d => d.trim()).filter(Boolean).join(', ');
+        if (wName) s.wave = wName.value;
+        if (wStat) s.cutoverStatus = wStat.value;
+
+        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
+        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
+        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
+        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderCutoverWavesTab();
+      alert("Migration Tracker progress saved successfully!");
+    }
+
+    function renderZertoTable() {
+      updateDropdownLabels();
+      updateGlobalCounters();
+      const tbody = document.getElementById('zertoTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        let drBase = servers.filter(isValidDRServer);
+        
+        const sortMode = document.getElementById('zertoSortMode')?.value || 'dr_then_name';
+        drBase.sort((a, b) => {
+          const stA = (a.drStatus || '').trim().toUpperCase();
+          const stB = (b.drStatus || '').trim().toUpperCase();
+          const nameA = (a.serverName || '').trim().toLowerCase();
+          const nameB = (b.serverName || '').trim().toLowerCase();
+
+          if (sortMode === 'dr_then_name') {
+            if (stA !== stB) return stA.localeCompare(stB);
+            return nameA.localeCompare(nameB);
+          } else if (sortMode === 'status_only') {
+            return stA.localeCompare(stB);
+          } else {
+            return nameA.localeCompare(nameB);
+          }
+        });
+
+        const visibleList = getFilteredTabServers('zerto', drBase);
+        const matchBadge = document.getElementById('zertoFilteredMatchBadge');
+        if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${drBase.length}`;
+
+        const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
+        const selectAllEl = document.getElementById('zertoSelectAll');
+        if (selectAllEl) selectAllEl.checked = allChecked;
+
+        if (visibleList.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
+          return;
+        }
+
+        const defaultKeys = ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'];
+        const activeKeys = getColOrder('zerto', defaultKeys);
+
+        visibleList.forEach((s, idx) => {
+          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-700/50";
+
+          const cellMap = {
+            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
+            drStatus: createCell(`<span class="font-mono font-bold text-amber-300">${s.drStatus}</span>`, "p-3"),
+            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
+            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
+            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
+            vpg: createCell(`<input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
+            site: createCell(`<input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
+            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3")
+          };
+
+          reorderTableHeaderAndRow('zerto', activeKeys, tr, cellMap);
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function toggleZertoSelectAll(master) {
+      const drBase = servers.filter(isValidDRServer);
+      const visibleList = getFilteredTabServers('zerto', drBase);
+      if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
+      else visibleList.forEach(s => selectedServerNames.delete(s.serverName));
+      renderZertoTable();
+    }
+
+    function saveZertoChanges() {
+      const drBase = servers.filter(isValidDRServer);
+      const visibleList = getFilteredTabServers('zerto', drBase);
+      visibleList.forEach((s, idx) => {
+        s.vpg = document.getElementById(`dr-vpg-${idx}`)?.value.trim();
+        s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      alert("Zerto DR settings saved successfully!");
+    }
+
+    function renderVeeamTable() {
+      updateDropdownLabels();
+      updateGlobalCounters();
