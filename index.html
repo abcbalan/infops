@@ -1,4 +1,5 @@
 <!-- 20261117 v56 - Works. Added Dept and system into the Migration Tracker -->
+<!-- 20261117 v57 - Try to fix filter select and deselect display all issue -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1037,28 +1038,26 @@
       triggerActiveTabRender();
     }
 
-    function onMultiSelectChange(filterKey, val, isChecked) {
+function onMultiSelectChange(filterKey, val, isChecked) {
       if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
       const set = multiFilters[filterKey];
       const allOptions = getOptionsForFilter(filterKey);
 
-      // If set was empty (meaning all were active), first populate all
       if (set.size === 0) {
         allOptions.forEach(o => set.add(o));
       }
-      // Remove dummy flag if present
       set.delete('__NONE_MATCH__');
 
       if (isChecked) set.add(val);
       else set.delete(val);
 
-      // If all are now checked, reset set to empty (which implies 'All')
       if (allOptions.every(opt => set.has(opt))) {
         set.clear();
+      } else if (set.size === 0) {
+        set.add('__NONE_MATCH__'); // Fix: If 0 items checked, show 0 records
       }
 
       updateMultiSelectLabel(filterKey);
-      // Re-render dropdown header label text ('Select All' vs 'Clear All')
       const box = document.getElementById(`drop-${filterKey}`);
       if (box && !box.classList.contains('hidden')) {
         const btn = box.querySelector('button');
