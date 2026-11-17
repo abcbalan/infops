@@ -1,6 +1,4 @@
-<!-- 20261117 v53 - Reversed to V50 because now migratoin tracker tab cannot click any button and tab -->
-<!-- 20261117 v54 - Trying to add Dept and system into the Migration Tracker myself -->
-<!-- 20261117 v55 - Trying to change inventory name to waves -->
+<!-- 20261117 v56 - Trying to add Dept and system into the Migration Tracker myself -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1621,7 +1619,7 @@
         const selectAllEl = document.getElementById('wavesSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
+        const defaultKeys = ['select', 'serverName','dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
         const activeKeys = getColOrder('waves', defaultKeys);
 
         visibleList.forEach((s, idx) => {
@@ -1636,6 +1634,8 @@
           const cellMap = {
             select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
             serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
+            dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
+            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
             wave: createCell(`
               <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
                 <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
