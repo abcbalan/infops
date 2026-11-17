@@ -1,5 +1,5 @@
-<!-- 20261117 v56 - Works. Added Dept and system into the Migration Tracker -->
-<!-- 20261117 v57 - Try to fix filter select and deselect display all issue -->
+<!-- 20261117 v57 - Works. Fix filter select and deselect display all issue -->
+<!-- 20261117 v58 - Trying to fine tune Topology Server card view -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1359,14 +1359,13 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         el.style.top = `${s.y}px`;
         el.onclick = (e) => { if (e.target.tagName !== 'INPUT') editServer(s.serverName); };
 
+        // Server card display
         el.innerHTML = `
-          <div class="flex justify-between items-center gap-1">
+          <div class="flex items-center">
             <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
-            <span class="text-[9px] px-1 py-0.2 rounded border font-mono ${domBadgeClass} truncate">${sDom}</span>
           </div>
-          <div class="flex items-center justify-between gap-1 text-[9px] text-slate-400">
-            <span class="font-semibold text-cyan-200 truncate">${s.wave || 'Wave 1'}</span>
-            <span class="truncate">${s.system || 'General'}</span>
+          <div class="text-[10px] text-cyan-200 font-medium truncate">
+            ${s.system || 'General'}
           </div>
           <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
             <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
@@ -1497,25 +1496,23 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       requestAnimationFrame(() => drawTreeConnectors(filtered));
     }
 
+    // Server card display in Visio View  
     function renderTreeNodeCard(s, borderClass) {
-      const sDom = s.domain || 'Becketts';
       return `
         <div draggable="true" ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" data-tree-server="${s.serverName.toLowerCase()}"
              class="node-card bg-slate-800 border-2 ${borderClass} rounded-xl p-3 w-64 shadow-xl flex flex-col gap-1.5 hover:border-white transition relative cursor-pointer" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">
-          <div class="flex justify-between items-center gap-1">
+          <div class="flex items-center">
             <span class="font-bold text-cyan-300 text-xs truncate">${s.serverName}</span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">${sDom}</span>
           </div>
-          <div class="text-[10px] text-slate-300 flex justify-between">
-            <span>Wave: <strong>${s.wave || 'Wave 1'}</strong></span>
-            <span class="text-cyan-200 truncate max-w-[110px]">${s.system || 'General'}</span>
+          <div class="text-[10px] text-cyan-200 font-medium truncate">
+            ${s.system || 'General'}
           </div>
           <div class="pt-1 border-t border-slate-700/80 flex justify-between text-[10px] font-mono">
             <span class="text-cyan-300">${s.ip || 'No IP'}</span>
             <span class="text-slate-400">${s.dept || 'INF'}</span>
           </div>
         </div>`;
-    }
+      }
 
     function onTreeCardDragStart(e, serverName) { draggedTreeServerName = serverName; e.dataTransfer.setData('text/plain', serverName); }
     function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
