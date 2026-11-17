@@ -1,4 +1,4 @@
-<!-- 20261117 v43 - trying to modify subnet -->
+<!-- 20261117 v44 - trying to modify subnet -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -832,10 +832,12 @@
       if (/^172\.21\.(14|15)\./.test(ip)) return '172.21.14.0/24';
       if (/^172\.31\.15\./.test(ip))     return '172.31.15.0/24';
       if (/^10\.160\.1\./.test(ip))      return '10.160.1.0/24';
-      if (/^172\.31\.0\./.test(ip))     return '172.31.0.0/23'
-      if (/^172\.31\.1\./.test(ip))     return '172.31.1.0/23'
+      if (/^172\.31\.0\./.test(ip))      return '172.31.0.0/23'
+      if (/^172\.31\.1\./.test(ip))      return '172.31.0.0/23'
       if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22'
-      if (/^192\.168\.1\./.test(ip))     return '192.168.1.0/22'
+      if (/^192\.168\.1\./.test(ip))     return '192.168.0.0/22'
+      if (/^192\.168\.2\./.test(ip))     return '192.168.0.0/22'
+      if (/^192\.168\.3\./.test(ip))     return '192.168.0.0/22'
       const parts = ip.split('.');
       if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
       return 'Unassigned';
