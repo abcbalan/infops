@@ -1,4 +1,4 @@
-<!-- 20261116 v38 - Fixed bulk upstream dependency more than 1 server -->
+<!-- 20261117 v39 - Truing to fix Calc, Inventory Datastore/OS/Disk, Zerto Sorting & Subnet/System, Veeam One-Tap Presets -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,6 +244,9 @@
                 <th class="p-3">Server Name</th>
                 <th class="p-3">Department</th>
                 <th class="p-3">System / App</th>
+                <th class="p-3">OS Family</th>
+                <th class="p-3">Total Disk (GB)</th>
+                <th class="p-3">Datastore</th>
                 <th class="p-3">Domain</th>
                 <th class="p-3">IP Address</th>
                 <th class="p-3">Subnet</th>
@@ -258,7 +261,7 @@
 
     <!-- TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES) WITH FULL FILTER BAR -->
     <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
-      <div class="max-w-6xl mx-auto w-full space-y-4">
+      <div class="max-w-7xl mx-auto w-full space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -321,6 +324,8 @@
                   <th class="p-3 w-10"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                   <th class="p-3">Server Name</th>
                   <th class="p-3">Migration Wave</th>
+                  <th class="p-3">IP Address</th>
+                  <th class="p-3">Subnet</th>
                   <th class="p-3">Cutover Status</th>
                   <th class="p-3 text-center">DNS Updated</th>
                   <th class="p-3 text-center">Firewall Rules</th>
@@ -343,9 +348,17 @@
             Zerto Disaster Recovery (DR) Control Panel 
             <span id="zertoSelectedBadge" class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Showing servers with valid DR status (e.g., P00, P01, or active DR designation).</p>
+          <p class="text-xs text-slate-400">Showing servers with valid DR status (sorted by DR Status then Server Name).</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
+            <label class="text-xs text-slate-300 font-semibold">Sort By:</label>
+            <select id="zertoSortMode" onchange="renderZertoTable()" class="bg-slate-900 text-cyan-300 text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
+              <option value="dr_then_name">DR Status (P00, P01...) ➔ Server Name</option>
+              <option value="name_only">Server Name (A-Z)</option>
+              <option value="status_only">DR Status Only</option>
+            </select>
+          </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
           <button onclick="saveZertoChanges()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save DR Changes</button>
         </div>
@@ -397,6 +410,8 @@
                 <th class="p-3 w-10"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3">DR Status</th>
                 <th class="p-3">Server Name</th>
+                <th class="p-3">System / App</th>
+                <th class="p-3">Subnet</th>
                 <th class="p-3">VPG Name</th>
                 <th class="p-3">Target Site / Notes</th>
                 <th class="p-3">Current IP</th>
@@ -408,7 +423,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: VEEAM BACKUPS WITH FULL FILTER BAR -->
+    <!-- TAB 5: VEEAM BACKUPS WITH FULL FILTER BAR & ONE-TAP PRESETS -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -416,9 +431,19 @@
             Veeam Backup Job & Retention Management
             <span id="veeamSelectedBadge" class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server with bulk update capability.</p>
+          <p class="text-xs text-slate-400">Configure backup jobs and retention periods per server with one-tap presets.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- One-Tap Preset Dropdown -->
+          <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
+            <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> One-Tap Preset:</span>
+            <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
+              <option value="daily_30">Standard Daily (02:00 AM, 30d)</option>
+              <option value="sql_90">Core SQL Daily (01:00 AM, 90d)</option>
+              <option value="weekly_14">Weekly Archive (Saturday, 14d)</option>
+            </select>
+            <button onclick="applyVeeamPreset()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold cursor-pointer">Apply to Selected</button>
+          </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer"><i class="fas fa-edit mr-1"></i> Bulk Update</button>
           <button onclick="saveVeeamChanges()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-save mr-1"></i> Save Backup Changes</button>
         </div>
@@ -469,6 +494,7 @@
               <tr>
                 <th class="p-3 w-10"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3">Server Name</th>
+                <th class="p-3">System / App</th>
                 <th class="p-3">Veeam Backup Job Name</th>
                 <th class="p-3">Backup Time</th>
                 <th class="p-3">Retention Period (Days)</th>
@@ -530,7 +556,7 @@
 
   </div>
 
-  <!-- BULK MASS EDIT MODAL WITH DYNAMIC AUTOCOMPLETE & AUTO-PREFILL -->
+  <!-- BULK MASS EDIT MODAL -->
   <div id="bulkEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-2">
@@ -548,6 +574,8 @@
             <option value="wave">Migration Wave</option>
             <option value="drStatus">DR Status (e.g., P00, P01, None)</option>
             <option value="veeamJob">Veeam Backup Job Name</option>
+            <option value="veeamTime">Veeam Backup Time</option>
+            <option value="veeamRetention">Veeam Retention (Days)</option>
             <option value="dependencies">Upstream Dependencies</option>
           </select>
         </div>
@@ -573,7 +601,7 @@
     </div>
   </div>
 
-  <!-- SERVER MODAL WITH MULTI-SERVER DEPENDENCY AUTOCOMPLETE -->
+  <!-- SERVER MODAL -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
@@ -595,6 +623,18 @@
           <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
           <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
           <datalist id="modalSystemList"></datalist>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
+          <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
+          <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
+          <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
@@ -620,7 +660,7 @@
             <option value="No"></option>
           </datalist>
         </div>
-        <div class="relative">
+        <div class="relative col-span-2">
           <label class="font-semibold text-slate-300 mb-1 block">Upstream Dependencies:</label>
           <input type="text" id="modalDependencies" autocomplete="off"
                  oninput="showDepSuggestions(this.value)"
@@ -695,6 +735,13 @@
       const parts = ip.split('.');
       if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
       return 'Unassigned';
+    }
+
+    function cleanDatastoreString(dsStr) {
+      if (!dsStr) return 'Unknown';
+      const parts = dsStr.split(',').map(d => d.trim());
+      const valid = parts.filter(d => d && !d.toLowerCase().includes('iso'));
+      return valid.length > 0 ? valid.join(', ') : 'Unknown';
     }
 
     function applySettings() {
@@ -915,6 +962,9 @@
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
         const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
+        const cleanDs = cleanDatastoreString(s.datastore);
+        const diskSize = s.totalDiskGB || 100;
+        const osFam = s.osFamily || 'Windows';
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-700/50 transition">
@@ -922,6 +972,9 @@
             <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
             <td class="p-3 font-semibold text-amber-300">${s.dept || ''}</td>
             <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span></td>
+            <td class="p-3 font-mono text-cyan-400 font-bold">${diskSize} GB</td>
+            <td class="p-3 text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span></td>
             <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
             <td class="p-3 font-mono text-slate-300">${s.subnet || 'Unassigned'}</td>
@@ -1270,7 +1323,7 @@
       });
     }
 
-    // TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES) WITH FILTER BAR
+    // TAB 3: INFRA COLOCATION PROJECT (CUTOVER WAVES) WITH IP & SUBNET
     function renderCutoverWavesTab() {
       updateDropdowns();
       updateGlobalCounters();
@@ -1318,6 +1371,8 @@
                   <option value="Wave 3 - Databases & DCs" ${wVal === 'Wave 3 - Databases & DCs' ? 'selected' : ''}>Wave 3 - Databases & DCs</option>
                 </select>
               </td>
+              <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
+              <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
               <td class="p-3"><select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select></td>
               <td class="p-3 text-center"><input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 text-center"><input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer"></td>
@@ -1352,14 +1407,32 @@
       alert("Infra Colocation project cutover progress saved successfully!");
     }
 
-    // TAB 4: ZERTO DR WITH FILTER BAR
+    // TAB 4: ZERTO DR WITH CUSTOM SORTING, SUBNET & SYSTEM
     function renderZertoTable() {
       updateDropdowns();
       updateGlobalCounters();
       const tbody = document.getElementById('zertoTableBody');
       if (tbody) {
         tbody.innerHTML = '';
-        const drBase = servers.filter(isValidDRServer);
+        let drBase = servers.filter(isValidDRServer);
+        
+        const sortMode = document.getElementById('zertoSortMode')?.value || 'dr_then_name';
+        drBase.sort((a, b) => {
+          const stA = (a.drStatus || '').trim().toUpperCase();
+          const stB = (b.drStatus || '').trim().toUpperCase();
+          const nameA = (a.serverName || '').trim().toLowerCase();
+          const nameB = (b.serverName || '').trim().toLowerCase();
+
+          if (sortMode === 'dr_then_name') {
+            if (stA !== stB) return stA.localeCompare(stB);
+            return nameA.localeCompare(nameB);
+          } else if (sortMode === 'status_only') {
+            return stA.localeCompare(stB);
+          } else {
+            return nameA.localeCompare(nameB);
+          }
+        });
+
         const visibleList = getFilteredTabServers('zerto', drBase);
 
         const matchBadge = document.getElementById('zertoFilteredMatchBadge');
@@ -1370,7 +1443,7 @@
         if (selectAllEl) selectAllEl.checked = allChecked;
 
         if (visibleList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
           return;
         }
 
@@ -1381,6 +1454,8 @@
               <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 font-mono font-bold text-amber-300">${s.drStatus}</td>
               <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+              <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
+              <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
               <td class="p-3"><input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
               <td class="p-3"><input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
               <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
@@ -1408,7 +1483,7 @@
       alert("Zerto DR settings saved successfully!");
     }
 
-    // TAB 5: VEEAM BACKUPS WITH FILTER BAR
+    // TAB 5: VEEAM BACKUPS WITH ONE-TAP PRESETS
     function renderVeeamTable() {
       updateDropdowns();
       updateGlobalCounters();
@@ -1427,15 +1502,39 @@
         visibleList.forEach((s, idx) => {
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           tbody.innerHTML += `
-            <tr class="hover:bg-slate-700/50">
+            <tr class="hover:bg-slate-700/50" data-veeam-name="${s.serverName}">
               <td class="p-3"><input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer"></td>
               <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
+              <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
               <td class="p-3"><input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full"></td>
               <td class="p-3"><input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono"></td>
               <td class="p-3"><input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-24 font-mono"></td>
             </tr>`;
         });
       }
+    }
+
+    function applyVeeamPreset() {
+      if (selectedServerNames.size === 0) return alert("Please select at least one server using the checkboxes first.");
+      const preset = document.getElementById('veeamPresetSelect').value;
+      let jobName = "Daily-App-Job", timeStr = "02:00 AM", retDays = 30;
+
+      if (preset === 'sql_90') {
+        jobName = "Core-SQL-Daily-Backup"; timeStr = "01:00 AM"; retDays = 90;
+      } else if (preset === 'weekly_14') {
+        jobName = "Weekly-Archive-Job"; timeStr = "Saturday 00:00"; retDays = 14;
+      }
+
+      servers.forEach(s => {
+        if (selectedServerNames.has(s.serverName)) {
+          s.veeamJob = jobName;
+          s.veeamTime = timeStr;
+          s.veeamRetention = retDays;
+        }
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderVeeamTable();
+      alert(`Applied preset '${preset}' to ${selectedServerNames.size} selected server(s)! Click 'Save Backup Changes' when finalized.`);
     }
 
     function toggleVeeamSelectAll(master) {
@@ -1458,7 +1557,8 @@
 
     function renderCalculatorTab() {
       updateGlobalCounters();
-      let totalDisk = servers.length * 100;
+      let totalDisk = 0;
+      servers.forEach(s => { totalDisk += (parseInt(s.totalDiskGB) || 100); });
       let totalBackup = totalDisk * 1.5;
       document.getElementById('calcTotalServers').innerText = servers.length;
       document.getElementById('calcTotalPrimaryDisk').innerText = `${totalDisk.toLocaleString()} GB`;
@@ -1467,7 +1567,7 @@
 
     function renderHealthTab() {
       updateGlobalCounters();
-      let missingCount = servers.filter(s => !s.ip).length;
+      let missingCount = servers.filter(s => !s.ip || s.ip === 'N/A').length;
       document.getElementById('healthMissingCount').innerText = missingCount;
       document.getElementById('healthDupCount').innerText = "0";
       document.getElementById('healthLogContainer').innerHTML = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 font-semibold"><i class="fas fa-check-circle mr-2"></i>All IPs valid.</div>';
@@ -1495,7 +1595,7 @@
         let headerRowIdx = 0;
         for (let i = 0; i < Math.min(lines.length, 10); i++) {
           const rowVals = parseCSVRow(lines[i]);
-          if (rowVals.some(v => /server|ip|domain|dept|wave|dr|os/i.test(v))) {
+          if (rowVals.some(v => /server|ip|domain|dept|wave|dr|os|datastore|disk/i.test(v))) {
             headerCols = rowVals.map(v => v.toLowerCase());
             headerRowIdx = i;
             break;
@@ -1514,6 +1614,9 @@
         const idxWave = getColIdx(['wave']);
         const idxSubnet = getColIdx(['subnet']);
         const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
+        const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
+        const idxDisk = getColIdx(['disk', 'totaldisk', 'capacity']);
+        const idxDs = getColIdx(['datastore']);
 
         let importedCount = 0;
 
@@ -1527,6 +1630,9 @@
           const ipVal = (idxIp !== -1 ? cols[idxIp] : '') || '';
           const subVal = (idxSubnet !== -1 ? cols[idxSubnet] : '') || calculateSubnet(ipVal);
           const drVal = (idxDr !== -1 ? cols[idxDr] : '') || '';
+          const osVal = (idxOs !== -1 ? cols[idxOs] : 'Windows') || 'Windows';
+          const diskVal = parseInt(idxDisk !== -1 ? cols[idxDisk] : '100') || 100;
+          const dsVal = (idxDs !== -1 ? cols[idxDs] : 'VM_Datastore01') || 'VM_Datastore01';
 
           const candidate = {
             serverName: serverName,
@@ -1536,6 +1642,9 @@
             ip: ipVal,
             subnet: subVal,
             drStatus: drVal,
+            osFamily: osVal.includes('Linux') ? 'Linux' : 'Windows',
+            totalDiskGB: diskVal,
+            datastore: dsVal,
             wave: (idxWave !== -1 ? cols[idxWave] : 'Unassigned') || 'Unassigned',
             cutoverStatus: 'Not Started'
           };
@@ -1552,7 +1661,7 @@
         servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
-        alert(`Successfully imported/updated ${importedCount} servers dynamically from CSV!`);
+        alert(`Successfully imported/updated ${importedCount} servers dynamically from CSV! Total Disk GB sum is now correctly computed.`);
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -1677,6 +1786,9 @@
         document.getElementById('modalServerName').value = s.serverName;
         document.getElementById('modalDept').value = s.dept || '';
         document.getElementById('modalSystem').value = s.system || '';
+        document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
+        document.getElementById('modalTotalDisk').value = s.totalDiskGB || 100;
+        document.getElementById('modalDatastore').value = s.datastore || 'VM_Datastore01';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
         document.getElementById('modalIP').value = s.ip || '';
         document.getElementById('modalSubnet').value = s.subnet || calculateSubnet(s.ip || '');
@@ -1687,6 +1799,9 @@
         document.getElementById('editOriginalName').value = '';
         ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDrStatus','modalDependencies'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('modalDomain').value = 'Becketts';
+        document.getElementById('modalOsFamily').value = 'Windows';
+        document.getElementById('modalTotalDisk').value = 100;
+        document.getElementById('modalDatastore').value = 'VM_Datastore01';
       }
     }
     function closeServerModal() { hideDepSuggestions(); document.getElementById('serverModal').classList.add('hidden'); }
@@ -1701,6 +1816,9 @@
         serverName: document.getElementById('modalServerName').value.trim(),
         dept: document.getElementById('modalDept').value.trim(),
         system: document.getElementById('modalSystem').value.trim() || 'General',
+        osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
+        totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
+        datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
         domain: document.getElementById('modalDomain').value.trim(),
         ip: document.getElementById('modalIP').value.trim(),
         subnet: document.getElementById('modalSubnet').value.trim(),
@@ -1732,7 +1850,6 @@
       }
     }
 
-    // UNIVERSAL BULK UPDATE WITH DYNAMIC AUTOCOMPLETE & SMART AUTO-PREFILL
     function onBulkFieldChange() {
       const field = document.getElementById('bulkField').value;
       const valInput = document.getElementById('bulkValue');
@@ -1791,7 +1908,15 @@
         val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
       }
 
-      servers.forEach(s => { if (selectedServerNames.has(s.serverName)) s[field] = val; });
+      servers.forEach(s => { 
+        if (selectedServerNames.has(s.serverName)) {
+          if (field === 'totalDiskGB' || field === 'veeamRetention') {
+            s[field] = parseInt(val) || 0;
+          } else {
+            s[field] = val; 
+          }
+        }
+      });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeBulkEditModal();
       const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
@@ -1800,8 +1925,8 @@
     }
 
     function exportToCSV() {
-      let csv = "ServerName,Department,System,Domain,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
+      let csv = "ServerName,Department,System,OSFamily,TotalDiskGB,Datastore,Domain,IPAddress,Subnet,DrStatus\n";
+      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.datastore||''}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
     }
 
