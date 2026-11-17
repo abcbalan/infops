@@ -1,5 +1,4 @@
-<!-- 20261117 v40 - trying Draggable Table Columns (Left/Right re-ordering) -->
-<!-- 20261117 v41 - trying to fixed click any button or tap issue -->
+<!-- 20261117 v43 - trying to modify subnet -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -827,11 +826,16 @@
 
     let servers = JSON.parse(localStorage.getItem('infops_servers') || '[]');
 
+    // Add 172.31.0.0/23 and 192.168.0.0/22
     function calculateSubnet(ip) {
       if (!ip || ip === 'N/A' || ip === 'Unknown') return 'Unassigned';
       if (/^172\.21\.(14|15)\./.test(ip)) return '172.21.14.0/24';
       if (/^172\.31\.15\./.test(ip))     return '172.31.15.0/24';
       if (/^10\.160\.1\./.test(ip))      return '10.160.1.0/24';
+      if (/^172\.31\.0\./.test(ip))     return '172.31.0.0/23'
+      if (/^172\.31\.1\./.test(ip))     return '172.31.1.0/23'
+      if (/^192\.168\.0\./.test(ip))     return '192.168.0.0/22'
+      if (/^192\.168\.1\./.test(ip))     return '192.168.1.0/22'
       const parts = ip.split('.');
       if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
       return 'Unassigned';
