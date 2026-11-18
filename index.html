@@ -1,5 +1,5 @@
 <!-- 20261117 v62 - Works. Changed card line for printing-->
-<!-- 20261118 v63 - Trying to add CPU, RAM or disks to the inventory view-->
+<!-- 20261118 v64 - Trying to add CPU, RAM or disks to the inventory view-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2367,16 +2367,15 @@ function renderTreeNodeCard(s, borderClass) {
       alert("Bulk update successful!");
     }
 
-    function exportToCSV() {
-      let csv = "ServerName,Department,System,OSFamily,TotalDiskGB,Datastore,Domain,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.datastore||''}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
-      
+function exportToCSV() {
       let csv = "ServerName,NumCPU,MemoryGB,OSFamily,TotalDiskGB,DiskBreakdown,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
       servers.forEach(s => { 
-      csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
+        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
       });
-      
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
+      const a = document.createElement('a'); 
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
+      a.download = `inventory_export.csv`; 
+      a.click();
     }
 
     function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
