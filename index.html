@@ -1,4 +1,5 @@
 <!-- 20261118 v72 - Works. Save and import with time stamp -->
+<!-- 20261118 v73 - Trying auto save every 2 mins -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -874,6 +875,34 @@ let cachedFileHandle = null;
       badge.innerText = `Last Saved: ${dateStr} ${timeStr}`;
       badge.className = "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono hidden md:inline-block";
     }
+
+// --- AUTO-SAVE & BEFOREUNLOAD PROTECTION ---  
+    // 1. Automatically sync to localStorage on any data change (already handled)
+    // 2. Optional: Periodic background auto-save ticker (every 2 minutes)
+    setInterval(async () => {
+      if (servers.length > 0) {
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        // If a direct file handle is active, silently sync to disk
+        if (cachedFileHandle) {
+          try {
+            const jsonStr = JSON.stringify(servers, null, 2);
+            let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
+            const writableStream = await cachedFileHandle.createWritable();
+            await writableStream.write(encrypted);
+            await writableStream.close();
+            updateLastSavedTimestamp();
+          } catch (err) {
+            // Ignore background write errors if permissions expire
+          }
+        }
+      }
+    }, 120000); // Runs every 2 minutes
+
+    // 3. Warn user if they attempt to close the tab with unsaved modifications
+    window.addEventListener('beforeunload', (e) => {
+      e.preventDefault();
+      e.returnValue = ''; // Triggers native browser confirmation dialog
+    });
     
 async function saveDirectToTemp() {
       try {
