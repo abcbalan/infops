@@ -1,5 +1,5 @@
 <!-- 20261118 v69 - Works. Fixed import key -->
-<!-- 20261118 v70 - Trying Auto save -->
+<!-- 20261118 v71 - Trying Auto save with time stamp -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,17 +74,20 @@
       </button>
     </div>
 
-    <!-- UTILITY ACTIONS -->
+<!-- UTILITY ACTIONS -->
     <div class="flex items-center space-x-2 shrink-0 pointer-events-auto">
+      <!-- Last Saved Timestamp Badge -->
+      <span id="lastSavedBadge" class="text-[10px] bg-slate-900 text-slate-400 border border-slate-700 px-2 py-1 rounded-lg font-mono hidden md:inline-block">Not Saved Yet</span>
+
       <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition cursor-pointer" title="Settings"><i class="fas fa-cog"></i></button>
       <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition cursor-pointer" title="Encryption Key"><i class="fas fa-key"></i></button>
       <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
-      <!-- Direct Save to C:\temp\Testing folder Button -->
+      
       <!-- Dynamic Save File Button -->
       <button onclick="saveDirectToTemp()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded-lg text-xs font-semibold text-white transition shadow cursor-pointer" title="Save directly to your chosen file location"><i class="fas fa-save"></i> Save Local DB</button>
     </div>
   </header>
-
+  
   <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden relative z-10 pointer-events-auto">
 
@@ -861,7 +864,7 @@
 
 let cachedFileHandle = null;
 
-    async function saveDirectToTemp() {
+async function saveDirectToTemp() {
       try {
         const jsonStr = JSON.stringify(servers, null, 2);
         let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
@@ -883,6 +886,9 @@ let cachedFileHandle = null;
         const writableStream = await cachedFileHandle.createWritable();
         await writableStream.write(encrypted);
         await writableStream.close();
+
+        // Update the timestamp badge in the header
+        updateLastSavedTimestamp();
 
         alert("Successfully saved to your chosen location!");
       } catch (err) {
