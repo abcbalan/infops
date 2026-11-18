@@ -1,4 +1,5 @@
-<!-- 20261117 v62 - trying change card line for printing-->
+<!-- 20261117 v62 - Works. Changed card line for printing-->
+<!-- 20261118 v63 - Trying to add CPU, RAM or disks to the inventory view-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,12 +263,14 @@
               <tr id="thead-inventory">
                 <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Server Name</th>
-                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
-                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">System / App</th>
+                <th class="p-3" data-col-key="numCpu" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">CPU</th>
+                <th class="p-3" data-col-key="memoryGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">RAM (GB)</th>
                 <th class="p-3" data-col-key="osFamily" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">OS Family</th>
                 <th class="p-3" data-col-key="totalDiskGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Total Disk (GB)</th>
                 <th class="p-3" data-col-key="datastore" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Datastore</th>
                 <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Domain</th>
+                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
+                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">System / App</th>
                 <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">IP Address</th>
                 <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Subnet</th>
                 <th class="p-3 text-right" data-col-key="actions" draggable="false">Actions</th>
@@ -672,16 +675,17 @@
           <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
           <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
-          <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <datalist id="modalDeptList"></datalist>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-          <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <datalist id="modalSystemList"></datalist>
-        </div>
+<div>
+  <label class="font-semibold text-slate-300 mb-1 block">CPU Cores:</label>
+  <input type="number" id="modalNumCpu" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="2">
+</div>
+<div>
+  <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
+  <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
+</div>
+
+        
+
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
           <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
@@ -690,6 +694,10 @@
           <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
           <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
         </div>
+<div class="col-span-2">
+  <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
+  <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
+</div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
           <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
@@ -698,6 +706,16 @@
           <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
           <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
           <datalist id="modalDomainList"></datalist>
+        </div>
+                <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+          <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDeptList"></datalist>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
+          <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalSystemList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
@@ -1213,9 +1231,11 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       if (selectAllEl) selectAllEl.checked = allVisibleSelected;
       document.getElementById('filteredMatchBadge').innerText = `Showing ${visibleList.length} of ${servers.length}`;
 
-      const defaultKeys = ['select', 'serverName', 'dept', 'system', 'osFamily', 'totalDiskGB', 'datastore', 'domain', 'ip', 'subnet', 'actions'];
+      const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'osFamily', 'totalDiskGB', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
       const activeKeys = getColOrder('inventory', defaultKeys);
 
+
+      
       visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
@@ -1230,12 +1250,15 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         const cellMap = {
           select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
           serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
-          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
+          // Inside cellMap:
+          numCpu: createCell(`<span class="font-mono text-cyan-300 font-bold">${s.numCpu || 2}</span>`, "p-3"),
+          memoryGB: createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3"),
           osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
           totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
-          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),
+          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),         
           domain: createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3"),
+          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
+          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
           ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
           subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || 'Unassigned'}</span>`, "p-3"),
           actions: createCell(`
@@ -1997,17 +2020,20 @@ function renderTreeNodeCard(s, borderClass) {
         }
 
         const idxServer = getColIdx(['server', 'name', 'hostname']);
-        const idxIp = getColIdx(['ip', 'address']);
-        const idxDomain = getColIdx(['domain']);
-        const idxDept = getColIdx(['dept', 'department']);
-        const idxSys = getColIdx(['system', 'app', 'application']);
-        const idxWave = getColIdx(['wave']);
-        const idxSubnet = getColIdx(['subnet']);
-        const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
+        const idxCpu = getColIdx(['numcpu', 'cpu', 'cores']);
+        const idxRam = getColIdx(['memorygb', 'ram', 'memory']);
         const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
         const idxDisk = getColIdx(['disk', 'totaldisk', 'capacity']);
+        const idxDiskBreakdown = getColIdx(['diskbreakdown', 'disks']);
         const idxDs = getColIdx(['datastore']);
-
+        const idxDomain = getColIdx(['domain']);
+        const idxDept = getColIdx(['dept', 'department']);
+        const idxSys = getColIdx(['system', 'app', 'application']);       
+        const idxIp = getColIdx(['ip', 'address']);
+        const idxSubnet = getColIdx(['subnet']);
+        const idxWave = getColIdx(['wave']);
+        const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
+       
         let importedCount = 0;
 
         for (let i = headerRowIdx + 1; i < lines.length; i++) {
@@ -2033,15 +2059,19 @@ function renderTreeNodeCard(s, borderClass) {
           if (existingIdx === -1) {
             servers.push({
               serverName: serverName,
-              dept: deptVal || 'INF',
-              system: sysVal || 'General',
+             
+              numCpu: idxCpu !== -1 ? parseInt(cols[idxCpu]) || 2 : 2,
+              memoryGB: idxRam !== -1 ? parseInt(cols[idxRam]) || 4 : 4,
+               osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
+              totalDiskGB: !isNaN(diskVal) ? diskVal : 100,
+              diskBreakdown: idxDiskBreakdown !== -1 ? cols[idxDiskBreakdown] : '',
+              datastore: dsVal || 'VM_Datastore01',
               domain: domainVal || 'Becketts',
+              dept: deptVal || 'INF',
+              system: sysVal || 'General',            
               ip: ipVal || '',
               subnet: subVal || calculateSubnet(ipVal || ''),
               drStatus: drVal || '',
-              osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
-              totalDiskGB: !isNaN(diskVal) ? diskVal : 100,
-              datastore: dsVal || 'VM_Datastore01',
               wave: waveVal || 'Unassigned',
               cutoverStatus: 'Not Started',
               dependencies: ''
@@ -2191,12 +2221,15 @@ function renderTreeNodeCard(s, borderClass) {
         document.getElementById('serverModalTitle').innerText = `Edit Server: ${s.serverName}`;
         document.getElementById('editOriginalName').value = serverName;
         document.getElementById('modalServerName').value = s.serverName;
-        document.getElementById('modalDept').value = s.dept || '';
-        document.getElementById('modalSystem').value = s.system || '';
+        document.getElementById('modalNumCpu').value = s.numCpu || 2;
+        document.getElementById('modalMemoryGB').value = s.memoryGB || 4;
         document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
         document.getElementById('modalTotalDisk').value = s.totalDiskGB || 100;
+        document.getElementById('modalDiskBreakdown').value = s.diskBreakdown || 'N/A';
         document.getElementById('modalDatastore').value = s.datastore || 'VM_Datastore01';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
+        document.getElementById('modalDept').value = s.dept || '';
+        document.getElementById('modalSystem').value = s.system || '';
         document.getElementById('modalIP').value = s.ip || '';
         document.getElementById('modalSubnet').value = s.subnet || calculateSubnet(s.ip || '');
         document.getElementById('modalDrStatus').value = s.drStatus || '';
@@ -2221,12 +2254,15 @@ function renderTreeNodeCard(s, borderClass) {
 
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
-        dept: document.getElementById('modalDept').value.trim(),
-        system: document.getElementById('modalSystem').value.trim() || 'General',
+        numCpu: parseInt(document.getElementById('modalNumCpu').value) || 2,
+        memoryGB: parseInt(document.getElementById('modalMemoryGB').value) || 4,
         osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
         totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
+        diskBreakdown: document.getElementById('modalDiskBreakdown').value.trim(),  
         datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
         domain: document.getElementById('modalDomain').value.trim(),
+        dept: document.getElementById('modalDept').value.trim(),
+        system: document.getElementById('modalSystem').value.trim() || 'General',
         ip: document.getElementById('modalIP').value.trim(),
         subnet: document.getElementById('modalSubnet').value.trim(),
         drStatus: document.getElementById('modalDrStatus').value.trim(),
@@ -2334,6 +2370,12 @@ function renderTreeNodeCard(s, borderClass) {
     function exportToCSV() {
       let csv = "ServerName,Department,System,OSFamily,TotalDiskGB,Datastore,Domain,IPAddress,Subnet,DrStatus\n";
       servers.forEach(s => { csv += `"${s.serverName}","${s.dept}","${s.system}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.datastore||''}","${s.domain}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; });
+      
+      let csv = "ServerName,NumCPU,MemoryGB,OSFamily,TotalDiskGB,DiskBreakdown,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
+      servers.forEach(s => { 
+      csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
+      });
+      
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `inventory_export.csv`; a.click();
     }
 
