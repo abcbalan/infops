@@ -1,5 +1,5 @@
 <!-- 20261118 v73 - Works. Auto save every 2 mins -->
-<!-- 20261118 v74 - Trying python local DB --> 
+<!-- 20261118 v75 - Automatically load and force-read data from the local Python server on startup --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -928,22 +928,31 @@ let cachedFileHandle = null;
       }
     }
 
-    // Automatically load data from the local Python server on startup
+// Automatically load and force-read data from the local Python server on startup
     async function loadFromLocalPythonServer() {
       try {
-        const response = await fetch('http://localhost:8080/infops_backup.json?' + new Date().getTime());
+        // Append a unique timestamp (?t=...) to force the browser to ignore cache 
+        // and fetch the live infops_backup.json file from the server
+        const response = await fetch('http://localhost:8080/infops_backup.json?t=' + new Date().getTime(), {
+          cache: 'no-store'
+        });
+        
         if (response.ok) {
           let content = await response.text();
-          if (content.startsWith("INFENC:")) {
-            const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+          if (content && content.trim().length > 0) {
+            if (content.startsWith("INFENC:")) {
+              const raw = content.replace("INFENC:", "");
+              content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+            }
+            servers = JSON.parse(content);
+            // Instantly sync local session storage with the fresh server data
+            localStorage.setItem('infops_servers', JSON.stringify(servers));
+            renderInventoryTable();
+            console.log(`Successfully loaded and forced sync of ${servers.length} servers from local Python server DB file.`);
           }
-          servers = JSON.parse(content);
-          renderInventoryTable();
-          console.log(`Loaded ${servers.length} servers from local Python server.`);
         }
       } catch (err) {
-        console.log("No local database found on Python server yet, starting fresh.");
+        console.log("Python server offline or no DB file found yet, using local fallback.");
       }
     }
     
