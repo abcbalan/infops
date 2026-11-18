@@ -1,5 +1,4 @@
-<!-- 20261117 v62 - Works. Changed card line for printing-->
-<!-- 20261118 v64 - Trying to add CPU, RAM or disks to the inventory view-->
+<!-- 20261118 v65 - Works. Added CPU, RAM or disks to the inventory view-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -265,8 +264,8 @@
                 <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Server Name</th>
                 <th class="p-3" data-col-key="numCpu" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">CPU</th>
                 <th class="p-3" data-col-key="memoryGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">RAM (GB)</th>
-                <th class="p-3" data-col-key="osFamily" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">OS Family</th>
                 <th class="p-3" data-col-key="totalDiskGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Total Disk (GB)</th>
+                <th class="p-3" data-col-key="osFamily" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">OS Family</th>
                 <th class="p-3" data-col-key="datastore" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Datastore</th>
                 <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Domain</th>
                 <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
@@ -675,58 +674,55 @@
           <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
           <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
-<div>
-  <label class="font-semibold text-slate-300 mb-1 block">CPU Cores:</label>
-  <input type="number" id="modalNumCpu" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="2">
-</div>
-<div>
-  <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
-  <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
-</div>
-
-        
-
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
-          <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
-          <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
-        </div>
-<div class="col-span-2">
-  <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
-  <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
-</div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
-          <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-          <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <datalist id="modalDomainList"></datalist>
-        </div>
-                <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
-          <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <datalist id="modalDeptList"></datalist>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-          <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-          <datalist id="modalSystemList"></datalist>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
-          <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
-          <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-          <datalist id="modalSubnetList"></datalist>
-        </div>
-        <div>
+      <div>
+        <label class="font-semibold text-slate-300 mb-1 block">CPU Cores:</label>
+        <input type="number" id="modalNumCpu" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="2">
+      </div>
+      <div>
+        <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
+        <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
+      </div>
+      <div>
+         <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
+         <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
+      </div> 
+      <div>
+        <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
+        <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+      </div>
+      <div class="col-span-2">
+        <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
+        <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
+       <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
+       <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+       <datalist id="modalDomainList"></datalist>
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+       <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+       <datalist id="modalDeptList"></datalist>
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
+       <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+       <datalist id="modalSystemList"></datalist>
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
+       <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+      </div>
+      <div>
+       <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
+       <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+       <datalist id="modalSubnetList"></datalist>
+      </div>
+      <div>
           <label class="font-semibold text-slate-300 mb-1 block">DR Status (e.g. P00, P01):</label>
           <input type="text" id="modalDrStatus" list="modalDrList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
           <datalist id="modalDrList">
@@ -1231,7 +1227,7 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       if (selectAllEl) selectAllEl.checked = allVisibleSelected;
       document.getElementById('filteredMatchBadge').innerText = `Showing ${visibleList.length} of ${servers.length}`;
 
-      const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'osFamily', 'totalDiskGB', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
+      const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
       const activeKeys = getColOrder('inventory', defaultKeys);
 
 
