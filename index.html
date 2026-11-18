@@ -1,5 +1,5 @@
 <!-- 20261118 v66 - Works. Fix Migration tracker slide bar -->
-<!-- 20261118 v68 - Trying to save local -->
+<!-- 20261118 v69 - Trying to fix import key issue -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2386,7 +2386,7 @@
           let content = evt.target.result;
           if (content.startsWith("INFENC:")) {
             const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) / ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');  
           }
           servers = JSON.parse(content);
           localStorage.setItem('infops_servers', JSON.stringify(servers));
