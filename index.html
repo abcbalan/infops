@@ -1,5 +1,5 @@
 <!-- 20261118 v66 - Works. Fix Migration tracker slide bar -->
-<!-- 20261118 v67 - Trying to save local -->
+<!-- 20261118 v68 - Trying to save local -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -862,7 +862,7 @@
     async function saveDirectToTemp() {
       try {
         const jsonStr = JSON.stringify(servers, null, 2);
-        let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYENTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
+        let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
 
         // First time: prompt user to pick the exact file location
         if (!cachedFileHandle) {
