@@ -1,5 +1,5 @@
-<!-- 20261118 v72 - Works. Save and import with time stamp -->
-<!-- 20261118 v73 - Trying auto save every 2 mins -->
+<!-- 20261118 v73 - Works. Auto save every 2 mins -->
+<!-- 20261118 v74 - Trying python local DB --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -904,38 +904,46 @@ let cachedFileHandle = null;
       e.returnValue = ''; // Triggers native browser confirmation dialog
     });
     
-async function saveDirectToTemp() {
+// Automatically save directly to the local Python server backend
+    async function saveDirectToTemp() {
       try {
         const jsonStr = JSON.stringify(servers, null, 2);
         let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
 
-        // If no file has been chosen yet this session, open the system picker for the user to choose
-        if (!cachedFileHandle) {
-          const options = {
-            suggestedName: 'infops_backup.json',
-            types: [{
-              description: 'JSON Backup Files',
-              accept: { 'application/json': ['.json'] }
-            }]
-          };
-          // Opens native browser save dialog where the user can pick any folder/path
-          cachedFileHandle = await window.showSaveFilePicker(options);
+        const response = await fetch('http://localhost:8080/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: encrypted
+        });
+
+        if (response.ok) {
+          updateLastSavedTimestamp();
+          console.log("Auto-synced to local Python DB successfully.");
+        } else {
+          throw new Error("Server responded with error");
         }
-
-        // Overwrite the chosen file directly
-        const writableStream = await cachedFileHandle.createWritable();
-        await writableStream.write(encrypted);
-        await writableStream.close();
-
-        // Update the timestamp badge in the header
-        updateLastSavedTimestamp();
-
-        alert("Successfully saved to your chosen location!");
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.warn("File System Access API failed or unsupported, falling back to standard download:", err);
-          exportEncryptedJSON();
+        console.warn("Local Python server offline, falling back to manual download:", err);
+        exportEncryptedJSON();
+      }
+    }
+
+    // Automatically load data from the local Python server on startup
+    async function loadFromLocalPythonServer() {
+      try {
+        const response = await fetch('http://localhost:8080/infops_backup.json?' + new Date().getTime());
+        if (response.ok) {
+          let content = await response.text();
+          if (content.startsWith("INFENC:")) {
+            const raw = content.replace("INFENC:", "");
+            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
+          }
+          servers = JSON.parse(content);
+          renderInventoryTable();
+          console.log(`Loaded ${servers.length} servers from local Python server.`);
         }
+      } catch (err) {
+        console.log("No local database found on Python server yet, starting fresh.");
       }
     }
     
@@ -2455,8 +2463,10 @@ async function saveDirectToTemp() {
     document.addEventListener('DOMContentLoaded', () => { 
       applySettings(); 
       verifyClientIP();
-      renderInventoryTable(); 
-      switchTab('inventory'); 
+      loadFromLocalPythonServer().then(() => {
+        renderInventoryTable(); 
+        switchTab('inventory'); 
+      });
     });
   </script>
 </body>
