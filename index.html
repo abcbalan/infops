@@ -1,4 +1,5 @@
-<!-- 20261118 v65 - Works. Added CPU, RAM or disks to the inventory view-->
+<!-- 20261118 v64 - Works. Added CPU, RAM or disks to the inventory view-->
+<!-- 20261118 v65 - Try swapping total space and OSFamily-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1249,8 +1250,8 @@ function onMultiSelectChange(filterKey, val, isChecked) {
           // Inside cellMap:
           numCpu: createCell(`<span class="font-mono text-cyan-300 font-bold">${s.numCpu || 2}</span>`, "p-3"),
           memoryGB: createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3"),
-          osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
           totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
+          osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
           datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),         
           domain: createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3"),
           dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
@@ -2018,9 +2019,9 @@ function renderTreeNodeCard(s, borderClass) {
         const idxServer = getColIdx(['server', 'name', 'hostname']);
         const idxCpu = getColIdx(['numcpu', 'cpu', 'cores']);
         const idxRam = getColIdx(['memorygb', 'ram', 'memory']);
-        const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
         const idxDisk = getColIdx(['disk', 'totaldisk', 'capacity']);
         const idxDiskBreakdown = getColIdx(['diskbreakdown', 'disks']);
+        const idxOs = getColIdx(['os', 'operating', 'rawos', 'osfamily']);
         const idxDs = getColIdx(['datastore']);
         const idxDomain = getColIdx(['domain']);
         const idxDept = getColIdx(['dept', 'department']);
@@ -2055,11 +2056,10 @@ function renderTreeNodeCard(s, borderClass) {
           if (existingIdx === -1) {
             servers.push({
               serverName: serverName,
-             
               numCpu: idxCpu !== -1 ? parseInt(cols[idxCpu]) || 2 : 2,
               memoryGB: idxRam !== -1 ? parseInt(cols[idxRam]) || 4 : 4,
-               osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
               totalDiskGB: !isNaN(diskVal) ? diskVal : 100,
+              osFamily: (osVal || 'Windows').includes('Linux') ? 'Linux' : 'Windows',
               diskBreakdown: idxDiskBreakdown !== -1 ? cols[idxDiskBreakdown] : '',
               datastore: dsVal || 'VM_Datastore01',
               domain: domainVal || 'Becketts',
@@ -2219,8 +2219,8 @@ function renderTreeNodeCard(s, borderClass) {
         document.getElementById('modalServerName').value = s.serverName;
         document.getElementById('modalNumCpu').value = s.numCpu || 2;
         document.getElementById('modalMemoryGB').value = s.memoryGB || 4;
-        document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
         document.getElementById('modalTotalDisk').value = s.totalDiskGB || 100;
+        document.getElementById('modalOsFamily').value = s.osFamily || 'Windows';
         document.getElementById('modalDiskBreakdown').value = s.diskBreakdown || 'N/A';
         document.getElementById('modalDatastore').value = s.datastore || 'VM_Datastore01';
         document.getElementById('modalDomain').value = s.domain || 'Becketts';
@@ -2251,9 +2251,9 @@ function renderTreeNodeCard(s, borderClass) {
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
         numCpu: parseInt(document.getElementById('modalNumCpu').value) || 2,
-        memoryGB: parseInt(document.getElementById('modalMemoryGB').value) || 4,
-        osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
+        memoryGB: parseInt(document.getElementById('modalMemoryGB').value) || 4,        
         totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
+        osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
         diskBreakdown: document.getElementById('modalDiskBreakdown').value.trim(),  
         datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
         domain: document.getElementById('modalDomain').value.trim(),
@@ -2364,9 +2364,9 @@ function renderTreeNodeCard(s, borderClass) {
     }
 
 function exportToCSV() {
-      let csv = "ServerName,NumCPU,MemoryGB,OSFamily,TotalDiskGB,DiskBreakdown,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
+      let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
       servers.forEach(s => { 
-        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.osFamily||'Windows'}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
+        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
       });
       const a = document.createElement('a'); 
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
