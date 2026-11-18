@@ -1,5 +1,5 @@
 <!-- 20261118 v69 - Works. Fixed import key -->
-<!-- 20261118 v71 - Trying Auto save with time stamp -->
+<!-- 20261118 v72 - Trying Auto save with time stamp -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -864,6 +864,18 @@
 
 let cachedFileHandle = null;
 
+// --- TIMESTAMP BADGE HELPER ---
+    function updateLastSavedTimestamp() {
+      const badge = document.getElementById('lastSavedBadge');
+      if (!badge) return;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      
+      badge.innerText = `Last Saved: ${dateStr} ${timeStr}`;
+      badge.className = "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono hidden md:inline-block";
+    }
+    
 async function saveDirectToTemp() {
       try {
         const jsonStr = JSON.stringify(servers, null, 2);
