@@ -1,4 +1,5 @@
 <!-- 20261118 v66 - Works. Fix Migration tracker slide bar -->
+<!-- 20261118 v67 - Trying to save local -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,6 @@
     .node-card:active { cursor: grabbing; }
     .tier-dropzone.drag-over { background-color: rgba(6, 182, 212, 0.08); border-color: #06b6d4; }
 
-    /* ADD THESE TWO LINES HERE: */
     .card-drop-left { border-left: 4px solid #06b6d4 !important; }
     .card-drop-right { border-right: 4px solid #06b6d4 !important; }
     
@@ -86,11 +86,10 @@
   <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden relative z-10 pointer-events-auto">
 
-    <!-- TAB 1: TOPOLOGY, VISIO TREE & LINE LIST -->
+    <!-- TAB 1: TOPOLOGY -->
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-20 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select Filter: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-canvas-domain" class="text-cyan-300">All</strong></span>
@@ -98,8 +97,6 @@
             </button>
             <div id="drop-canvas-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
-          <!-- Multi-Select Filter: Wave -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-wave', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Wave: <strong id="lbl-canvas-wave" class="text-cyan-300">All</strong></span>
@@ -107,8 +104,6 @@
             </button>
             <div id="drop-canvas-wave" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
-          <!-- Multi-Select Filter: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-canvas-system" class="text-cyan-300">All</strong></span>
@@ -116,7 +111,6 @@
             </button>
             <div id="drop-canvas-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-
           <label class="flex items-center space-x-2 text-xs font-semibold text-cyan-400 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-lg border border-cyan-900">
             <input type="checkbox" id="filterShowDeps" checked onchange="renderTopologyCanvas()" class="rounded text-cyan-600 focus:ring-0">
             <span>🔗 Include Upstream</span>
@@ -129,7 +123,6 @@
             <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
             <button onclick="setTopologyViewMode('list')" id="topoModeList" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-list mr-1"></i> Line List</button>
           </div>
-
           <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
             <label class="text-[11px] font-semibold text-slate-400">Density:</label>
             <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
@@ -138,22 +131,17 @@
               <option value="spacious">Spacious</option>
             </select>
           </div>
-
           <button onclick="setTopologyLayoutMode('snap')" id="layoutBtnSnap" class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-th mr-1"></i> Snap</button>
           <button onclick="setTopologyLayoutMode('cluster')" id="layoutBtnCluster" class="px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer"><i class="fas fa-object-group mr-1"></i> Cluster</button>
-          
           <span class="text-xs text-cyan-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 font-bold" id="nodeCountBadge">0 VMs</span>
         </div>
       </div>
 
-      <!-- VISUAL CANVAS VIEW -->
       <div id="canvasArea" class="flex-1 canvas-grid relative overflow-auto p-4 select-none">
         <svg id="svgConnectors" class="absolute inset-0 w-full h-full pointer-events-none z-0 min-w-[3500px] min-h-[2500px]"></svg>
         <div id="nodesContainer" class="absolute inset-0 w-[3500px] h-[2500px] pointer-events-auto z-10"></div>
       </div>
 
-      <!-- HIERARCHICAL VISIO TREE VIEW -->
-      <!-- the server card line changed from z-0 to z-20 -->
       <div id="canvasTreeView" class="flex-1 bg-slate-900 canvas-grid hidden overflow-auto p-8 relative">
         <svg id="svgTreeConnectors" class="absolute top-0 left-0 pointer-events-none z-20" style="width: 3500px; height: 3500px;">
           <defs>
@@ -165,7 +153,6 @@
         <div id="treeNodesContainer" class="relative z-10 space-y-16 min-w-max pb-20"></div>
       </div>
 
-      <!-- LINE LIST VIEW -->
       <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
         <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
           <table class="w-full text-left border-collapse text-xs">
@@ -187,7 +174,7 @@
       </div>
     </section>
 
-    <!-- TAB 2: INVENTORY MATRIX WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 2: INVENTORY -->
     <section id="tabContent-inventory" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -203,16 +190,17 @@
             <i class="fas fa-edit"></i> Bulk Update 
             <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
           </button>
+          <button onclick="deleteSelectedServers()" class="px-3.5 py-1.5 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fas fa-trash-alt"></i> Delete Selected
+          </button>
           <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-file-csv mr-1"></i> Export CSV</button>
           <label class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer transition shadow"><i class="fas fa-file-excel mr-1"></i> Import CSV<input type="file" accept=".csv,.txt" class="hidden" onchange="previewCSVImport(event)"></label>
           <button onclick="openServerModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow cursor-pointer"><i class="fas fa-plus mr-1"></i> Add Server</button>
         </div>
       </div>
 
-      <!-- INVENTORY FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-inv-dept" class="text-amber-300">All</strong></span>
@@ -220,7 +208,6 @@
             </button>
             <div id="drop-inv-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-inv-system" class="text-cyan-300">All</strong></span>
@@ -228,7 +215,6 @@
             </button>
             <div id="drop-inv-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-inv-domain" class="text-cyan-300">All</strong></span>
@@ -236,7 +222,6 @@
             </button>
             <div id="drop-inv-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('inv-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-inv-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -281,7 +266,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: MIGRATION TRACKER (FORMERLY INFRA COLOCATION PROJECT) -->
+    <!-- TAB 3: MIGRATION TRACKER -->
     <section id="tabContent-waves" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="w-full space-y-4 flex-1 flex flex-col overflow-hidden">
         <div class="flex flex-wrap justify-between items-center gap-3">
@@ -302,10 +287,8 @@
           </div>
         </div>
 
-        <!-- MIGRATION TRACKER FILTER BAR -->
         <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Multi-Select: Dept -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Department: <strong id="lbl-waves-dept" class="text-amber-300">All</strong></span>
@@ -313,7 +296,6 @@
               </button>
               <div id="drop-waves-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: System -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>System: <strong id="lbl-waves-system" class="text-cyan-300">All</strong></span>
@@ -321,7 +303,6 @@
               </button>
               <div id="drop-waves-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: Domain -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Domain: <strong id="lbl-waves-domain" class="text-cyan-300">All</strong></span>
@@ -329,7 +310,6 @@
               </button>
               <div id="drop-waves-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
             </div>
-            <!-- Multi-Select: Subnet -->
             <div class="relative">
               <button onclick="toggleMultiSelectDropdown('waves-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
                 <span>Subnet: <strong id="lbl-waves-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -349,11 +329,11 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="waveSummaryCards"></div>
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-          <h3 class="font-bold text-white text-sm">Server Cutover & Verification Matrix</h3>
-          <div class="overflow-x-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4 flex-1 flex flex-col overflow-hidden">
+          <h3 class="font-bold text-white text-sm shrink-0">Server Cutover & Verification Matrix</h3>
+          <div class="overflow-x-auto flex-1">
             <table class="w-full text-left border-collapse text-xs" id="table-waves">
-              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700">
+              <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700 sticky top-0 z-10">
                 <tr id="thead-waves">
                   <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                   <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Server Name</th>
@@ -376,7 +356,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: ZERTO DR WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 4: ZERTO DR -->
     <section id="tabContent-zerto" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -404,10 +384,8 @@
         </div>
       </div>
 
-      <!-- ZERTO FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-zerto-dept" class="text-amber-300">All</strong></span>
@@ -415,7 +393,6 @@
             </button>
             <div id="drop-zerto-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-zerto-system" class="text-cyan-300">All</strong></span>
@@ -423,7 +400,6 @@
             </button>
             <div id="drop-zerto-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-zerto-domain" class="text-cyan-300">All</strong></span>
@@ -431,7 +407,6 @@
             </button>
             <div id="drop-zerto-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('zerto-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-zerto-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -471,7 +446,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: VEEAM BACKUPS WITH MULTI-SELECT FILTERS -->
+    <!-- TAB 5: VEEAM -->
     <section id="tabContent-veeam" class="flex-1 flex flex-col bg-slate-900 hidden overflow-hidden p-6">
       <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
         <div>
@@ -483,7 +458,6 @@
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
-          <!-- One-Tap Preset Dropdown -->
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> One-Tap Preset:</span>
             <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
@@ -501,10 +475,8 @@
         </div>
       </div>
 
-      <!-- VEEAM FILTER BAR -->
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Multi-Select: Dept -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-veeam-dept" class="text-amber-300">All</strong></span>
@@ -512,7 +484,6 @@
             </button>
             <div id="drop-veeam-dept" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: System -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-system', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>System: <strong id="lbl-veeam-system" class="text-cyan-300">All</strong></span>
@@ -520,7 +491,6 @@
             </button>
             <div id="drop-veeam-system" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Domain -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Domain: <strong id="lbl-veeam-domain" class="text-cyan-300">All</strong></span>
@@ -528,7 +498,6 @@
             </button>
             <div id="drop-veeam-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <!-- Multi-Select: Subnet -->
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Subnet: <strong id="lbl-veeam-subnet" class="text-cyan-300 font-mono">All</strong></span>
@@ -566,7 +535,7 @@
       </div>
     </section>
 
-    <!-- TAB 6: STORAGE CALCULATOR -->
+    <!-- TAB 6: CALCULATOR -->
     <section id="tabContent-calculator" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
@@ -590,7 +559,7 @@
       </div>
     </section>
 
-    <!-- TAB 7: IP HEALTH CHECK -->
+    <!-- TAB 7: HEALTH -->
     <section id="tabContent-health" class="flex-1 flex flex-col bg-slate-900 hidden overflow-y-auto p-6">
       <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
@@ -674,55 +643,56 @@
           <label class="font-semibold text-slate-300 mb-1 block">Server Name:</label>
           <input type="text" id="modalServerName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
-      <div>
-        <label class="font-semibold text-slate-300 mb-1 block">CPU Cores:</label>
-        <input type="number" id="modalNumCpu" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="2">
-      </div>
-      <div>
-        <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
-        <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
-      </div>
-      <div>
-         <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
-         <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
-      </div> 
-      <div>
-        <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
-        <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
-      </div>
-      <div class="col-span-2">
-        <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
-        <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
-       <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-       <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-       <datalist id="modalDomainList"></datalist>
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
-       <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-       <datalist id="modalDeptList"></datalist>
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-       <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-       <datalist id="modalSystemList"></datalist>
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
-       <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-      </div>
-      <div>
-       <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
-       <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-       <datalist id="modalSubnetList"></datalist>
-      </div>
-      <div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">CPU Cores:</label>
+          <input type="number" id="modalNumCpu" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="2">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
+          <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
+        </div>
+        <!-- Total Disk before OS Family -->
+        <div>
+           <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
+           <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
+        </div> 
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
+          <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+        </div>
+        <div class="col-span-2">
+          <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
+          <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
+         <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
+         <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+         <datalist id="modalDomainList"></datalist>
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+         <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+         <datalist id="modalDeptList"></datalist>
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
+         <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+         <datalist id="modalSystemList"></datalist>
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
+         <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+        <div>
+         <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
+         <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+         <datalist id="modalSubnetList"></datalist>
+        </div>
+        <div>
           <label class="font-semibold text-slate-300 mb-1 block">DR Status (e.g. P00, P01):</label>
           <input type="text" id="modalDrStatus" list="modalDrList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
           <datalist id="modalDrList">
@@ -750,7 +720,7 @@
     </div>
   </div>
 
-  <!-- PROJECT SETTINGS MODAL -->
+  <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
@@ -765,7 +735,7 @@
     </div>
   </div>
 
-  <!-- ENCRYPTION KEY MODAL -->
+  <!-- ENCRYPTION MODAL -->
   <div id="encryptionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Encryption Passphrase</h3>
@@ -788,7 +758,6 @@
     let draggedTreeServerName = null;
     let draggedColKey = null;
 
-    // Multi-Select filter state stores sets of selected values per key (e.g. 'canvas-domain': Set(['beckettsfoods.co.uk']))
     let multiFilters = {
       'canvas-domain': new Set(), 'canvas-wave': new Set(), 'canvas-system': new Set(),
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
@@ -974,7 +943,6 @@
       }
     }
 
-    // MULTI-SELECT FILTER ENGINE WITH TOGGLE SELECT ALL / CLEAR ALL
     function toggleMultiSelectDropdown(filterKey, event) {
       event.stopPropagation();
       document.querySelectorAll('[id^="drop-"]').forEach(el => {
@@ -1043,12 +1011,9 @@
       const allSelected = set.size === 0 || allOptions.every(opt => set.has(opt));
 
       if (allSelected) {
-        // If everything was selected, clear all (un-select everything)
         set.clear();
-        // Explicitly put a dummy non-matching value so 0 match
         set.add('__NONE_MATCH__');
       } else {
-        // Otherwise, select all
         set.clear();
       }
 
@@ -1057,7 +1022,7 @@
       triggerActiveTabRender();
     }
 
-function onMultiSelectChange(filterKey, val, isChecked) {
+    function onMultiSelectChange(filterKey, val, isChecked) {
       if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
       const set = multiFilters[filterKey];
       const allOptions = getOptionsForFilter(filterKey);
@@ -1073,7 +1038,7 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       if (allOptions.every(opt => set.has(opt))) {
         set.clear();
       } else if (set.size === 0) {
-        set.add('__NONE_MATCH__'); // Fix: If 0 items checked, show 0 records
+        set.add('__NONE_MATCH__');
       }
 
       updateMultiSelectLabel(filterKey);
@@ -1213,6 +1178,19 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       updateGlobalCounters();
     }
 
+    function deleteSelectedServers() {
+      if (selectedServerNames.size === 0) {
+        return alert("Please select at least one server using the checkboxes first.");
+      }
+      if (confirm(`Are you sure you want to delete ${selectedServerNames.size} selected server(s)?`)) {
+        servers = servers.filter(s => !selectedServerNames.has(s.serverName));
+        selectedServerNames.clear();
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        renderInventoryTable();
+        alert("Selected servers deleted successfully.");
+      }
+    }
+
     function renderInventoryTable() {
       servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
       updateDropdownLabels();
@@ -1229,8 +1207,6 @@ function onMultiSelectChange(filterKey, val, isChecked) {
 
       const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
       const activeKeys = getColOrder('inventory', defaultKeys);
-
-
       
       visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
@@ -1246,7 +1222,6 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         const cellMap = {
           select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
           serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-          // Inside cellMap:
           numCpu: createCell(`<span class="font-mono text-cyan-300 font-bold">${s.numCpu || 2}</span>`, "p-3"),
           memoryGB: createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3"),
           totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
@@ -1373,17 +1348,12 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         if (s.x === undefined) s.x = 20 + (idx % colsCount) * colWidth;
         if (s.y === undefined) s.y = 20 + Math.floor(idx / colsCount) * rowHeight;
 
-        const sDom = s.domain || 'Becketts';
-        const isUK = sDom.includes('UK') || sDom.includes('uk');
-        const domBadgeClass = isUK ? 'bg-amber-950/90 text-amber-300 border-amber-800' : 'bg-indigo-950/90 text-indigo-300 border-indigo-800';
-
         const el = document.createElement('div');
         el.className = `node-card absolute bg-slate-800 border border-slate-700 rounded-lg p-2 w-56 shadow-lg flex flex-col gap-1 hover:border-cyan-500 transition cursor-pointer`;
         el.style.left = `${s.x}px`;
         el.style.top = `${s.y}px`;
         el.onclick = (e) => { if (e.target.tagName !== 'INPUT') editServer(s.serverName); };
 
-        // Server card display
         el.innerHTML = `
           <div class="flex items-center">
             <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
@@ -1488,7 +1458,6 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         tierBuckets.get(tier).push(s);
       });
 
-      // Sort each tier by custom visioOrder
       tierBuckets.forEach((arr) => {
         arr.sort((a, b) => (a.visioOrder || 0) - (b.visioOrder || 0));
       });
@@ -1499,11 +1468,6 @@ function onMultiSelectChange(filterKey, val, isChecked) {
         2: { title: 'Tier 2:', icon: 'fa-layer-group text-cyan-400', border: 'border-cyan-500/80' },
         3: { title: 'Tier 3:', icon: 'fa-server text-emerald-400', border: 'border-emerald-500/70' },
         4: { title: 'Tier 4:', icon: 'fa-network-wired text-indigo-400', border: 'border-indigo-500/70' }
-        //1: { title: 'Tier 1: Root Infrastructure & Domain Controllers', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
-        //2: { title: 'Tier 2: Secondary Controllers & Core Databases', icon: 'fa-layer-group text-cyan-400', border: 'border-cyan-500/80' },
-        //3: { title: 'Tier 3: Application Servers & Middleware', icon: 'fa-server text-emerald-400', border: 'border-emerald-500/70' },
-        //4: { title: 'Tier 4: Edge & Client VMs', icon: 'fa-network-wired text-indigo-400', border: 'border-indigo-500/70' }
-
       };
 
       let html = `<div class="text-[11px] text-slate-400 bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 inline-flex items-center gap-2">
@@ -1530,8 +1494,7 @@ function onMultiSelectChange(filterKey, val, isChecked) {
       requestAnimationFrame(() => drawTreeConnectors(filtered));
     }
 
-    // Server card display in Visio View  
-function renderTreeNodeCard(s, borderClass) {
+    function renderTreeNodeCard(s, borderClass) {
       return `
         <div draggable="true" 
              ondragstart="onTreeCardDragStart(event, '${s.serverName.replace(/'/g, "\\'")}')" 
@@ -1558,14 +1521,8 @@ function renderTreeNodeCard(s, borderClass) {
       e.dataTransfer.setData('text/plain', serverName); 
     }
 
-    function onTreeTierDragOver(e) { 
-      e.preventDefault(); 
-      e.currentTarget.classList.add('drag-over'); 
-    }
-
-    function onTreeTierDragLeave(e) { 
-      e.currentTarget.classList.remove('drag-over'); 
-    }
+    function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 
     function onTreeTierDrop(e, targetTierNum) {
       e.preventDefault(); 
@@ -1574,7 +1531,6 @@ function renderTreeNodeCard(s, borderClass) {
       const srv = servers.find(s => s.serverName === name);
       if (srv) { 
         srv.visioTier = `Tier ${targetTierNum}`; 
-        // Put at the end of this tier
         const tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum);
         srv.visioOrder = tierServers.length > 0 ? Math.max(...tierServers.map(s => s.visioOrder || 0)) + 10 : 10;
         localStorage.setItem('infops_servers', JSON.stringify(servers)); 
@@ -1613,15 +1569,11 @@ function renderTreeNodeCard(s, borderClass) {
       const targetSrv = servers.find(s => s.serverName === targetServerName);
       if (!draggedSrv || !targetSrv) return;
 
-      // Determine drop side (before or after target)
       const rect = e.currentTarget.getBoundingClientRect();
       const insertBefore = e.clientX < rect.left + rect.width / 2;
-
-      // Update tier to match target tier
       const targetTierNum = computeServerTier(targetSrv, new Map());
       draggedSrv.visioTier = `Tier ${targetTierNum}`;
 
-      // Get all servers in this target tier, sorted by current visioOrder
       let tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum && s.serverName !== draggedName);
       const targetIdx = tierServers.findIndex(s => s.serverName === targetServerName);
 
@@ -1632,10 +1584,7 @@ function renderTreeNodeCard(s, borderClass) {
         tierServers.push(draggedSrv);
       }
 
-      // Re-assign ordered index values
-      tierServers.forEach((s, idx) => {
-        s.visioOrder = (idx + 1) * 10;
-      });
+      tierServers.forEach((s, idx) => { s.visioOrder = (idx + 1) * 10; });
 
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderVisioTreeView(getFilteredServers());
@@ -2099,7 +2048,6 @@ function renderTreeNodeCard(s, borderClass) {
       reader.readAsText(file);
     }
 
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (SERVER MODAL)
     function showDepSuggestions(val) {
       const box = document.getElementById('depSuggestionsDropdown');
       if (!box) return;
@@ -2151,7 +2099,6 @@ function renderTreeNodeCard(s, borderClass) {
       if (box) box.classList.add('hidden');
     }
 
-    // MULTI-SERVER UPSTREAM DEPENDENCY AUTOCOMPLETE (BULK EDIT MODAL)
     function onBulkValueInput(val) {
       const field = document.getElementById('bulkField').value;
       const box = document.getElementById('bulkDepSuggestionsDropdown');
@@ -2362,7 +2309,7 @@ function renderTreeNodeCard(s, borderClass) {
       alert("Bulk update successful!");
     }
 
-function exportToCSV() {
+    function exportToCSV() {
       let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
       servers.forEach(s => { 
         csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
