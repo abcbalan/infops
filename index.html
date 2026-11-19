@@ -1,4 +1,5 @@
 <!-- 20261119 v79 - Works. Fixed upload shows how many device --> 
+<!-- 20261119 v80 - trying Universal Column Visibility, Zerto Site/Notes Edit & Bulk, Veeam Job Catalog -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,9 +25,9 @@
     th.drag-over-right { border-right: 3px solid #06b6d4; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden" onclick="closeAllMultiSelects(event)">
+<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden" onclick="closeAllDropdowns(event)">
 
-<!-- TOP HEADER NAVBAR -->
+  <!-- TOP HEADER NAVBAR -->
   <header class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0 shadow-md relative z-50 pointer-events-auto">
     <div class="flex items-center space-x-2.5 min-w-0 pointer-events-auto">
       <div class="w-9 h-9 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50 shrink-0">
@@ -76,7 +77,6 @@
     <!-- UTILITY ACTIONS -->
     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 pointer-events-auto order-2 lg:order-4">
       <span id="lastSavedBadge" class="text-[10px] bg-slate-900 text-slate-400 border border-slate-700 px-2 py-1 rounded-lg font-mono hidden 2xl:inline-block">Not Saved Yet</span>
-
       <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition cursor-pointer" title="Settings"><i class="fas fa-cog"></i></button>
       <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition cursor-pointer" title="Encryption Key"><i class="fas fa-key"></i></button>
       <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
@@ -118,7 +118,15 @@
           </label>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Column Visibility Picker for Line List -->
+          <div class="relative">
+            <button onclick="toggleColVisDropdown('topoList', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
+              <i class="fas fa-eye mr-1"></i> Columns
+            </button>
+            <div id="colVisDrop-topoList" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+          </div>
+
           <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
             <button onclick="setTopologyViewMode('visual')" id="topoModeVisual" class="px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer"><i class="fas fa-project-diagram mr-1"></i> Visual</button>
             <button onclick="setTopologyViewMode('tree')" id="topoModeTree" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"><i class="fas fa-sitemap mr-1"></i> Visio Tree</button>
@@ -156,17 +164,17 @@
 
       <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
         <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
-          <table class="w-full text-left border-collapse text-xs">
+          <table class="w-full text-left border-collapse text-xs" id="table-topoList">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
-              <tr>
-                <th class="p-3">Server Name</th>
-                <th class="p-3">Migration Wave</th>
-                <th class="p-3">Department</th>
-                <th class="p-3">System / App</th>
-                <th class="p-3">Domain</th>
-                <th class="p-3">IP Address</th>
-                <th class="p-3">Subnet</th>
-                <th class="p-3 text-right">Action</th>
+              <tr id="thead-topoList">
+                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Server Name</th>
+                <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Migration Wave</th>
+                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Department</th>
+                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">System / App</th>
+                <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Domain</th>
+                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">IP Address</th>
+                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Subnet</th>
+                <th class="p-3 text-right" data-col-key="actions" draggable="false">Action</th>
               </tr>
             </thead>
             <tbody id="topologyListTbody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -183,10 +191,16 @@
             Server Inventory Matrix & Universal Bulk Edit
             <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 servers</span>
           </h2>
-          <p class="text-xs text-slate-400">Multi-select departments, systems, domains, or subnets. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Multi-select filters, drag column titles to re-order, or toggle visible columns.</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+          <div class="relative">
+            <button onclick="toggleColVisDropdown('inventory', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
+              <i class="fas fa-eye mr-1"></i> Columns
+            </button>
+            <div id="colVisDrop-inventory" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+          </div>
+          <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order & Visibility"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
             <i class="fas fa-edit"></i> Bulk Update 
             <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
@@ -278,7 +292,13 @@
             </h2>
             <p class="text-xs text-slate-400">Coordinate CS & BFL migration execution waves and verification checklists.</p>
           </div>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2 items-center">
+            <div class="relative">
+              <button onclick="toggleColVisDropdown('waves', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
+                <i class="fas fa-eye mr-1"></i> Columns
+              </button>
+              <div id="colVisDrop-waves" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+            </div>
             <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
             <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
               <i class="fas fa-edit"></i> Bulk Update 
@@ -365,9 +385,15 @@
             Zerto Disaster Recovery (DR) Control Panel 
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles to re-order or hide columns.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <button onclick="toggleColVisDropdown('zerto', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
+              <i class="fas fa-eye mr-1"></i> Columns
+            </button>
+            <div id="colVisDrop-zerto" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+          </div>
           <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <label class="text-xs text-slate-300 font-semibold">Sort By:</label>
@@ -455,17 +481,22 @@
             Veeam Backup Job & Retention Management
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Multi-select filtering for Veeam backup jobs. Drag column titles to re-order.</p>
+          <p class="text-xs text-slate-400">Manage reusable Veeam backup jobs (periodic, chained, secondary copy) and assign to servers.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <button onclick="toggleColVisDropdown('veeam', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
+              <i class="fas fa-eye mr-1"></i> Columns
+            </button>
+            <div id="colVisDrop-veeam" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+          </div>
           <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+          <button onclick="openVeeamJobsModal()" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer">
+            <i class="fas fa-tasks mr-1"></i> Manage Jobs (<span id="veeamJobCatalogCount">0</span>)
+          </button>
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
-            <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> One-Tap Preset:</span>
-            <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
-              <option value="daily_30">Standard Daily (02:00 AM, 30d)</option>
-              <option value="sql_90">Core SQL Daily (01:00 AM, 90d)</option>
-              <option value="weekly_14">Weekly Archive (Saturday, 14d)</option>
-            </select>
+            <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> Assign Job:</span>
+            <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none max-w-[230px]"></select>
             <button onclick="applyVeeamPreset()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold cursor-pointer">Apply to Selected</button>
           </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
@@ -525,9 +556,10 @@
                 <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
                 <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Server Name</th>
                 <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">System / App</th>
-                <th class="p-3" data-col-key="veeamJob" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Veeam Backup Job Name</th>
-                <th class="p-3" data-col-key="veeamTime" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Backup Time</th>
-                <th class="p-3" data-col-key="veeamRetention" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Retention Period (Days)</th>
+                <th class="p-3" data-col-key="veeamJob" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Veeam Backup Job</th>
+                <th class="p-3" data-col-key="veeamTime" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Schedule / Trigger</th>
+                <th class="p-3" data-col-key="veeamSecondary" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Secondary Copy Target</th>
+                <th class="p-3" data-col-key="veeamRetention" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Retention (Days)</th>
               </tr>
             </thead>
             <tbody id="veeamTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
@@ -603,8 +635,11 @@
             <option value="subnet">Subnet</option>
             <option value="wave">Migration Wave</option>
             <option value="drStatus">DR Status (e.g., P00, P01, None)</option>
+            <option value="vpg">Zerto VPG Name</option>
+            <option value="drSite">Zerto Target Site / Notes</option>
             <option value="veeamJob">Veeam Backup Job Name</option>
-            <option value="veeamTime">Veeam Backup Time</option>
+            <option value="veeamTime">Veeam Schedule / Trigger</option>
+            <option value="veeamSecondary">Veeam Secondary Copy Target</option>
             <option value="veeamRetention">Veeam Retention (Days)</option>
             <option value="dependencies">Upstream Dependencies</option>
           </select>
@@ -633,7 +668,7 @@
 
   <!-- SERVER MODAL -->
   <div id="serverModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
-    <div class="bg-slate-800 w-full max-w-xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+    <div class="bg-slate-800 w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <h3 id="serverModalTitle" class="font-bold text-white text-sm">Add / Edit Server</h3>
         <button onclick="closeServerModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
@@ -652,46 +687,45 @@
           <label class="font-semibold text-slate-300 mb-1 block">RAM (GB):</label>
           <input type="number" id="modalMemoryGB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="4">
         </div>
-        <!-- Total Disk before OS Family -->
         <div>
-           <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
-           <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
+          <label class="font-semibold text-slate-300 mb-1 block">Total Disk (GB):</label>
+          <input type="number" id="modalTotalDisk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="100">
         </div> 
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
           <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
+          <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
         </div>
         <div class="col-span-2">
           <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
           <input type="text" id="modalDiskBreakdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 font-mono text-xs" readonly placeholder="Hard disk 1: 50GB; Hard disk 2: 100GB">
         </div>
         <div>
-         <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
-         <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
+          <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
+          <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDomainList"></datalist>
         </div>
         <div>
-         <label class="font-semibold text-slate-300 mb-1 block">AD Domain:</label>
-         <input type="text" id="modalDomain" list="modalDomainList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-         <datalist id="modalDomainList"></datalist>
+          <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
+          <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDeptList"></datalist>
         </div>
         <div>
-         <label class="font-semibold text-slate-300 mb-1 block">Department:</label>
-         <input type="text" id="modalDept" list="modalDeptList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-         <datalist id="modalDeptList"></datalist>
+          <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
+          <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalSystemList"></datalist>
         </div>
         <div>
-         <label class="font-semibold text-slate-300 mb-1 block">System / App Group:</label>
-         <input type="text" id="modalSystem" list="modalSystemList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-         <datalist id="modalSystemList"></datalist>
+          <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
+          <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
         </div>
         <div>
-         <label class="font-semibold text-slate-300 mb-1 block">IP Address:</label>
-         <input type="text" id="modalIP" oninput="onModalIPChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-        </div>
-        <div>
-         <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
-         <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
-         <datalist id="modalSubnetList"></datalist>
+          <label class="font-semibold text-slate-300 mb-1 block">Subnet:</label>
+          <input type="text" id="modalSubnet" list="modalSubnetList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <datalist id="modalSubnetList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">DR Status (e.g. P00, P01):</label>
@@ -702,6 +736,14 @@
             <option value="P02"></option>
             <option value="No"></option>
           </datalist>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Zerto VPG Name:</label>
+          <input type="text" id="modalVpg" placeholder="e.g. VPG-SERVER01" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Zerto Target Site / Notes:</label>
+          <input type="text" id="modalDrSite" placeholder="e.g. Harbor Solutions DRaaS" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
         </div>
         <div class="relative col-span-2">
           <label class="font-semibold text-slate-300 mb-1 block">Upstream Dependencies:</label>
@@ -721,15 +763,87 @@
     </div>
   </div>
 
-<!-- SETTINGS MODAL -->
+  <!-- VEEAM JOB CATALOG MODAL -->
+  <div id="veeamJobsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
+    <div class="bg-slate-800 w-full max-w-4xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-hidden">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <div>
+          <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-database text-cyan-400"></i> Veeam Backup Job Catalog & Schedules</h3>
+          <p class="text-[11px] text-slate-400">Define your Veeam backup jobs (periodic, chained after another job, secondary copy targets) for easy assignment.</p>
+        </div>
+        <button onclick="closeVeeamJobsModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+      </div>
+
+      <!-- Add / Edit Job Form -->
+      <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        <input type="hidden" id="editVeeamJobIdx" value="-1">
+        <div class="lg:col-span-2">
+          <label class="font-semibold text-slate-300 mb-1 block">Veeam Job Name:</label>
+          <input type="text" id="vjName" placeholder="e.g. Central Services - App and File Backup 01" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Job Type:</label>
+          <select id="vjType" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+            <option value="VMware Backup">VMware Backup</option>
+            <option value="Windows Agent Backup">Windows Agent Backup</option>
+            <option value="Backup Copy">Backup Copy</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Schedule / Trigger:</label>
+          <input type="text" id="vjSchedule" list="vjScheduleExamples" placeholder="e.g. Periodically every 6h" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+          <datalist id="vjScheduleExamples">
+            <option value="Periodically every 6 Hours"></option>
+            <option value="After: Central Services - App and File Backup 01"></option>
+            <option value="Daily at 22:00 (Everyday)"></option>
+            <option value="Daily at 06:00 (Everyday)"></option>
+            <option value="Monthly 4th Saturday 22:00"></option>
+          </datalist>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Secondary Copy / Target:</label>
+          <input type="text" id="vjSecondary" placeholder="e.g. CatalystCopy4_v2 (06:00)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300 mb-1 block">Retention (Days):</label>
+          <input type="number" id="vjRetention" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+        </div>
+        <div class="sm:col-span-2 lg:col-span-4 flex items-end justify-end gap-2">
+          <button onclick="resetVeeamJobForm()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-semibold cursor-pointer">Clear</button>
+          <button onclick="saveVeeamJobTemplate()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold shadow cursor-pointer"><i class="fas fa-plus mr-1"></i> Save Job Profile</button>
+        </div>
+      </div>
+
+      <!-- Saved Job Catalog List -->
+      <div class="flex-1 overflow-y-auto border border-slate-700 rounded-xl bg-slate-900/50">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
+            <tr>
+              <th class="p-3">Job Name</th>
+              <th class="p-3">Type</th>
+              <th class="p-3">Schedule / Trigger</th>
+              <th class="p-3">Secondary Target</th>
+              <th class="p-3">Retention</th>
+              <th class="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="veeamJobCatalogTbody" class="divide-y divide-slate-800 text-slate-200"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end">
+        <button onclick="closeVeeamJobsModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-semibold cursor-pointer">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
       <div class="flex flex-col gap-3 text-xs">
         <div><label class="font-semibold text-slate-300 mb-1 block">App Name:</label><input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="InfOps"></div>
         <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value=""></div>
-        
-        <!-- Local Save Location Picker -->
         <div class="pt-2 border-t border-slate-700/80">
           <label class="font-semibold text-slate-300 mb-1 block">Local Save File Location:</label>
           <div class="flex items-center gap-2">
@@ -757,7 +871,7 @@
     </div>
   </div>
 
-<!-- CUSTOM IMPORT / INFO MODAL (No browser domain header) -->
+  <!-- CUSTOM IMPORT / INFO MODAL -->
   <div id="infoPromptModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
     <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
       <div class="flex items-center gap-3 border-b border-slate-700 pb-3">
@@ -777,15 +891,48 @@
   </div>
   
   <!-- SCRIPT LOGIC -->
-<script>
+  <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
     let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "" }));
-    const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110","81.105.235.139"];
+    const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110", "81.105.235.139"];
     let selectedServerNames = new Set();
     let currentTopoMode = 'visual';
     let globalSearchQuery = '';
     let draggedTreeServerName = null;
     let draggedColKey = null;
+
+    const DEFAULT_VEEAM_JOBS = [
+      {
+        name: "Central Services - App and File Backup 01",
+        type: "VMware Backup",
+        schedule: "Periodically every 6 Hours",
+        secondary: "CatalystCopy4_v2 (Daily 06:00)",
+        retention: 30
+      },
+      {
+        name: "Central Services - App and File Backup 02",
+        type: "VMware Backup",
+        schedule: "After: Central Services - App and File Backup 01",
+        secondary: "CatalystCopy6 (Daily 06:00)",
+        retention: 30
+      },
+      {
+        name: "Central Services - Failover Cluster",
+        type: "Windows Agent Backup",
+        schedule: "Daily at 22:00",
+        secondary: "None",
+        retention: 30
+      },
+      {
+        name: "Central Services - SQL Backup",
+        type: "VMware Backup",
+        schedule: "Daily at 01:00",
+        secondary: "CatalystCopy_SQL (Daily 06:00)",
+        retention: 90
+      }
+    ];
+
+    let veeamJobs = JSON.parse(localStorage.getItem('infops_veeam_jobs') || 'null') || DEFAULT_VEEAM_JOBS;
 
     let multiFilters = {
       'canvas-domain': new Set(), 'canvas-wave': new Set(), 'canvas-system': new Set(),
@@ -796,8 +943,36 @@
     };
 
     let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
+    let hiddenColumns = JSON.parse(localStorage.getItem('infops_hidden_cols') || '{}');
 
-function notifyUser(msg, isError = false) {
+    const TAB_COLUMN_META = {
+      topoList: {
+        serverName: 'Server Name', wave: 'Migration Wave', dept: 'Department',
+        system: 'System / App', domain: 'Domain', ip: 'IP Address', subnet: 'Subnet', actions: 'Action'
+      },
+      inventory: {
+        select: 'Checkbox', serverName: 'Server Name', numCpu: 'CPU', memoryGB: 'RAM (GB)',
+        totalDiskGB: 'Total Disk (GB)', osFamily: 'OS Family', datastore: 'Datastore',
+        domain: 'Domain', dept: 'Department', system: 'System / App', ip: 'IP Address',
+        subnet: 'Subnet', actions: 'Actions'
+      },
+      waves: {
+        select: 'Checkbox', serverName: 'Server Name', dept: 'Department', system: 'System',
+        wave: 'Migration Wave', ip: 'IP Address', subnet: 'Subnet', cutoverStatus: 'Cutover Status',
+        dns: 'DNS Updated', fw: 'Firewall Rules', sync: 'Final Storage Sync', sign: 'App Sign-off'
+      },
+      zerto: {
+        select: 'Checkbox', drStatus: 'DR Status', serverName: 'Server Name', system: 'System / App',
+        subnet: 'Subnet', vpg: 'VPG Name', site: 'Target Site / Notes', ip: 'Current IP'
+      },
+      veeam: {
+        select: 'Checkbox', serverName: 'Server Name', system: 'System / App',
+        veeamJob: 'Veeam Backup Job', veeamTime: 'Schedule / Trigger',
+        veeamSecondary: 'Secondary Copy Target', veeamRetention: 'Retention (Days)'
+      }
+    };
+
+    function notifyUser(msg, isError = false) {
       if (isError) console.error(msg);
       else console.log(msg);
       const badge = document.getElementById('lastSavedBadge');
@@ -810,7 +985,6 @@ function notifyUser(msg, isError = false) {
       }
     }
 
-    // Paste showInfoPrompt and closeInfoPrompt right here:
     function showInfoPrompt(title, subtitle, bodyHtml, isError = false) {
       const modal = document.getElementById('infoPromptModal');
       const iconBox = document.getElementById('infoPromptIcon');
@@ -832,10 +1006,81 @@ function notifyUser(msg, isError = false) {
       document.getElementById('infoPromptModal').classList.add('hidden');
     }
 
+    /* ================= COLUMN ORDER & VISIBILITY ================= */
+    function isColHidden(tabName, colKey) {
+      return Array.isArray(hiddenColumns[tabName]) && hiddenColumns[tabName].includes(colKey);
+    }
 
-  
+    function toggleColVisDropdown(tabName, event) {
+      event.stopPropagation();
+      document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => {
+        if (el.id !== `colVisDrop-${tabName}`) el.classList.add('hidden');
+      });
+      const box = document.getElementById(`colVisDrop-${tabName}`);
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        renderColVisDropdownContent(tabName);
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function renderColVisDropdownContent(tabName) {
+      const box = document.getElementById(`colVisDrop-${tabName}`);
+      const meta = TAB_COLUMN_META[tabName] || {};
+      const keys = Object.keys(meta);
+      let html = `
+        <div class="flex justify-between items-center px-2 py-1 border-b border-slate-800 text-[11px]">
+          <span class="font-bold text-slate-300">Visible Columns</span>
+          <button onclick="showAllColumns('${tabName}', event)" class="text-cyan-400 hover:underline font-semibold cursor-pointer">Show All</button>
+        </div>
+      `;
+      keys.forEach(k => {
+        const checked = !isColHidden(tabName, k) ? 'checked' : '';
+        html += `
+          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-900 rounded cursor-pointer text-xs text-slate-200">
+            <input type="checkbox" ${checked} onchange="onToggleColVis('${tabName}', '${k}', this.checked)" class="rounded text-cyan-600">
+            <span class="truncate">${meta[k]}</span>
+          </label>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    function onToggleColVis(tabName, colKey, isVisible) {
+      if (!hiddenColumns[tabName]) hiddenColumns[tabName] = [];
+      if (isVisible) {
+        hiddenColumns[tabName] = hiddenColumns[tabName].filter(k => k !== colKey);
+      } else {
+        if (!hiddenColumns[tabName].includes(colKey)) hiddenColumns[tabName].push(colKey);
+      }
+      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
+      reRenderTabByName(tabName);
+    }
+
+    function showAllColumns(tabName, event) {
+      event.stopPropagation();
+      delete hiddenColumns[tabName];
+      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
+      renderColVisDropdownContent(tabName);
+      reRenderTabByName(tabName);
+    }
+
+    function reRenderTabByName(tabName) {
+      if (tabName === 'inventory') renderInventoryTable();
+      else if (tabName === 'waves') renderCutoverWavesTab();
+      else if (tabName === 'zerto') renderZertoTable();
+      else if (tabName === 'veeam') renderVeeamTable();
+      else if (tabName === 'topoList') renderTopologyCanvas();
+    }
+
     function getColOrder(tabName, defaultKeys) {
-      if (columnOrders[tabName]) return columnOrders[tabName];
+      if (columnOrders[tabName]) {
+        const saved = columnOrders[tabName].filter(k => defaultKeys.includes(k));
+        const missing = defaultKeys.filter(k => !saved.includes(k));
+        return [...saved, ...missing];
+      }
       return defaultKeys;
     }
 
@@ -871,9 +1116,8 @@ function notifyUser(msg, isError = false) {
       const targetKey = targetTh.getAttribute('data-col-key');
       if (!draggedColKey || draggedColKey === targetKey) return;
 
-      const theadTr = targetTh.parentElement;
-      const ths = Array.from(theadTr.querySelectorAll('th[data-col-key]'));
-      let keys = ths.map(th => th.getAttribute('data-col-key'));
+      const defaultKeys = Object.keys(TAB_COLUMN_META[tabName] || {});
+      let keys = [...getColOrder(tabName, defaultKeys)];
 
       const fromIdx = keys.indexOf(draggedColKey);
       const toIdx = keys.indexOf(targetKey);
@@ -889,40 +1133,47 @@ function notifyUser(msg, isError = false) {
       localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
 
       draggedColKey = null;
-      if (tabName === 'inventory') renderInventoryTable();
-      else if (tabName === 'waves') renderCutoverWavesTab();
-      else if (tabName === 'zerto') renderZertoTable();
-      else if (tabName === 'veeam') renderVeeamTable();
+      reRenderTabByName(tabName);
     }
 
     function resetTableOrder(tabName) {
       delete columnOrders[tabName];
+      delete hiddenColumns[tabName];
       localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
-      if (tabName === 'inventory') renderInventoryTable();
-      else if (tabName === 'waves') renderCutoverWavesTab();
-      else if (tabName === 'zerto') renderZertoTable();
-      else if (tabName === 'veeam') renderVeeamTable();
+      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
+      reRenderTabByName(tabName);
+      notifyUser(`Reset ${tabName} columns`);
     }
 
-    function reorderTableHeaderAndRow(tabName, keys, trElement, cellMap) {
+    function applyHeaderOrderAndVisibility(tabName, keys) {
       const theadTr = document.getElementById(`thead-${tabName}`);
       if (!theadTr) return;
-
       const allThs = Array.from(theadTr.querySelectorAll('th[data-col-key]'));
       const thMap = new Map();
       allThs.forEach(th => thMap.set(th.getAttribute('data-col-key'), th));
 
       theadTr.innerHTML = '';
       keys.forEach(k => {
-        if (thMap.has(k)) theadTr.appendChild(thMap.get(k));
-      });
-
-      trElement.innerHTML = '';
-      keys.forEach(k => {
-        if (cellMap[k]) trElement.appendChild(cellMap[k]);
+        const th = thMap.get(k);
+        if (th) {
+          th.classList.toggle('hidden', isColHidden(tabName, k));
+          theadTr.appendChild(th);
+        }
       });
     }
 
+    function reorderTableHeaderAndRow(tabName, keys, trElement, cellMap) {
+      applyHeaderOrderAndVisibility(tabName, keys);
+      trElement.innerHTML = '';
+      keys.forEach(k => {
+        if (cellMap[k]) {
+          cellMap[k].classList.toggle('hidden', isColHidden(tabName, k));
+          trElement.appendChild(cellMap[k]);
+        }
+      });
+    }
+
+    /* ================= LOCAL FILE SAVE & ENCRYPTION ================= */
     let cachedFileHandle = null;
 
     function updateLastSavedTimestamp() {
@@ -935,13 +1186,23 @@ function notifyUser(msg, isError = false) {
       badge.className = "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono inline-block";
     }
 
+    function buildDatabasePayloadString() {
+      const payloadObj = {
+        version: 80,
+        veeamJobs: veeamJobs,
+        servers: servers
+      };
+      const jsonStr = JSON.stringify(payloadObj, null, 2);
+      return "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
+    }
+
     setInterval(async () => {
       if (servers.length > 0) {
         localStorage.setItem('infops_servers', JSON.stringify(servers));
+        localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
         if (cachedFileHandle) {
           try {
-            const jsonStr = JSON.stringify(servers, null, 2);
-            let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
+            const encrypted = buildDatabasePayloadString();
             const writableStream = await cachedFileHandle.createWritable();
             await writableStream.write(encrypted);
             await writableStream.close();
@@ -960,44 +1221,30 @@ function notifyUser(msg, isError = false) {
       try {
         const options = {
           suggestedName: 'infops_backup.json',
-          types: [{
-            description: 'JSON Backup Files',
-            accept: { 'application/json': ['.json'] }
-          }]
+          types: [{ description: 'JSON Backup Files', accept: { 'application/json': ['.json'] } }]
         };
         cachedFileHandle = await window.showSaveFilePicker(options);
         document.getElementById('settingsFilePathDisplay').value = cachedFileHandle.name;
         notifyUser("Target save file updated");
-      } catch (err) {
-        console.log("Folder selection cancelled.");
-      }
+      } catch (err) {}
     }
 
     async function saveDirectToTemp() {
       try {
-        const jsonStr = JSON.stringify(servers, null, 2);
-        let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-
+        const encrypted = buildDatabasePayloadString();
         if (!cachedFileHandle) {
           const options = {
             suggestedName: 'infops_backup.json',
-            types: [{
-              description: 'JSON Backup Files',
-              accept: { 'application/json': ['.json'] }
-            }]
+            types: [{ description: 'JSON Backup Files', accept: { 'application/json': ['.json'] } }]
           };
           cachedFileHandle = await window.showSaveFilePicker(options);
         }
-
         const writableStream = await cachedFileHandle.createWritable();
         await writableStream.write(encrypted);
         await writableStream.close();
-
         updateLastSavedTimestamp();
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          exportEncryptedJSON();
-        }
+        if (err.name !== 'AbortError') exportEncryptedJSON();
       }
     }
 
@@ -1066,6 +1313,8 @@ function notifyUser(msg, isError = false) {
       if (vCounter) vCounter.innerText = total;
 
       document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
+      const jobBadge = document.getElementById('veeamJobCatalogCount');
+      if (jobBadge) jobBadge.innerText = veeamJobs.length;
 
       document.querySelectorAll('.selectedCountBadge-el').forEach(el => {
         el.innerText = `${selectedServerNames.size} selected`;
@@ -1076,24 +1325,15 @@ function notifyUser(msg, isError = false) {
       globalSearchQuery = val.trim().toLowerCase();
       const matchCount = servers.filter(s => {
         if (!globalSearchQuery) return true;
-        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus}`.toLowerCase().includes(globalSearchQuery);
+        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob}`.toLowerCase().includes(globalSearchQuery);
       }).length;
       document.getElementById('globalSearchCount').innerText = matchCount;
-
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) {
-        const tabId = activeTab.id.replace('tabContent-', '');
-        if (tabId === 'canvas') renderTopologyCanvas();
-        else if (tabId === 'inventory') renderInventoryTable();
-        else if (tabId === 'waves') renderCutoverWavesTab();
-        else if (tabId === 'zerto') renderZertoTable();
-        else if (tabId === 'veeam') renderVeeamTable();
-      }
+      triggerActiveTabRender();
     }
 
     function toggleMultiSelectDropdown(filterKey, event) {
       event.stopPropagation();
-      document.querySelectorAll('[id^="drop-"]').forEach(el => {
+      document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => {
         if (el.id !== `drop-${filterKey}`) el.classList.add('hidden');
       });
       const box = document.getElementById(`drop-${filterKey}`);
@@ -1106,9 +1346,9 @@ function notifyUser(msg, isError = false) {
       }
     }
 
-    function closeAllMultiSelects(event) {
-      if (!event.target.closest('button') && !event.target.closest('[id^="drop-"]')) {
-        document.querySelectorAll('[id^="drop-"]').forEach(el => el.classList.add('hidden'));
+    function closeAllDropdowns(event) {
+      if (!event.target.closest('button') && !event.target.closest('[id^="drop-"]') && !event.target.closest('[id^="colVisDrop-"]')) {
+        document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => el.classList.add('hidden'));
       }
     }
 
@@ -1155,7 +1395,6 @@ function notifyUser(msg, isError = false) {
       const allOptions = getOptionsForFilter(filterKey);
       if (!multiFilters[filterKey]) multiFilters[filterKey] = new Set();
       const set = multiFilters[filterKey];
-
       const allSelected = set.size === 0 || allOptions.every(opt => set.has(opt));
 
       if (allSelected) {
@@ -1164,7 +1403,6 @@ function notifyUser(msg, isError = false) {
       } else {
         set.clear();
       }
-
       updateMultiSelectLabel(filterKey);
       populateMultiSelectContent(filterKey);
       triggerActiveTabRender();
@@ -1175,19 +1413,14 @@ function notifyUser(msg, isError = false) {
       const set = multiFilters[filterKey];
       const allOptions = getOptionsForFilter(filterKey);
 
-      if (set.size === 0) {
-        allOptions.forEach(o => set.add(o));
-      }
+      if (set.size === 0) allOptions.forEach(o => set.add(o));
       set.delete('__NONE_MATCH__');
 
       if (isChecked) set.add(val);
       else set.delete(val);
 
-      if (allOptions.every(opt => set.has(opt))) {
-        set.clear();
-      } else if (set.size === 0) {
-        set.add('__NONE_MATCH__');
-      }
+      if (allOptions.every(opt => set.has(opt))) set.clear();
+      else if (set.size === 0) set.add('__NONE_MATCH__');
 
       updateMultiSelectLabel(filterKey);
       const box = document.getElementById(`drop-${filterKey}`);
@@ -1198,7 +1431,6 @@ function notifyUser(msg, isError = false) {
           btn.innerText = allSelected ? "Clear All" : "Select All";
         }
       }
-
       triggerActiveTabRender();
     }
 
@@ -1206,15 +1438,10 @@ function notifyUser(msg, isError = false) {
       const set = multiFilters[filterKey];
       const lbl = document.getElementById(`lbl-${filterKey}`);
       if (!lbl) return;
-      if (!set || set.size === 0) {
-        lbl.innerText = "All";
-      } else if (set.has('__NONE_MATCH__')) {
-        lbl.innerText = "None";
-      } else if (set.size === 1) {
-        lbl.innerText = Array.from(set)[0];
-      } else {
-        lbl.innerText = `${set.size} selected`;
-      }
+      if (!set || set.size === 0) lbl.innerText = "All";
+      else if (set.has('__NONE_MATCH__')) lbl.innerText = "None";
+      else if (set.size === 1) lbl.innerText = Array.from(set)[0];
+      else lbl.innerText = `${set.size} selected`;
     }
 
     function triggerActiveTabRender() {
@@ -1258,7 +1485,7 @@ function notifyUser(msg, isError = false) {
 
       return baseList.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         const dom = s.domain || 'Becketts';
@@ -1274,7 +1501,7 @@ function notifyUser(msg, isError = false) {
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
 
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.vpg} ${s.veeamJob}`.toLowerCase();
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
         }
         return true;
@@ -1327,9 +1554,7 @@ function notifyUser(msg, isError = false) {
     }
 
     function deleteSelectedServers() {
-      if (selectedServerNames.size === 0) {
-        return notifyUser("Select at least one server first", true);
-      }
+      if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
       if (confirm(`Delete ${selectedServerNames.size} selected server(s)?`)) {
         servers = servers.filter(s => !selectedServerNames.has(s.serverName));
         selectedServerNames.clear();
@@ -1339,6 +1564,7 @@ function notifyUser(msg, isError = false) {
       }
     }
 
+    /* ================= INVENTORY TABLE ================= */
     function renderInventoryTable() {
       servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
       updateDropdownLabels();
@@ -1355,6 +1581,7 @@ function notifyUser(msg, isError = false) {
 
       const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
       const activeKeys = getColOrder('inventory', defaultKeys);
+      applyHeaderOrderAndVisibility('inventory', activeKeys);
 
       visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
@@ -1398,9 +1625,9 @@ function notifyUser(msg, isError = false) {
       return td;
     }
 
+    /* ================= TOPOLOGY & LINE LIST ================= */
     function getFilteredServers() {
       const showDeps = document.getElementById('filterShowDeps')?.checked ?? true;
-
       let primary = servers.filter(s => {
         if (globalSearchQuery) {
           const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet}`.toLowerCase();
@@ -1409,7 +1636,6 @@ function notifyUser(msg, isError = false) {
         const dom = s.domain || 'Becketts';
         const wv = s.wave || 'Unassigned';
         const sys = s.system || 'General';
-
         if (!matchesMultiFilter(dom, 'canvas-domain')) return false;
         if (!matchesMultiFilter(wv, 'canvas-wave')) return false;
         if (!matchesMultiFilter(sys, 'canvas-system')) return false;
@@ -1438,7 +1664,6 @@ function notifyUser(msg, isError = false) {
     function setTopologyLayoutMode(mode) {
       const snapBtn = document.getElementById('layoutBtnSnap');
       const clusterBtn = document.getElementById('layoutBtnCluster');
-
       if (mode === 'snap') {
         snapBtn.className = "px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold shadow ring-2 ring-amber-400 transition cursor-pointer";
         clusterBtn.className = "px-3 py-1.5 bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer";
@@ -1506,9 +1731,7 @@ function notifyUser(msg, isError = false) {
           <div class="flex items-center">
             <span class="font-bold text-cyan-400 text-xs truncate hover:underline" title="${s.serverName}">${s.serverName}</span>
           </div>
-          <div class="text-[10px] text-cyan-200 font-medium truncate">
-            ${s.system || 'General'}
-          </div>
+          <div class="text-[10px] text-cyan-200 font-medium truncate">${s.system || 'General'}</div>
           <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
             <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
             <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || 'INF'}</span>
@@ -1531,7 +1754,7 @@ function notifyUser(msg, isError = false) {
         document.onmousemove = function(ev) {
           ev.preventDefault();
           posX = mouseX - ev.clientX; posY = mouseY - ev.clientY;
-          mouseX = e.clientX; mouseY = e.clientY;
+          mouseX = ev.clientX; mouseY = ev.clientY;
           serverObj.x = Math.max(5, element.offsetLeft - posX);
           serverObj.y = Math.max(5, element.offsetTop - posY);
           element.style.left = serverObj.x + "px";
@@ -1606,9 +1829,7 @@ function notifyUser(msg, isError = false) {
         tierBuckets.get(tier).push(s);
       });
 
-      tierBuckets.forEach((arr) => {
-        arr.sort((a, b) => (a.visioOrder || 0) - (b.visioOrder || 0));
-      });
+      tierBuckets.forEach((arr) => arr.sort((a, b) => (a.visioOrder || 0) - (b.visioOrder || 0)));
 
       const totalLanes = Math.max(maxTier, 2);
       const tierMeta = {
@@ -1654,9 +1875,7 @@ function notifyUser(msg, isError = false) {
           <div class="flex justify-between items-center">
             <span class="font-bold text-cyan-300 text-xs truncate" title="${s.serverName}">${s.serverName}</span>
           </div>
-          <div class="text-xs text-slate-300 font-medium truncate">
-            ${s.system || 'General'}
-          </div>
+          <div class="text-xs text-slate-300 font-medium truncate">${s.system || 'General'}</div>
           <div class="pt-2 border-t border-slate-700/80 flex justify-between items-center text-xs font-mono">
             <span class="text-cyan-300">${s.ip || 'No IP'}</span>
             <span class="text-slate-400 font-sans font-semibold">${s.dept || 'INF'}</span>
@@ -1664,17 +1883,11 @@ function notifyUser(msg, isError = false) {
         </div>`;
     }
 
-    function onTreeCardDragStart(e, serverName) {
-      draggedTreeServerName = serverName;
-      e.dataTransfer.setData('text/plain', serverName);
-    }
-
+    function onTreeCardDragStart(e, serverName) { draggedTreeServerName = serverName; e.dataTransfer.setData('text/plain', serverName); }
     function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
     function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-
     function onTreeTierDrop(e, targetTierNum) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
+      e.preventDefault(); e.currentTarget.classList.remove('drag-over');
       const name = draggedTreeServerName || e.dataTransfer.getData('text/plain');
       const srv = servers.find(s => s.serverName === name);
       if (srv) {
@@ -1688,31 +1901,20 @@ function notifyUser(msg, isError = false) {
     }
 
     function onTreeNodeDragOver(e) {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       const rect = e.currentTarget.getBoundingClientRect();
-      const mid = rect.left + rect.width / 2;
-      if (e.clientX < mid) {
-        e.currentTarget.classList.add('card-drop-left');
-        e.currentTarget.classList.remove('card-drop-right');
+      if (e.clientX < rect.left + rect.width / 2) {
+        e.currentTarget.classList.add('card-drop-left'); e.currentTarget.classList.remove('card-drop-right');
       } else {
-        e.currentTarget.classList.add('card-drop-right');
-        e.currentTarget.classList.remove('card-drop-left');
+        e.currentTarget.classList.add('card-drop-right'); e.currentTarget.classList.remove('card-drop-left');
       }
     }
-
-    function onTreeNodeDragLeave(e) {
-      e.currentTarget.classList.remove('card-drop-left', 'card-drop-right');
-    }
-
+    function onTreeNodeDragLeave(e) { e.currentTarget.classList.remove('card-drop-left', 'card-drop-right'); }
     function onTreeNodeDrop(e, targetServerName) {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       e.currentTarget.classList.remove('card-drop-left', 'card-drop-right');
-
       const draggedName = draggedTreeServerName || e.dataTransfer.getData('text/plain');
       if (!draggedName || draggedName === targetServerName) return;
-
       const draggedSrv = servers.find(s => s.serverName === draggedName);
       const targetSrv = servers.find(s => s.serverName === targetServerName);
       if (!draggedSrv || !targetSrv) return;
@@ -1724,16 +1926,10 @@ function notifyUser(msg, isError = false) {
 
       let tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum && s.serverName !== draggedName);
       const targetIdx = tierServers.findIndex(s => s.serverName === targetServerName);
-
-      if (targetIdx !== -1) {
-        const insertIdx = insertBefore ? targetIdx : targetIdx + 1;
-        tierServers.splice(insertIdx, 0, draggedSrv);
-      } else {
-        tierServers.push(draggedSrv);
-      }
+      if (targetIdx !== -1) tierServers.splice(insertBefore ? targetIdx : targetIdx + 1, 0, draggedSrv);
+      else tierServers.push(draggedSrv);
 
       tierServers.forEach((s, idx) => { s.visioOrder = (idx + 1) * 10; });
-
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderVisioTreeView(getFilteredServers());
       draggedTreeServerName = null;
@@ -1781,23 +1977,32 @@ function notifyUser(msg, isError = false) {
       const tbody = document.getElementById('topologyListTbody');
       if (!tbody) return;
       tbody.innerHTML = '';
+
+      const defaultKeys = ['serverName', 'wave', 'dept', 'system', 'domain', 'ip', 'subnet', 'actions'];
+      const activeKeys = getColOrder('topoList', defaultKeys);
+      applyHeaderOrderAndVisibility('topoList', activeKeys);
+
       filtered.forEach(s => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-700/50 transition">
-            <td class="p-3 font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</td>
-            <td class="p-3 font-semibold text-cyan-300">${s.wave || 'Wave 1 - Pilot'}</td>
-            <td class="p-3 font-semibold text-amber-300">${s.dept || 'INF'}</td>
-            <td class="p-3 text-cyan-200">${s.system || 'General'}</td>
-            <td class="p-3 font-mono text-indigo-300">${s.domain || 'Becketts'}</td>
-            <td class="p-3 font-mono text-cyan-300">${s.ip || '-'}</td>
-            <td class="p-3 font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</td>
-            <td class="p-3 text-right">
-              <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer"><i class="fas fa-pen"></i></button>
-            </td>
-          </tr>`;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-700/50 transition";
+
+        const cellMap = {
+          serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
+          wave: createCell(`<span class="font-semibold text-cyan-300">${s.wave || 'Unassigned'}</span>`, "p-3"),
+          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || 'INF'}</span>`, "p-3"),
+          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
+          domain: createCell(`<span class="font-mono text-indigo-300">${s.domain || 'Becketts'}</span>`, "p-3"),
+          ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
+          subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
+          actions: createCell(`<button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer"><i class="fas fa-pen"></i></button>`, "p-3 text-right")
+        };
+
+        reorderTableHeaderAndRow('topoList', activeKeys, tr, cellMap);
+        tbody.appendChild(tr);
       });
     }
 
+    /* ================= MIGRATION TRACKER TAB ================= */
     function renderCutoverWavesTab() {
       updateDropdownLabels();
       updateGlobalCounters();
@@ -1829,8 +2034,9 @@ function notifyUser(msg, isError = false) {
         const selectAllEl = document.getElementById('wavesSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName','dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
+        const defaultKeys = ['select', 'serverName', 'dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
         const activeKeys = getColOrder('waves', defaultKeys);
+        applyHeaderOrderAndVisibility('waves', activeKeys);
 
         visibleList.forEach((s, idx) => {
           const status = s.cutoverStatus || 'Not Started';
@@ -1896,6 +2102,7 @@ function notifyUser(msg, isError = false) {
       notifyUser("Wave progress saved");
     }
 
+    /* ================= ZERTO DR TAB ================= */
     function renderZertoTable() {
       updateDropdownLabels();
       updateGlobalCounters();
@@ -1922,7 +2129,6 @@ function notifyUser(msg, isError = false) {
         });
 
         const visibleList = getFilteredTabServers('zerto', drBase);
-
         const matchBadge = document.getElementById('zertoFilteredMatchBadge');
         if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${drBase.length}`;
 
@@ -1930,17 +2136,17 @@ function notifyUser(msg, isError = false) {
         const selectAllEl = document.getElementById('zertoSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
+        const defaultKeys = ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'];
+        const activeKeys = getColOrder('zerto', defaultKeys);
+        applyHeaderOrderAndVisibility('zerto', activeKeys);
+
         if (visibleList.length === 0) {
           tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
           return;
         }
 
-        const defaultKeys = ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'];
-        const activeKeys = getColOrder('zerto', defaultKeys);
-
         visibleList.forEach((s, idx) => {
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
 
@@ -1950,8 +2156,8 @@ function notifyUser(msg, isError = false) {
             serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
             system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
             subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-            vpg: createCell(`<input type="text" id="dr-vpg-${idx}" value="${s.vpg || 'VPG-' + s.serverName}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            site: createCell(`<input type="text" id="dr-site-${idx}" value="${s.drSite || 'Harbor Solutions DRaaS'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
+            vpg: createCell(`<input type="text" id="dr-vpg-${idx}" value="${(s.vpg || 'VPG-' + s.serverName).replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
+            site: createCell(`<input type="text" id="dr-site-${idx}" value="${(s.drSite || 'Harbor Solutions DRaaS').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
             ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3")
           };
 
@@ -1980,9 +2186,112 @@ function notifyUser(msg, isError = false) {
       notifyUser("Zerto DR saved");
     }
 
+    /* ================= VEEAM JOB CATALOG & TABLE ================= */
+    function populateVeeamPresetSelect() {
+      const sel = document.getElementById('veeamPresetSelect');
+      if (!sel) return;
+      sel.innerHTML = veeamJobs.map((j, idx) => `<option value="${idx}">${j.name} (${j.schedule})</option>`).join('');
+    }
+
+    function openVeeamJobsModal() {
+      resetVeeamJobForm();
+      renderVeeamJobCatalogTable();
+      document.getElementById('veeamJobsModal').classList.remove('hidden');
+    }
+
+    function closeVeeamJobsModal() {
+      document.getElementById('veeamJobsModal').classList.add('hidden');
+      populateVeeamPresetSelect();
+      updateGlobalCounters();
+      renderVeeamTable();
+    }
+
+    function resetVeeamJobForm() {
+      document.getElementById('editVeeamJobIdx').value = '-1';
+      document.getElementById('vjName').value = '';
+      document.getElementById('vjType').value = 'VMware Backup';
+      document.getElementById('vjSchedule').value = '';
+      document.getElementById('vjSecondary').value = '';
+      document.getElementById('vjRetention').value = 30;
+    }
+
+    function saveVeeamJobTemplate() {
+      const name = document.getElementById('vjName').value.trim();
+      if (!name) return notifyUser("Job Name is required", true);
+      const jobObj = {
+        name: name,
+        type: document.getElementById('vjType').value,
+        schedule: document.getElementById('vjSchedule').value.trim() || 'Daily at 22:00',
+        secondary: document.getElementById('vjSecondary').value.trim() || 'None',
+        retention: parseInt(document.getElementById('vjRetention').value) || 30
+      };
+      const editIdx = parseInt(document.getElementById('editVeeamJobIdx').value);
+      if (editIdx >= 0 && editIdx < veeamJobs.length) veeamJobs[editIdx] = jobObj;
+      else veeamJobs.push(jobObj);
+
+      localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
+      resetVeeamJobForm();
+      renderVeeamJobCatalogTable();
+      populateVeeamPresetSelect();
+      updateGlobalCounters();
+      notifyUser("Veeam job profile saved");
+    }
+
+    function editVeeamJobTemplate(idx) {
+      const j = veeamJobs[idx];
+      if (!j) return;
+      document.getElementById('editVeeamJobIdx').value = idx;
+      document.getElementById('vjName').value = j.name;
+      document.getElementById('vjType').value = j.type || 'VMware Backup';
+      document.getElementById('vjSchedule').value = j.schedule || '';
+      document.getElementById('vjSecondary').value = j.secondary || '';
+      document.getElementById('vjRetention').value = j.retention || 30;
+    }
+
+    function deleteVeeamJobTemplate(idx) {
+      if (confirm(`Remove job "${veeamJobs[idx]?.name}" from catalog?`)) {
+        veeamJobs.splice(idx, 1);
+        localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
+        renderVeeamJobCatalogTable();
+        populateVeeamPresetSelect();
+        updateGlobalCounters();
+      }
+    }
+
+    function renderVeeamJobCatalogTable() {
+      const tbody = document.getElementById('veeamJobCatalogTbody');
+      if (!tbody) return;
+      tbody.innerHTML = veeamJobs.map((j, idx) => `
+        <tr class="hover:bg-slate-800/80">
+          <td class="p-3 font-bold text-cyan-300">${j.name}</td>
+          <td class="p-3 text-slate-300">${j.type}</td>
+          <td class="p-3 font-mono text-amber-300">${j.schedule}</td>
+          <td class="p-3 text-emerald-300">${j.secondary || 'None'}</td>
+          <td class="p-3 font-mono text-white">${j.retention}d</td>
+          <td class="p-3 text-right">
+            <button onclick="editVeeamJobTemplate(${idx})" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteVeeamJobTemplate(${idx})" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function onVeeamRowJobPick(idx, selectedJobName) {
+      const found = veeamJobs.find(j => j.name === selectedJobName);
+      if (found) {
+        const timeEl = document.getElementById(`veeam-time-${idx}`);
+        const secEl = document.getElementById(`veeam-sec-${idx}`);
+        const retEl = document.getElementById(`veeam-ret-${idx}`);
+        if (timeEl) timeEl.value = found.schedule;
+        if (secEl) secEl.value = found.secondary || 'None';
+        if (retEl) retEl.value = found.retention || 30;
+      }
+    }
+
     function renderVeeamTable() {
       updateDropdownLabels();
       updateGlobalCounters();
+      populateVeeamPresetSelect();
       const tbody = document.getElementById('veeamTableBody');
       if (tbody) {
         tbody.innerHTML = '';
@@ -1995,12 +2304,19 @@ function notifyUser(msg, isError = false) {
         const selectAllEl = document.getElementById('veeamSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamRetention'];
+        const defaultKeys = ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamSecondary', 'veeamRetention'];
         const activeKeys = getColOrder('veeam', defaultKeys);
+        applyHeaderOrderAndVisibility('veeam', activeKeys);
+
+        const jobDatalistHtml = `<datalist id="veeamJobCatalogDatalist">${veeamJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}"></option>`).join('')}</datalist>`;
+        if (!document.getElementById('veeamJobCatalogDatalist')) {
+          document.body.insertAdjacentHTML('beforeend', jobDatalistHtml);
+        } else {
+          document.getElementById('veeamJobCatalogDatalist').innerHTML = veeamJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}"></option>`).join('');
+        }
 
         visibleList.forEach((s, idx) => {
           const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
           tr.setAttribute('data-veeam-name', s.serverName);
@@ -2009,9 +2325,10 @@ function notifyUser(msg, isError = false) {
             select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
             serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
             system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            veeamJob: createCell(`<input type="text" id="veeam-job-${idx}" value="${s.veeamJob || 'Daily-App-Job'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            veeamTime: createCell(`<input type="text" id="veeam-time-${idx}" value="${s.veeamTime || '02:00 AM'}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-28 font-mono">`, "p-3"),
-            veeamRetention: createCell(`<input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-24 font-mono">`, "p-3")
+            veeamJob: createCell(`<input type="text" id="veeam-job-${idx}" list="veeamJobCatalogDatalist" onchange="onVeeamRowJobPick(${idx}, this.value)" value="${(s.veeamJob || 'Central Services - App and File Backup 01').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
+            veeamTime: createCell(`<input type="text" id="veeam-time-${idx}" value="${(s.veeamTime || 'Periodically every 6 Hours').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-full font-mono">`, "p-3"),
+            veeamSecondary: createCell(`<input type="text" id="veeam-sec-${idx}" value="${(s.veeamSecondary || 'CatalystCopy4_v2 (Daily 06:00)').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-300 text-xs w-full">`, "p-3"),
+            veeamRetention: createCell(`<input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-20 font-mono">`, "p-3")
           };
 
           reorderTableHeaderAndRow('veeam', activeKeys, tr, cellMap);
@@ -2022,25 +2339,21 @@ function notifyUser(msg, isError = false) {
 
     function applyVeeamPreset() {
       if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
-      const preset = document.getElementById('veeamPresetSelect').value;
-      let jobName = "Daily-App-Job", timeStr = "02:00 AM", retDays = 30;
-
-      if (preset === 'sql_90') {
-        jobName = "Core-SQL-Daily-Backup"; timeStr = "01:00 AM"; retDays = 90;
-      } else if (preset === 'weekly_14') {
-        jobName = "Weekly-Archive-Job"; timeStr = "Saturday 00:00"; retDays = 14;
-      }
+      const idx = parseInt(document.getElementById('veeamPresetSelect').value);
+      const job = veeamJobs[idx];
+      if (!job) return notifyUser("No job selected", true);
 
       servers.forEach(s => {
         if (selectedServerNames.has(s.serverName)) {
-          s.veeamJob = jobName;
-          s.veeamTime = timeStr;
-          s.veeamRetention = retDays;
+          s.veeamJob = job.name;
+          s.veeamTime = job.schedule;
+          s.veeamSecondary = job.secondary || 'None';
+          s.veeamRetention = job.retention || 30;
         }
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderVeeamTable();
-      notifyUser(`Applied ${preset} to ${selectedServerNames.size} server(s)`);
+      notifyUser(`Assigned "${job.name}" to ${selectedServerNames.size} server(s)`);
     }
 
     function toggleVeeamSelectAll(master) {
@@ -2055,12 +2368,14 @@ function notifyUser(msg, isError = false) {
       visibleList.forEach((s, idx) => {
         s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim();
         s.veeamTime = document.getElementById(`veeam-time-${idx}`)?.value.trim();
+        s.veeamSecondary = document.getElementById(`veeam-sec-${idx}`)?.value.trim();
         s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       notifyUser("Veeam settings saved");
     }
 
+    /* ================= CALCULATOR & HEALTH ================= */
     function renderCalculatorTab() {
       updateGlobalCounters();
       let totalDisk = 0;
@@ -2079,18 +2394,19 @@ function notifyUser(msg, isError = false) {
       document.getElementById('healthLogContainer').innerHTML = '<div class="p-4 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 font-semibold"><i class="fas fa-check-circle mr-2"></i>All IPs valid.</div>';
     }
 
+    /* ================= CSV IMPORT & EXPORT ================= */
     function parseCSVRow(row) {
       const result = []; let current = '', inQuotes = false;
       for (let i = 0; i < row.length; i++) {
         const ch = row[i];
-        if (ch === '"') { inQuotes = !inQuotes; }
+        if (ch === '"') inQuotes = !inQuotes;
         else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-        else { current += ch; }
+        else current += ch;
       }
       result.push(current.trim()); return result;
     }
 
-function previewCSVImport(e) {
+    function previewCSVImport(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
@@ -2134,7 +2450,6 @@ function previewCSVImport(e) {
         for (let i = headerRowIdx + 1; i < lines.length; i++) {
           const line = lines[i].trim(); if (!line) continue;
           const cols = parseCSVRow(line);
-
           const serverName = (idxServer !== -1 ? cols[idxServer] : cols[0]) || '';
           if (!serverName) continue;
 
@@ -2223,10 +2538,21 @@ function previewCSVImport(e) {
       reader.readAsText(file);
     }
 
+    function exportToCSV() {
+      let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus,VPG,DrTargetSite,VeeamJob,VeeamSchedule,VeeamSecondary,VeeamRetention\n";
+      servers.forEach(s => {
+        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}","${s.vpg||''}","${s.drSite||''}","${s.veeamJob||''}","${s.veeamTime||''}","${s.veeamSecondary||''}","${s.veeamRetention||30}"\n`;
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `inventory_export.csv`;
+      a.click();
+    }
+
+    /* ================= INDIVIDUAL & BULK SERVER MODALS ================= */
     function showDepSuggestions(val) {
       const box = document.getElementById('depSuggestionsDropdown');
       if (!box) return;
-
       const currentServer = (document.getElementById('modalServerName')?.value || '').trim().toLowerCase();
       const parts = val.split(',');
       const lastTerm = parts[parts.length - 1].trim().toLowerCase();
@@ -2234,17 +2560,12 @@ function previewCSVImport(e) {
 
       const matches = servers.filter(s => {
         const sNameLow = s.serverName.toLowerCase();
-        if (sNameLow === currentServer) return false;
-        if (alreadyAdded.has(sNameLow)) return false;
+        if (sNameLow === currentServer || alreadyAdded.has(sNameLow)) return false;
         if (!lastTerm) return true;
         return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
       }).slice(0, 20);
 
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
+      if (matches.length === 0) { box.classList.add('hidden'); return; }
       box.innerHTML = matches.map(s => `
         <div onmousedown="selectDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
              class="px-3 py-2 hover:bg-cyan-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
@@ -2278,11 +2599,7 @@ function previewCSVImport(e) {
       const field = document.getElementById('bulkField').value;
       const box = document.getElementById('bulkDepSuggestionsDropdown');
       if (!box) return;
-
-      if (field !== 'dependencies') {
-        box.classList.add('hidden');
-        return;
-      }
+      if (field !== 'dependencies') { box.classList.add('hidden'); return; }
 
       const parts = val.split(',');
       const lastTerm = parts[parts.length - 1].trim().toLowerCase();
@@ -2295,11 +2612,7 @@ function previewCSVImport(e) {
         return sNameLow.includes(lastTerm) || (s.ip || '').includes(lastTerm) || (s.system || '').toLowerCase().includes(lastTerm);
       }).slice(0, 20);
 
-      if (matches.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
-
+      if (matches.length === 0) { box.classList.add('hidden'); return; }
       box.innerHTML = matches.map(s => `
         <div onmousedown="selectBulkDepSuggestion('${s.serverName.replace(/'/g, "\\'")}')"
              class="px-3 py-2 hover:bg-amber-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
@@ -2350,11 +2663,13 @@ function previewCSVImport(e) {
         document.getElementById('modalIP').value = s.ip || '';
         document.getElementById('modalSubnet').value = s.subnet || calculateSubnet(s.ip || '');
         document.getElementById('modalDrStatus').value = s.drStatus || '';
+        document.getElementById('modalVpg').value = s.vpg || '';
+        document.getElementById('modalDrSite').value = s.drSite || '';
         document.getElementById('modalDependencies').value = s.dependencies || '';
       } else {
         document.getElementById('serverModalTitle').innerText = "Add New Server";
         document.getElementById('editOriginalName').value = '';
-        ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDrStatus','modalDependencies'].forEach(id => document.getElementById(id).value = '');
+        ['modalServerName','modalDept','modalSystem','modalIP','modalSubnet','modalDrStatus','modalVpg','modalDrSite','modalDependencies'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('modalDomain').value = 'Becketts';
         document.getElementById('modalOsFamily').value = 'Windows';
         document.getElementById('modalTotalDisk').value = 100;
@@ -2383,6 +2698,8 @@ function previewCSVImport(e) {
         ip: document.getElementById('modalIP').value.trim(),
         subnet: document.getElementById('modalSubnet').value.trim(),
         drStatus: document.getElementById('modalDrStatus').value.trim(),
+        vpg: document.getElementById('modalVpg').value.trim(),
+        drSite: document.getElementById('modalDrSite').value.trim(),
         dependencies: cleanDeps
       };
       if (!data.serverName) return notifyUser("Server Name is required", true);
@@ -2397,8 +2714,7 @@ function previewCSVImport(e) {
       servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeServerModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
+      triggerActiveTabRender();
     }
 
     function deleteServer(name) {
@@ -2423,6 +2739,14 @@ function previewCSVImport(e) {
         ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'].forEach(w => uniqueVals.add(w));
       } else if (field === 'drStatus') {
         ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
+      } else if (field === 'drSite') {
+        uniqueVals.add('Harbor Solutions DRaaS');
+      } else if (field === 'veeamJob') {
+        veeamJobs.forEach(j => uniqueVals.add(j.name));
+      } else if (field === 'veeamTime') {
+        veeamJobs.forEach(j => { if (j.schedule) uniqueVals.add(j.schedule); });
+      } else if (field === 'veeamSecondary') {
+        veeamJobs.forEach(j => { if (j.secondary) uniqueVals.add(j.secondary); });
       } else if (field === 'dependencies') {
         servers.forEach(s => { if (s.serverName) uniqueVals.add(s.serverName); });
       }
@@ -2468,31 +2792,26 @@ function previewCSVImport(e) {
         val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
       }
 
+      const matchedVeeamJob = field === 'veeamJob' ? veeamJobs.find(j => j.name === val) : null;
+
       servers.forEach(s => {
         if (selectedServerNames.has(s.serverName)) {
           if (field === 'totalDiskGB' || field === 'veeamRetention') {
             s[field] = parseInt(val) || 0;
           } else {
             s[field] = val;
+            if (matchedVeeamJob) {
+              s.veeamTime = matchedVeeamJob.schedule;
+              s.veeamSecondary = matchedVeeamJob.secondary || 'None';
+              s.veeamRetention = matchedVeeamJob.retention || 30;
+            }
           }
         }
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       closeBulkEditModal();
-      const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
-      if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
+      triggerActiveTabRender();
       notifyUser("Bulk update complete");
-    }
-
-    function exportToCSV() {
-      let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => {
-        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`;
-      });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-      a.download = `inventory_export.csv`;
-      a.click();
     }
 
     function openSettingsModal() {
@@ -2518,12 +2837,14 @@ function previewCSVImport(e) {
     }
 
     function exportEncryptedJSON() {
-      const jsonStr = JSON.stringify(servers, null, 2);
-      let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' })); a.download = `ca-migration-secure-backup.json`; a.click();
+      const encrypted = buildDatabasePayloadString();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' }));
+      a.download = `ca-migration-secure-backup.json`;
+      a.click();
     }
 
-function importEncryptedJSON(e) {
+    function importEncryptedJSON(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
@@ -2533,18 +2854,32 @@ function importEncryptedJSON(e) {
             const raw = content.replace("INFENC:", "");
             content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
           }
-          servers = JSON.parse(content);
+          const parsed = JSON.parse(content);
+          if (Array.isArray(parsed)) {
+            servers = parsed;
+          } else if (parsed && Array.isArray(parsed.servers)) {
+            servers = parsed.servers;
+            if (Array.isArray(parsed.veeamJobs)) {
+              veeamJobs = parsed.veeamJobs;
+              localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
+            }
+          }
           localStorage.setItem('infops_servers', JSON.stringify(servers));
-          renderInventoryTable();
+          triggerActiveTabRender();
+          updateGlobalCounters();
           notifyUser(`Loaded ${servers.length} servers`);
 
           showInfoPrompt(
             "Database Backup Loaded",
             file.name,
             `
-              <div class="flex justify-between py-1">
+              <div class="flex justify-between py-1 border-b border-slate-800">
                 <span class="text-slate-400">Total Devices Loaded:</span>
                 <span class="font-mono font-bold text-emerald-400">${servers.length}</span>
+              </div>
+              <div class="flex justify-between pt-1">
+                <span class="text-slate-400">Veeam Job Profiles:</span>
+                <span class="font-mono font-bold text-cyan-300">${veeamJobs.length}</span>
               </div>
             `
           );
@@ -2572,6 +2907,7 @@ function importEncryptedJSON(e) {
     document.addEventListener('DOMContentLoaded', () => {
       applySettings();
       verifyClientIP();
+      populateVeeamPresetSelect();
       renderInventoryTable();
       switchTab('inventory');
     });
