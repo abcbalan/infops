@@ -1,5 +1,5 @@
 <!-- 20261119 v80 - Works. Universal Column Visibility -->
-<!-- 20261119 v81v2 - Trying to Any-Column-in-Any-Tab Picker -->
+<!-- 20261119 v81v3 - Trying to Any-Column-in-Any-Tab Picker -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,7 +124,7 @@
             <button onclick="toggleColPickerDropdown('topoList', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove / Reorder Columns">
               <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colPickerDrop-topoList" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
+            <div id="colPickerDrop-topoList" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
 
           <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
@@ -189,7 +189,7 @@
             <button onclick="toggleColPickerDropdown('inventory', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
               <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colPickerDrop-inventory" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
+            <div id="colPickerDrop-inventory" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
           <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
@@ -274,7 +274,7 @@
               <button onclick="toggleColPickerDropdown('waves', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
                 <i class="fas fa-columns mr-1"></i> Columns
               </button>
-              <div id="colPickerDrop-waves" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
+              <div id="colPickerDrop-waves" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
             </div>
             <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
             <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
@@ -356,7 +356,7 @@
             <button onclick="toggleColPickerDropdown('zerto', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
               <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colPickerDrop-zerto" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
+            <div id="colPickerDrop-zerto" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
           <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
@@ -443,7 +443,7 @@
             <button onclick="toggleColPickerDropdown('veeam', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
               <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colPickerDrop-veeam" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
+            <div id="colPickerDrop-veeam" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
           <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <button onclick="openVeeamJobsModal()" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer">
@@ -944,20 +944,33 @@
       localStorage.setItem('infops_tab_active_cols_v81', JSON.stringify(tabActiveColumns));
     }
 
-    function toggleColPickerDropdown(tabName, event) {
-      event.stopPropagation();
-      document.querySelectorAll('[id^="drop-"], [id^="colPickerDrop-"]').forEach(el => {
-        if (el.id !== `colPickerDrop-${tabName}`) el.classList.add('hidden');
-      });
-      const box = document.getElementById(`colPickerDrop-${tabName}`);
-      if (!box) return;
-      if (box.classList.contains('hidden')) {
-        renderColPickerContent(tabName);
-        box.classList.remove('hidden');
-      } else {
-        box.classList.add('hidden');
+function toggleColPickerDropdown(tabName, event) {
+  event.stopPropagation();
+  document.querySelectorAll('[id^="drop-"], [id^="colPickerDrop-"]').forEach(el => {
+    if (el.id !== `colPickerDrop-${tabName}`) el.classList.add('hidden');
+  });
+  const box = document.getElementById(`colPickerDrop-${tabName}`);
+  if (!box) return;
+
+  if (box.classList.contains('hidden')) {
+    renderColPickerContent(tabName);
+    box.style.left = '0px';
+    box.style.right = 'auto';
+    box.classList.remove('hidden');
+
+    requestAnimationFrame(() => {
+      const rect = box.getBoundingClientRect();
+      const pad = 12;
+      if (rect.left < pad) {
+        box.style.left = `${(parseFloat(box.style.left) || 0) + (pad - rect.left)}px`;
+      } else if (rect.right > window.innerWidth - pad) {
+        box.style.left = `${(parseFloat(box.style.left) || 0) - (rect.right - (window.innerWidth - pad))}px`;
       }
-    }
+    });
+  } else {
+    box.classList.add('hidden');
+  }
+}
 
     function renderColPickerContent(tabName) {
       const box = document.getElementById(`colPickerDrop-${tabName}`);
