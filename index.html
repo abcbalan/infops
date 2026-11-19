@@ -1,4 +1,5 @@
 <!-- 20261119 v80 - Works. Universal Column Visibility -->
+<!-- 20261119 v81 - Trying to Any-Column-in-Any-Tab Picker -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,12 +119,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Column Visibility Picker for Line List -->
+          <!-- Universal Column Picker for Line List -->
           <div class="relative">
-            <button onclick="toggleColVisDropdown('topoList', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
-              <i class="fas fa-eye mr-1"></i> Columns
+            <button onclick="toggleColPickerDropdown('topoList', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove / Reorder Columns">
+              <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colVisDrop-topoList" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+            <div id="colPickerDrop-topoList" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
 
           <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
@@ -162,19 +163,10 @@
       </div>
 
       <div id="canvasListView" class="flex-1 bg-slate-900 hidden overflow-y-auto p-6">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-inner">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-x-auto shadow-inner">
           <table class="w-full text-left border-collapse text-xs" id="table-topoList">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
-              <tr id="thead-topoList">
-                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Server Name</th>
-                <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Migration Wave</th>
-                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Department</th>
-                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">System / App</th>
-                <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Domain</th>
-                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">IP Address</th>
-                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'topoList')">Subnet</th>
-                <th class="p-3 text-right" data-col-key="actions" draggable="false">Action</th>
-              </tr>
+              <tr id="thead-topoList"></tr>
             </thead>
             <tbody id="topologyListTbody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
@@ -190,16 +182,16 @@
             Server Inventory Matrix & Universal Bulk Edit
             <span id="inventoryCountBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-0.5 rounded-full font-mono">0 servers</span>
           </h2>
-          <p class="text-xs text-slate-400">Multi-select filters, drag column titles to re-order, or toggle visible columns.</p>
+          <p class="text-xs text-slate-400">Multi-select filters, drag column titles to re-order, or click Columns to add any field (DR Status, Dependencies, Veeam, etc.).</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
           <div class="relative">
-            <button onclick="toggleColVisDropdown('inventory', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
-              <i class="fas fa-eye mr-1"></i> Columns
+            <button onclick="toggleColPickerDropdown('inventory', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
+              <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colVisDrop-inventory" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+            <div id="colPickerDrop-inventory" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
-          <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order & Visibility"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+          <button onclick="resetTableOrder('inventory')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
             <i class="fas fa-edit"></i> Bulk Update 
             <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
@@ -255,24 +247,10 @@
       </div>
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
-        <div class="overflow-y-auto flex-1">
+        <div class="overflow-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-inventory">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700 z-10">
-              <tr id="thead-inventory">
-                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Server Name</th>
-                <th class="p-3" data-col-key="numCpu" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">CPU</th>
-                <th class="p-3" data-col-key="memoryGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">RAM (GB)</th>
-                <th class="p-3" data-col-key="totalDiskGB" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Total Disk (GB)</th>
-                <th class="p-3" data-col-key="osFamily" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">OS Family</th>
-                <th class="p-3" data-col-key="datastore" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Datastore</th>
-                <th class="p-3" data-col-key="domain" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Domain</th>
-                <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Department</th>
-                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">System / App</th>
-                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">IP Address</th>
-                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'inventory')">Subnet</th>
-                <th class="p-3 text-right" data-col-key="actions" draggable="false">Actions</th>
-              </tr>
+              <tr id="thead-inventory"></tr>
             </thead>
             <tbody id="inventoryTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
@@ -289,16 +267,16 @@
               Migration Tracker & Cutover Checklists
               <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
             </h2>
-            <p class="text-xs text-slate-400">Coordinate CS & BFL migration execution waves and verification checklists.</p>
+            <p class="text-xs text-slate-400">Coordinate CS & BFL migration execution waves, verification checklists, and custom columns.</p>
           </div>
           <div class="flex flex-wrap gap-2 items-center">
             <div class="relative">
-              <button onclick="toggleColVisDropdown('waves', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
-                <i class="fas fa-eye mr-1"></i> Columns
+              <button onclick="toggleColPickerDropdown('waves', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
+                <i class="fas fa-columns mr-1"></i> Columns
               </button>
-              <div id="colVisDrop-waves" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+              <div id="colPickerDrop-waves" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
             </div>
-            <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+            <button onclick="resetTableOrder('waves')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
             <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
               <i class="fas fa-edit"></i> Bulk Update 
               <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
@@ -351,23 +329,10 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="waveSummaryCards"></div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4 flex-1 flex flex-col overflow-hidden">
           <h3 class="font-bold text-white text-sm shrink-0">Server Cutover & Verification Matrix</h3>
-          <div class="overflow-x-auto flex-1">
+          <div class="overflow-auto flex-1">
             <table class="w-full text-left border-collapse text-xs" id="table-waves">
               <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-700 sticky top-0 z-10">
-                <tr id="thead-waves">
-                  <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="wavesSelectAll" onchange="toggleWavesSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                  <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Server Name</th>
-                  <th class="p-3" data-col-key="dept" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Department</th>
-                  <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">System</th>
-                  <th class="p-3" data-col-key="wave" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Migration Wave</th>
-                  <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">IP Address</th>
-                  <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Subnet</th>
-                  <th class="p-3" data-col-key="cutoverStatus" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Cutover Status</th>
-                  <th class="p-3 text-center" data-col-key="dns" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">DNS Updated</th>
-                  <th class="p-3 text-center" data-col-key="fw" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Firewall Rules</th>
-                  <th class="p-3 text-center" data-col-key="sync" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">Final Storage Sync</th>
-                  <th class="p-3 text-center" data-col-key="sign" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'waves')">App Sign-off</th>
-                </tr>
+                <tr id="thead-waves"></tr>
               </thead>
               <tbody id="wavesTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
             </table>
@@ -384,16 +349,16 @@
             Zerto Disaster Recovery (DR) Control Panel 
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles to re-order or hide columns.</p>
+          <p class="text-xs text-slate-400">Multi-select filtering for DR servers. Drag column titles or click Columns to add Total Disk (GB), CPU, RAM, Dependencies, etc.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
-            <button onclick="toggleColVisDropdown('zerto', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
-              <i class="fas fa-eye mr-1"></i> Columns
+            <button onclick="toggleColPickerDropdown('zerto', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
+              <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colVisDrop-zerto" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+            <div id="colPickerDrop-zerto" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
-          <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+          <button onclick="resetTableOrder('zerto')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
             <label class="text-xs text-slate-300 font-semibold">Sort By:</label>
             <select id="zertoSortMode" onchange="renderZertoTable()" class="bg-slate-900 text-cyan-300 text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none">
@@ -452,19 +417,10 @@
       </div>
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
-        <div class="overflow-y-auto flex-1">
+        <div class="overflow-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-zerto">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr id="thead-zerto">
-                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="zertoSelectAll" onchange="toggleZertoSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3" data-col-key="drStatus" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">DR Status</th>
-                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Server Name</th>
-                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">System / App</th>
-                <th class="p-3" data-col-key="subnet" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Subnet</th>
-                <th class="p-3" data-col-key="vpg" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">VPG Name</th>
-                <th class="p-3" data-col-key="site" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Target Site / Notes</th>
-                <th class="p-3" data-col-key="ip" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'zerto')">Current IP</th>
-              </tr>
+              <tr id="thead-zerto"></tr>
             </thead>
             <tbody id="zertoTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
@@ -480,16 +436,16 @@
             Veeam Backup Job & Retention Management
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Manage reusable Veeam backup jobs (periodic, chained, secondary copy) and assign to servers.</p>
+          <p class="text-xs text-slate-400">Manage reusable Veeam backup jobs (periodic, chained, secondary copy), assign to servers, and add any extra columns.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
-            <button onclick="toggleColVisDropdown('veeam', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Show/Hide Columns">
-              <i class="fas fa-eye mr-1"></i> Columns
+            <button onclick="toggleColPickerDropdown('veeam', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove Columns">
+              <i class="fas fa-columns mr-1"></i> Columns
             </button>
-            <div id="colVisDrop-veeam" class="absolute right-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-72 overflow-y-auto"></div>
+            <div id="colPickerDrop-veeam" class="absolute right-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden"></div>
           </div>
-          <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Column Order"><i class="fas fa-columns mr-1"></i> Reset Columns</button>
+          <button onclick="resetTableOrder('veeam')" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Reset Default Columns"><i class="fas fa-undo mr-1"></i> Reset Columns</button>
           <button onclick="openVeeamJobsModal()" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer">
             <i class="fas fa-tasks mr-1"></i> Manage Jobs (<span id="veeamJobCatalogCount">0</span>)
           </button>
@@ -548,18 +504,10 @@
       </div>
 
       <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-inner">
-        <div class="overflow-y-auto flex-1">
+        <div class="overflow-auto flex-1">
           <table class="w-full text-left border-collapse text-xs" id="table-veeam">
             <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
-              <tr id="thead-veeam">
-                <th class="p-3 w-10" data-col-key="select" draggable="false"><input type="checkbox" id="veeamSelectAll" onchange="toggleVeeamSelectAll(this)" class="rounded text-cyan-600 cursor-pointer"></th>
-                <th class="p-3" data-col-key="serverName" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Server Name</th>
-                <th class="p-3" data-col-key="system" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">System / App</th>
-                <th class="p-3" data-col-key="veeamJob" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Veeam Backup Job</th>
-                <th class="p-3" data-col-key="veeamTime" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Schedule / Trigger</th>
-                <th class="p-3" data-col-key="veeamSecondary" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Secondary Copy Target</th>
-                <th class="p-3" data-col-key="veeamRetention" draggable="true" ondragstart="onColDragStart(event)" ondragover="onColDragOver(event)" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event, 'veeam')">Retention (Days)</th>
-              </tr>
+              <tr id="thead-veeam"></tr>
             </thead>
             <tbody id="veeamTableBody" class="divide-y divide-slate-700 text-slate-200"></tbody>
           </table>
@@ -773,7 +721,6 @@
         <button onclick="closeVeeamJobsModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
       </div>
 
-      <!-- Add / Edit Job Form -->
       <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
         <input type="hidden" id="editVeeamJobIdx" value="-1">
         <div class="lg:col-span-2">
@@ -813,7 +760,6 @@
         </div>
       </div>
 
-      <!-- Saved Job Catalog List -->
       <div class="flex-1 overflow-y-auto border border-slate-700 rounded-xl bg-slate-900/50">
         <table class="w-full text-left border-collapse text-xs">
           <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
@@ -906,27 +852,27 @@
         type: "VMware Backup",
         schedule: "Periodically every 6 Hours",
         secondary: "CatalystCopy4_v2 (Daily 06:00)",
-        retention: 30
+        retention: 120
       },
       {
         name: "Central Services - App and File Backup 02",
         type: "VMware Backup",
-        schedule: "After: Central Services - App and File Backup 01",
+        schedule: "After CS App & File Backup 01",
         secondary: "CatalystCopy6 (Daily 06:00)",
-        retention: 30
+        retention: 120
       },
       {
         name: "Central Services - Failover Cluster",
         type: "Windows Agent Backup",
-        schedule: "Daily at 22:00",
-        secondary: "None",
-        retention: 30
+        schedule: "Periodically every 6 Hours",
+        secondary: "CatalystCopy7 (Daily 06:00)",
+        retention: 120
       },
       {
         name: "Central Services - SQL Backup",
         type: "VMware Backup",
-        schedule: "Daily at 01:00",
-        secondary: "CatalystCopy_SQL (Daily 06:00)",
+        schedule: "Periodically every 12 Hours",,
+        secondary: "CatalystCopy5 (After CS SQL Backup)",
         retention: 90
       }
     ];
@@ -941,35 +887,365 @@
       'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
     };
 
-    let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
-    let hiddenColumns = JSON.parse(localStorage.getItem('infops_hidden_cols') || '{}');
+    /* ================= UNIVERSAL MASTER COLUMN DEFINITIONS (ALL TABS) ================= */
+    const MASTER_COLUMNS = [
+      { key: 'select', label: 'Checkbox', group: 'Core', fixed: true },
+      { key: 'serverName', label: 'Server Name', group: 'Core' },
+      { key: 'dept', label: 'Department', group: 'Core' },
+      { key: 'system', label: 'System / App', group: 'Core' },
+      { key: 'domain', label: 'Domain', group: 'Core' },
+      { key: 'ip', label: 'IP Address', group: 'Network' },
+      { key: 'subnet', label: 'Subnet', group: 'Network' },
+      { key: 'dependencies', label: 'Upstream Dependencies', group: 'Topology' },
+      { key: 'visioTier', label: 'Visio Tier', group: 'Topology' },
+      { key: 'numCpu', label: 'CPU', group: 'Compute & Storage' },
+      { key: 'memoryGB', label: 'RAM (GB)', group: 'Compute & Storage' },
+      { key: 'totalDiskGB', label: 'Total Disk (GB)', group: 'Compute & Storage' },
+      { key: 'diskBreakdown', label: 'Disk Breakdown', group: 'Compute & Storage' },
+      { key: 'osFamily', label: 'OS Family', group: 'Compute & Storage' },
+      { key: 'datastore', label: 'Datastore', group: 'Compute & Storage' },
+      { key: 'drStatus', label: 'DR Status', group: 'Zerto DR' },
+      { key: 'vpg', label: 'VPG Name', group: 'Zerto DR' },
+      { key: 'site', label: 'Target Site / Notes', group: 'Zerto DR' },
+      { key: 'veeamJob', label: 'Veeam Backup Job', group: 'Veeam Backup' },
+      { key: 'veeamTime', label: 'Backup Schedule', group: 'Veeam Backup' },
+      { key: 'veeamSecondary', label: 'Secondary Copy Target', group: 'Veeam Backup' },
+      { key: 'veeamRetention', label: 'Retention (Days)', group: 'Veeam Backup' },
+      { key: 'wave', label: 'Migration Wave', group: 'Migration' },
+      { key: 'cutoverStatus', label: 'Cutover Status', group: 'Migration' },
+      { key: 'dns', label: 'DNS Updated', group: 'Migration', align: 'center' },
+      { key: 'fw', label: 'Firewall Rules', group: 'Migration', align: 'center' },
+      { key: 'sync', label: 'Final Storage Sync', group: 'Migration', align: 'center' },
+      { key: 'sign', label: 'App Sign-off', group: 'Migration', align: 'center' },
+      { key: 'actions', label: 'Actions', group: 'Core', fixed: true, align: 'right' }
+    ];
 
-    const TAB_COLUMN_META = {
-      topoList: {
-        serverName: 'Server Name', wave: 'Migration Wave', dept: 'Department',
-        system: 'System / App', domain: 'Domain', ip: 'IP Address', subnet: 'Subnet', actions: 'Action'
-      },
-      inventory: {
-        select: 'Checkbox', serverName: 'Server Name', numCpu: 'CPU', memoryGB: 'RAM (GB)',
-        totalDiskGB: 'Total Disk (GB)', osFamily: 'OS Family', datastore: 'Datastore',
-        domain: 'Domain', dept: 'Department', system: 'System / App', ip: 'IP Address',
-        subnet: 'Subnet', actions: 'Actions'
-      },
-      waves: {
-        select: 'Checkbox', serverName: 'Server Name', dept: 'Department', system: 'System',
-        wave: 'Migration Wave', ip: 'IP Address', subnet: 'Subnet', cutoverStatus: 'Cutover Status',
-        dns: 'DNS Updated', fw: 'Firewall Rules', sync: 'Final Storage Sync', sign: 'App Sign-off'
-      },
-      zerto: {
-        select: 'Checkbox', drStatus: 'DR Status', serverName: 'Server Name', system: 'System / App',
-        subnet: 'Subnet', vpg: 'VPG Name', site: 'Target Site / Notes', ip: 'Current IP'
-      },
-      veeam: {
-        select: 'Checkbox', serverName: 'Server Name', system: 'System / App',
-        veeamJob: 'Veeam Backup Job', veeamTime: 'Schedule / Trigger',
-        veeamSecondary: 'Secondary Copy Target', veeamRetention: 'Retention (Days)'
-      }
+    const DEFAULT_TAB_COLUMNS = {
+      topoList: ['serverName', 'wave', 'dept', 'system', 'domain', 'ip', 'subnet', 'actions'],
+      inventory: ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'],
+      waves: ['select', 'serverName', 'dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'],
+      zerto: ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'],
+      veeam: ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamSecondary', 'veeamRetention']
     };
+
+    // Stores exact ordered list of visible column keys per tab
+    let tabActiveColumns = JSON.parse(localStorage.getItem('infops_tab_active_cols_v81') || '{}');
+
+    function getTabColumns(tabName) {
+      if (Array.isArray(tabActiveColumns[tabName]) && tabActiveColumns[tabName].length > 0) {
+        const validKeys = new Set(MASTER_COLUMNS.map(c => c.key));
+        return tabActiveColumns[tabName].filter(k => validKeys.has(k));
+      }
+      return [...DEFAULT_TAB_COLUMNS[tabName]];
+    }
+
+    function saveTabColumns(tabName, cols) {
+      tabActiveColumns[tabName] = cols;
+      localStorage.setItem('infops_tab_active_cols_v81', JSON.stringify(tabActiveColumns));
+    }
+
+    function toggleColPickerDropdown(tabName, event) {
+      event.stopPropagation();
+      document.querySelectorAll('[id^="drop-"], [id^="colPickerDrop-"]').forEach(el => {
+        if (el.id !== `colPickerDrop-${tabName}`) el.classList.add('hidden');
+      });
+      const box = document.getElementById(`colPickerDrop-${tabName}`);
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        renderColPickerContent(tabName);
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function renderColPickerContent(tabName) {
+      const box = document.getElementById(`colPickerDrop-${tabName}`);
+      if (!box) return;
+      const activeCols = new Set(getTabColumns(tabName));
+
+      // Group columns by category for effortless scanning
+      const groups = {};
+      MASTER_COLUMNS.forEach(col => {
+        if (tabName === 'topoList' && col.key === 'select') return;
+        if (!groups[col.group]) groups[col.group] = [];
+        groups[col.group].push(col);
+      });
+
+      let html = `
+        <div class="flex justify-between items-center px-2 py-1.5 border-b border-slate-800 text-[11px] sticky top-0 bg-slate-950 z-10">
+          <span class="font-bold text-white">Add / Remove Columns</span>
+          <button onclick="resetTableOrder('${tabName}', event)" class="text-cyan-400 hover:underline font-semibold cursor-pointer">Reset Default</button>
+        </div>
+        <div class="max-h-80 overflow-y-auto p-1 space-y-2">
+      `;
+
+      Object.keys(groups).forEach(groupName => {
+        html += `<div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 pt-1">${groupName}</div>`;
+        groups[groupName].forEach(col => {
+          const checked = activeCols.has(col.key) ? 'checked' : '';
+          html += `
+            <label class="flex items-center space-x-2 px-2 py-1 hover:bg-slate-900 rounded cursor-pointer text-xs text-slate-200">
+              <input type="checkbox" ${checked} onchange="onToggleTabColumn('${tabName}', '${col.key}', this.checked)" class="rounded text-cyan-600 cursor-pointer">
+              <span class="truncate">${col.label}</span>
+            </label>
+          `;
+        });
+      });
+
+      html += `</div>`;
+      box.innerHTML = html;
+    }
+
+    function onToggleTabColumn(tabName, colKey, isEnabled) {
+      let cols = getTabColumns(tabName);
+      if (isEnabled) {
+        if (!cols.includes(colKey)) {
+          // Insert before 'actions' if 'actions' is at the end, otherwise append
+          const actionsIdx = cols.indexOf('actions');
+          if (actionsIdx !== -1 && actionsIdx === cols.length - 1) {
+            cols.splice(actionsIdx, 0, colKey);
+          } else {
+            cols.push(colKey);
+          }
+        }
+      } else {
+        if (cols.length <= 1) return notifyUser("At least one column must remain visible", true);
+        cols = cols.filter(k => k !== colKey);
+      }
+      saveTabColumns(tabName, cols);
+      reRenderTabByName(tabName);
+    }
+
+    function resetTableOrder(tabName, event = null) {
+      if (event) event.stopPropagation();
+      delete tabActiveColumns[tabName];
+      localStorage.setItem('infops_tab_active_cols_v81', JSON.stringify(tabActiveColumns));
+      const box = document.getElementById(`colPickerDrop-${tabName}`);
+      if (box && !box.classList.contains('hidden')) renderColPickerContent(tabName);
+      reRenderTabByName(tabName);
+      notifyUser(`Reset ${tabName} columns to default`);
+    }
+
+    function reRenderTabByName(tabName) {
+      if (tabName === 'inventory') renderInventoryTable();
+      else if (tabName === 'waves') renderCutoverWavesTab();
+      else if (tabName === 'zerto') renderZertoTable();
+      else if (tabName === 'veeam') renderVeeamTable();
+      else if (tabName === 'topoList') renderTopologyCanvas();
+    }
+
+    function onColDragStart(e) {
+      draggedColKey = e.currentTarget.getAttribute('data-col-key');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onColDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const th = e.currentTarget;
+      const rect = th.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+      if (e.clientX < mid) {
+        th.classList.add('drag-over-left');
+        th.classList.remove('drag-over-right');
+      } else {
+        th.classList.add('drag-over-right');
+        th.classList.remove('drag-over-left');
+      }
+    }
+
+    function onColDragLeave(e) {
+      const th = e.currentTarget;
+      th.classList.remove('drag-over-left', 'drag-over-right');
+    }
+
+    function onColDrop(e, tabName) {
+      e.preventDefault();
+      const targetTh = e.currentTarget;
+      targetTh.classList.remove('drag-over-left', 'drag-over-right');
+      const targetKey = targetTh.getAttribute('data-col-key');
+      if (!draggedColKey || draggedColKey === targetKey) return;
+
+      let cols = getTabColumns(tabName);
+      const fromIdx = cols.indexOf(draggedColKey);
+      const toIdx = cols.indexOf(targetKey);
+      if (fromIdx === -1 || toIdx === -1) return;
+
+      cols.splice(fromIdx, 1);
+      const newToIdx = cols.indexOf(targetKey);
+      const rect = targetTh.getBoundingClientRect();
+      const insertAt = e.clientX < rect.left + rect.width / 2 ? newToIdx : newToIdx + 1;
+      cols.splice(insertAt, 0, draggedColKey);
+
+      saveTabColumns(tabName, cols);
+      draggedColKey = null;
+      reRenderTabByName(tabName);
+    }
+
+    function renderDynamicTableHeader(tabName, cols) {
+      const theadTr = document.getElementById(`thead-${tabName}`);
+      if (!theadTr) return;
+      theadTr.innerHTML = '';
+
+      cols.forEach(colKey => {
+        const meta = MASTER_COLUMNS.find(c => c.key === colKey);
+        if (!meta) return;
+        const th = document.createElement('th');
+        th.setAttribute('data-col-key', colKey);
+
+        if (colKey === 'select') {
+          th.className = "p-3 w-10";
+          th.draggable = false;
+          const selectAllId = tabName === 'inventory' ? 'selectAllCheckbox' : `${tabName}SelectAll`;
+          const handlerFn = tabName === 'inventory' ? 'toggleSelectAll(this)' : (tabName === 'waves' ? 'toggleWavesSelectAll(this)' : (tabName === 'zerto' ? 'toggleZertoSelectAll(this)' : 'toggleVeeamSelectAll(this)'));
+          th.innerHTML = `<input type="checkbox" id="${selectAllId}" onchange="${handlerFn}" class="rounded text-cyan-600 cursor-pointer">`;
+        } else {
+          const alignClass = meta.align === 'center' ? 'text-center' : (meta.align === 'right' ? 'text-right' : '');
+          th.className = `p-3 ${alignClass}`;
+          if (!meta.fixed) {
+            th.draggable = true;
+            th.setAttribute('ondragstart', 'onColDragStart(event)');
+            th.setAttribute('ondragover', 'onColDragOver(event)');
+            th.setAttribute('ondragleave', 'onColDragLeave(event)');
+            th.setAttribute('ondrop', `onColDrop(event, '${tabName}')`);
+          }
+          th.textContent = meta.label;
+        }
+        theadTr.appendChild(th);
+      });
+    }
+
+    /* ================= UNIVERSAL CELL BUILDER FOR ANY COLUMN IN ANY TAB ================= */
+    function buildUniversalCell(tabName, colKey, s, rowIdx) {
+      const safeName = s.serverName.replace(/'/g, "\\'");
+      const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
+      const sDom = s.domain || 'Becketts';
+      const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
+      const cleanDs = cleanDatastoreString(s.datastore);
+
+      switch (colKey) {
+        case 'select':
+          return createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${safeName}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3");
+        case 'serverName':
+          return createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${safeName}')">${s.serverName}</span>`, "p-3");
+        case 'numCpu':
+          return createCell(`<span class="font-mono text-cyan-300 font-bold">${s.numCpu || 2}</span>`, "p-3");
+        case 'memoryGB':
+          return createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3");
+        case 'totalDiskGB':
+          return createCell(`<span class="font-mono text-cyan-400 font-bold">${s.totalDiskGB || 100} GB</span>`, "p-3");
+        case 'diskBreakdown':
+          return createCell(`<span class="font-mono text-slate-300 text-[11px] truncate max-w-[180px] block" title="${(s.diskBreakdown || '').replace(/"/g, '&quot;')}">${s.diskBreakdown || '-'}</span>`, "p-3");
+        case 'osFamily':
+          return createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${s.osFamily || 'Windows'}</span>`, "p-3");
+        case 'datastore':
+          return createCell(`<span class="text-slate-300 truncate max-w-[140px] block" title="${cleanDs}">${cleanDs}</span>`, "p-3");
+        case 'domain':
+          return createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3");
+        case 'dept':
+          return createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3");
+        case 'system':
+          return createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3");
+        case 'ip':
+          return createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3");
+        case 'subnet':
+          return createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3");
+        case 'dependencies':
+          return createCell(`<span class="font-mono text-cyan-300 text-[11px] truncate max-w-[180px] block" title="${(s.dependencies || '').replace(/"/g, '&quot;')}">${s.dependencies || '-'}</span>`, "p-3");
+        case 'visioTier':
+          return createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${s.visioTier || 'Auto'}</span>`, "p-3");
+        case 'drStatus': {
+          const st = (s.drStatus || '').trim();
+          const badgeClass = isValidDRServer(s) ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-slate-400 bg-slate-900 border-slate-700';
+          return createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${badgeClass}">${st || 'None'}</span>`, "p-3");
+        }
+        case 'vpg':
+          if (tabName === 'zerto') {
+            return createCell(`<input type="text" id="dr-vpg-${rowIdx}" value="${(s.vpg || 'VPG-' + s.serverName).replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3");
+          }
+          return createCell(`<span class="font-mono text-slate-300">${s.vpg || '-'}</span>`, "p-3");
+        case 'site':
+          if (tabName === 'zerto') {
+            return createCell(`<input type="text" id="dr-site-${rowIdx}" value="${(s.drSite || 'Harbor Solutions DRaaS').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3");
+          }
+          return createCell(`<span class="text-slate-300">${s.drSite || '-'}</span>`, "p-3");
+        case 'veeamJob':
+          if (tabName === 'veeam') {
+            return createCell(`<input type="text" id="veeam-job-${rowIdx}" list="veeamJobCatalogDatalist" onchange="onVeeamRowJobPick(${rowIdx}, this.value)" value="${(s.veeamJob || 'Central Services - App and File Backup 01').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3");
+          }
+          return createCell(`<span class="text-slate-200 truncate max-w-[180px] block" title="${(s.veeamJob || '').replace(/"/g, '&quot;')}">${s.veeamJob || '-'}</span>`, "p-3");
+        case 'veeamTime':
+          if (tabName === 'veeam') {
+            return createCell(`<input type="text" id="veeam-time-${rowIdx}" value="${(s.veeamTime || 'Periodically every 6 Hours').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-full font-mono">`, "p-3");
+          }
+          return createCell(`<span class="font-mono text-amber-300 text-[11px]">${s.veeamTime || '-'}</span>`, "p-3");
+        case 'veeamSecondary':
+          if (tabName === 'veeam') {
+            return createCell(`<input type="text" id="veeam-sec-${rowIdx}" value="${(s.veeamSecondary || 'CatalystCopy4_v2 (Daily 06:00)').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-300 text-xs w-full">`, "p-3");
+          }
+          return createCell(`<span class="text-emerald-300 text-[11px]">${s.veeamSecondary || '-'}</span>`, "p-3");
+        case 'veeamRetention':
+          if (tabName === 'veeam') {
+            return createCell(`<input type="number" id="veeam-ret-${rowIdx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-20 font-mono">`, "p-3");
+          }
+          return createCell(`<span class="font-mono text-slate-300">${s.veeamRetention ? s.veeamRetention + 'd' : '-'}</span>`, "p-3");
+        case 'wave': {
+          const wVal = s.wave || 'Unassigned';
+          if (tabName === 'waves') {
+            return createCell(`
+              <select id="wave-name-${rowIdx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
+                <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
+                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
+                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
+                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
+                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
+                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
+                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
+              </select>
+            `, "p-3");
+          }
+          return createCell(`<span class="font-semibold text-cyan-300">${wVal}</span>`, "p-3");
+        }
+        case 'cutoverStatus': {
+          const status = s.cutoverStatus || 'Not Started';
+          if (tabName === 'waves') {
+            return createCell(`<select id="wave-status-${rowIdx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select>`, "p-3");
+          }
+          const stColor = status === 'Migrated & Verified' ? 'text-emerald-400' : (status === 'Ready for Cutover' ? 'text-amber-300' : 'text-slate-400');
+          return createCell(`<span class="font-semibold ${stColor}">${status}</span>`, "p-3");
+        }
+        case 'dns':
+          if (tabName === 'waves') return createCell(`<input type="checkbox" id="chk-dns-${rowIdx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center");
+          return createCell(s.chkDNS ? '<i class="fas fa-check text-emerald-400"></i>' : '<span class="text-slate-600">-</span>', "p-3 text-center");
+        case 'fw':
+          if (tabName === 'waves') return createCell(`<input type="checkbox" id="chk-fw-${rowIdx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center");
+          return createCell(s.chkFW ? '<i class="fas fa-check text-emerald-400"></i>' : '<span class="text-slate-600">-</span>', "p-3 text-center");
+        case 'sync':
+          if (tabName === 'waves') return createCell(`<input type="checkbox" id="chk-sync-${rowIdx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center");
+          return createCell(s.chkSync ? '<i class="fas fa-check text-emerald-400"></i>' : '<span class="text-slate-600">-</span>', "p-3 text-center");
+        case 'sign':
+          if (tabName === 'waves') return createCell(`<input type="checkbox" id="chk-sign-${rowIdx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center");
+          return createCell(s.chkSign ? '<i class="fas fa-check text-emerald-400"></i>' : '<span class="text-slate-600">-</span>', "p-3 text-center");
+        case 'actions':
+          if (tabName === 'inventory') {
+            return createCell(`
+              <button onclick="editServer('${safeName}')" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer" title="Edit"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteServer('${safeName}')" class="text-red-400 hover:text-red-300 cursor-pointer" title="Delete"><i class="fas fa-trash"></i></button>
+            `, "p-3 text-right");
+          }
+          return createCell(`<button onclick="editServer('${safeName}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer" title="Edit"><i class="fas fa-pen"></i></button>`, "p-3 text-right");
+        default:
+          return createCell('-', "p-3");
+      }
+    }
+
+    function createCell(html, className) {
+      const td = document.createElement('td');
+      td.className = className;
+      td.innerHTML = html;
+      return td;
+    }
 
     function notifyUser(msg, isError = false) {
       if (isError) console.error(msg);
@@ -1005,173 +1281,6 @@
       document.getElementById('infoPromptModal').classList.add('hidden');
     }
 
-    /* ================= COLUMN ORDER & VISIBILITY ================= */
-    function isColHidden(tabName, colKey) {
-      return Array.isArray(hiddenColumns[tabName]) && hiddenColumns[tabName].includes(colKey);
-    }
-
-    function toggleColVisDropdown(tabName, event) {
-      event.stopPropagation();
-      document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => {
-        if (el.id !== `colVisDrop-${tabName}`) el.classList.add('hidden');
-      });
-      const box = document.getElementById(`colVisDrop-${tabName}`);
-      if (!box) return;
-      if (box.classList.contains('hidden')) {
-        renderColVisDropdownContent(tabName);
-        box.classList.remove('hidden');
-      } else {
-        box.classList.add('hidden');
-      }
-    }
-
-    function renderColVisDropdownContent(tabName) {
-      const box = document.getElementById(`colVisDrop-${tabName}`);
-      const meta = TAB_COLUMN_META[tabName] || {};
-      const keys = Object.keys(meta);
-      let html = `
-        <div class="flex justify-between items-center px-2 py-1 border-b border-slate-800 text-[11px]">
-          <span class="font-bold text-slate-300">Visible Columns</span>
-          <button onclick="showAllColumns('${tabName}', event)" class="text-cyan-400 hover:underline font-semibold cursor-pointer">Show All</button>
-        </div>
-      `;
-      keys.forEach(k => {
-        const checked = !isColHidden(tabName, k) ? 'checked' : '';
-        html += `
-          <label class="flex items-center space-x-2 px-2 py-1.5 hover:bg-slate-900 rounded cursor-pointer text-xs text-slate-200">
-            <input type="checkbox" ${checked} onchange="onToggleColVis('${tabName}', '${k}', this.checked)" class="rounded text-cyan-600">
-            <span class="truncate">${meta[k]}</span>
-          </label>
-        `;
-      });
-      box.innerHTML = html;
-    }
-
-    function onToggleColVis(tabName, colKey, isVisible) {
-      if (!hiddenColumns[tabName]) hiddenColumns[tabName] = [];
-      if (isVisible) {
-        hiddenColumns[tabName] = hiddenColumns[tabName].filter(k => k !== colKey);
-      } else {
-        if (!hiddenColumns[tabName].includes(colKey)) hiddenColumns[tabName].push(colKey);
-      }
-      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
-      reRenderTabByName(tabName);
-    }
-
-    function showAllColumns(tabName, event) {
-      event.stopPropagation();
-      delete hiddenColumns[tabName];
-      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
-      renderColVisDropdownContent(tabName);
-      reRenderTabByName(tabName);
-    }
-
-    function reRenderTabByName(tabName) {
-      if (tabName === 'inventory') renderInventoryTable();
-      else if (tabName === 'waves') renderCutoverWavesTab();
-      else if (tabName === 'zerto') renderZertoTable();
-      else if (tabName === 'veeam') renderVeeamTable();
-      else if (tabName === 'topoList') renderTopologyCanvas();
-    }
-
-    function getColOrder(tabName, defaultKeys) {
-      if (columnOrders[tabName]) {
-        const saved = columnOrders[tabName].filter(k => defaultKeys.includes(k));
-        const missing = defaultKeys.filter(k => !saved.includes(k));
-        return [...saved, ...missing];
-      }
-      return defaultKeys;
-    }
-
-    function onColDragStart(e) {
-      draggedColKey = e.currentTarget.getAttribute('data-col-key');
-      e.dataTransfer.effectAllowed = 'move';
-    }
-
-    function onColDragOver(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const th = e.currentTarget;
-      const rect = th.getBoundingClientRect();
-      const mid = rect.left + rect.width / 2;
-      if (e.clientX < mid) {
-        th.classList.add('drag-over-left');
-        th.classList.remove('drag-over-right');
-      } else {
-        th.classList.add('drag-over-right');
-        th.classList.remove('drag-over-left');
-      }
-    }
-
-    function onColDragLeave(e) {
-      const th = e.currentTarget;
-      th.classList.remove('drag-over-left', 'drag-over-right');
-    }
-
-    function onColDrop(e, tabName) {
-      e.preventDefault();
-      const targetTh = e.currentTarget;
-      targetTh.classList.remove('drag-over-left', 'drag-over-right');
-      const targetKey = targetTh.getAttribute('data-col-key');
-      if (!draggedColKey || draggedColKey === targetKey) return;
-
-      const defaultKeys = Object.keys(TAB_COLUMN_META[tabName] || {});
-      let keys = [...getColOrder(tabName, defaultKeys)];
-
-      const fromIdx = keys.indexOf(draggedColKey);
-      const toIdx = keys.indexOf(targetKey);
-      if (fromIdx === -1 || toIdx === -1) return;
-
-      keys.splice(fromIdx, 1);
-      const newToIdx = keys.indexOf(targetKey);
-      const rect = targetTh.getBoundingClientRect();
-      const insertAt = e.clientX < rect.left + rect.width / 2 ? newToIdx : newToIdx + 1;
-      keys.splice(insertAt, 0, draggedColKey);
-
-      columnOrders[tabName] = keys;
-      localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
-
-      draggedColKey = null;
-      reRenderTabByName(tabName);
-    }
-
-    function resetTableOrder(tabName) {
-      delete columnOrders[tabName];
-      delete hiddenColumns[tabName];
-      localStorage.setItem('infops_col_orders', JSON.stringify(columnOrders));
-      localStorage.setItem('infops_hidden_cols', JSON.stringify(hiddenColumns));
-      reRenderTabByName(tabName);
-      notifyUser(`Reset ${tabName} columns`);
-    }
-
-    function applyHeaderOrderAndVisibility(tabName, keys) {
-      const theadTr = document.getElementById(`thead-${tabName}`);
-      if (!theadTr) return;
-      const allThs = Array.from(theadTr.querySelectorAll('th[data-col-key]'));
-      const thMap = new Map();
-      allThs.forEach(th => thMap.set(th.getAttribute('data-col-key'), th));
-
-      theadTr.innerHTML = '';
-      keys.forEach(k => {
-        const th = thMap.get(k);
-        if (th) {
-          th.classList.toggle('hidden', isColHidden(tabName, k));
-          theadTr.appendChild(th);
-        }
-      });
-    }
-
-    function reorderTableHeaderAndRow(tabName, keys, trElement, cellMap) {
-      applyHeaderOrderAndVisibility(tabName, keys);
-      trElement.innerHTML = '';
-      keys.forEach(k => {
-        if (cellMap[k]) {
-          cellMap[k].classList.toggle('hidden', isColHidden(tabName, k));
-          trElement.appendChild(cellMap[k]);
-        }
-      });
-    }
-
     /* ================= LOCAL FILE SAVE & ENCRYPTION ================= */
     let cachedFileHandle = null;
 
@@ -1187,7 +1296,7 @@
 
     function buildDatabasePayloadString() {
       const payloadObj = {
-        version: 80,
+        version: 81,
         veeamJobs: veeamJobs,
         servers: servers
       };
@@ -1324,7 +1433,7 @@
       globalSearchQuery = val.trim().toLowerCase();
       const matchCount = servers.filter(s => {
         if (!globalSearchQuery) return true;
-        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob}`.toLowerCase().includes(globalSearchQuery);
+        return `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.dependencies}`.toLowerCase().includes(globalSearchQuery);
       }).length;
       document.getElementById('globalSearchCount').innerText = matchCount;
       triggerActiveTabRender();
@@ -1332,7 +1441,7 @@
 
     function toggleMultiSelectDropdown(filterKey, event) {
       event.stopPropagation();
-      document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => {
+      document.querySelectorAll('[id^="drop-"], [id^="colPickerDrop-"]').forEach(el => {
         if (el.id !== `drop-${filterKey}`) el.classList.add('hidden');
       });
       const box = document.getElementById(`drop-${filterKey}`);
@@ -1346,8 +1455,8 @@
     }
 
     function closeAllDropdowns(event) {
-      if (!event.target.closest('button') && !event.target.closest('[id^="drop-"]') && !event.target.closest('[id^="colVisDrop-"]')) {
-        document.querySelectorAll('[id^="drop-"], [id^="colVisDrop-"]').forEach(el => el.classList.add('hidden'));
+      if (!event.target.closest('button') && !event.target.closest('[id^="drop-"]') && !event.target.closest('[id^="colPickerDrop-"]')) {
+        document.querySelectorAll('[id^="drop-"], [id^="colPickerDrop-"]').forEach(el => el.classList.add('hidden'));
       }
     }
 
@@ -1484,7 +1593,7 @@
 
       return baseList.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         const dom = s.domain || 'Becketts';
@@ -1500,7 +1609,7 @@
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
 
         if (localQ) {
-          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary}`.toLowerCase();
+          const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
           if (!combinedLocal.includes(localQ)) return false;
         }
         return true;
@@ -1573,55 +1682,22 @@
       tbody.innerHTML = '';
 
       let visibleList = getFilteredTabServers('inv');
+      const cols = getTabColumns('inventory');
+      renderDynamicTableHeader('inventory', cols);
+
       const allVisibleSelected = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
       const selectAllEl = document.getElementById('selectAllCheckbox');
       if (selectAllEl) selectAllEl.checked = allVisibleSelected;
       document.getElementById('filteredMatchBadge').innerText = `Showing ${visibleList.length} of ${servers.length}`;
 
-      const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
-      const activeKeys = getColOrder('inventory', defaultKeys);
-      applyHeaderOrderAndVisibility('inventory', activeKeys);
-
-      visibleList.forEach(s => {
-        const sDom = s.domain || 'Becketts';
-        const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
-        const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-        const cleanDs = cleanDatastoreString(s.datastore);
-        const diskSize = s.totalDiskGB || 100;
-        const osFam = s.osFamily || 'Windows';
-
+      visibleList.forEach((s, idx) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-700/50 transition";
-
-        const cellMap = {
-          select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-          serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-          numCpu: createCell(`<span class="font-mono text-cyan-300 font-bold">${s.numCpu || 2}</span>`, "p-3"),
-          memoryGB: createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3"),
-          totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
-          osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
-          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),
-          domain: createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3"),
-          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
-          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-          ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
-          subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || 'Unassigned'}</span>`, "p-3"),
-          actions: createCell(`
-            <button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
-            <button onclick="deleteServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
-          `, "p-3 text-right")
-        };
-
-        reorderTableHeaderAndRow('inventory', activeKeys, tr, cellMap);
+        cols.forEach(colKey => {
+          tr.appendChild(buildUniversalCell('inventory', colKey, s, idx));
+        });
         tbody.appendChild(tr);
       });
-    }
-
-    function createCell(html, className) {
-      const td = document.createElement('td');
-      td.className = className;
-      td.innerHTML = html;
-      return td;
     }
 
     /* ================= TOPOLOGY & LINE LIST ================= */
@@ -1629,7 +1705,7 @@
       const showDeps = document.getElementById('filterShowDeps')?.checked ?? true;
       let primary = servers.filter(s => {
         if (globalSearchQuery) {
-          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet}`.toLowerCase();
+          const combined = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.dependencies}`.toLowerCase();
           if (!combined.includes(globalSearchQuery)) return false;
         }
         const dom = s.domain || 'Becketts';
@@ -1977,26 +2053,15 @@
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      const defaultKeys = ['serverName', 'wave', 'dept', 'system', 'domain', 'ip', 'subnet', 'actions'];
-      const activeKeys = getColOrder('topoList', defaultKeys);
-      applyHeaderOrderAndVisibility('topoList', activeKeys);
+      const cols = getTabColumns('topoList');
+      renderDynamicTableHeader('topoList', cols);
 
-      filtered.forEach(s => {
+      filtered.forEach((s, idx) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-700/50 transition";
-
-        const cellMap = {
-          serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-          wave: createCell(`<span class="font-semibold text-cyan-300">${s.wave || 'Unassigned'}</span>`, "p-3"),
-          dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || 'INF'}</span>`, "p-3"),
-          system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-          domain: createCell(`<span class="font-mono text-indigo-300">${s.domain || 'Becketts'}</span>`, "p-3"),
-          ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
-          subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-          actions: createCell(`<button onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')" class="text-cyan-400 hover:text-cyan-300 cursor-pointer"><i class="fas fa-pen"></i></button>`, "p-3 text-right")
-        };
-
-        reorderTableHeaderAndRow('topoList', activeKeys, tr, cellMap);
+        cols.forEach(colKey => {
+          tr.appendChild(buildUniversalCell('topoList', colKey, s, idx));
+        });
         tbody.appendChild(tr);
       });
     }
@@ -2029,49 +2094,20 @@
       const tbody = document.getElementById('wavesTableBody');
       if (tbody) {
         tbody.innerHTML = '';
+        const cols = getTabColumns('waves');
+        renderDynamicTableHeader('waves', cols);
+
         const allChecked = visibleList.length > 0 && visibleList.every(s => selectedServerNames.has(s.serverName));
         const selectAllEl = document.getElementById('wavesSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName', 'dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'];
-        const activeKeys = getColOrder('waves', defaultKeys);
-        applyHeaderOrderAndVisibility('waves', activeKeys);
-
         visibleList.forEach((s, idx) => {
-          const status = s.cutoverStatus || 'Not Started';
-          const wVal = s.wave || 'Unassigned';
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
-
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
           tr.setAttribute('data-wave-server', s.serverName);
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
-            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            wave: createCell(`
-              <select id="wave-name-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
-                <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
-                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
-                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
-                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
-                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
-                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
-                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
-              </select>
-            `, "p-3"),
-            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3"),
-            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-            cutoverStatus: createCell(`<select id="wave-status-${idx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="Not Started" ${status === 'Not Started' ? 'selected' : ''}>Not Started</option><option value="Ready for Cutover" ${status === 'Ready for Cutover' ? 'selected' : ''}>Ready for Cutover</option><option value="Migrated & Verified" ${status === 'Migrated & Verified' ? 'selected' : ''}>Migrated & Verified</option></select>`, "p-3"),
-            dns: createCell(`<input type="checkbox" id="chk-dns-${idx}" ${s.chkDNS ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            fw: createCell(`<input type="checkbox" id="chk-fw-${idx}" ${s.chkFW ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            sync: createCell(`<input type="checkbox" id="chk-sync-${idx}" ${s.chkSync ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center"),
-            sign: createCell(`<input type="checkbox" id="chk-sign-${idx}" ${s.chkSign ? 'checked' : ''} class="rounded text-cyan-600 cursor-pointer">`, "p-3 text-center")
-          };
-
-          reorderTableHeaderAndRow('waves', activeKeys, tr, cellMap);
+          cols.forEach(colKey => {
+            tr.appendChild(buildUniversalCell('waves', colKey, s, idx));
+          });
           tbody.appendChild(tr);
         });
       }
@@ -2091,10 +2127,14 @@
         const wStat = document.getElementById(`wave-status-${idx}`);
         if (wName) s.wave = wName.value;
         if (wStat) s.cutoverStatus = wStat.value;
-        s.chkDNS = document.getElementById(`chk-dns-${idx}`)?.checked || false;
-        s.chkFW = document.getElementById(`chk-fw-${idx}`)?.checked || false;
-        s.chkSync = document.getElementById(`chk-sync-${idx}`)?.checked || false;
-        s.chkSign = document.getElementById(`chk-sign-${idx}`)?.checked || false;
+        const elDns = document.getElementById(`chk-dns-${idx}`);
+        const elFw = document.getElementById(`chk-fw-${idx}`);
+        const elSync = document.getElementById(`chk-sync-${idx}`);
+        const elSign = document.getElementById(`chk-sign-${idx}`);
+        if (elDns) s.chkDNS = elDns.checked;
+        if (elFw) s.chkFW = elFw.checked;
+        if (elSync) s.chkSync = elSync.checked;
+        if (elSign) s.chkSign = elSign.checked;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderCutoverWavesTab();
@@ -2128,6 +2168,9 @@
         });
 
         const visibleList = getFilteredTabServers('zerto', drBase);
+        const cols = getTabColumns('zerto');
+        renderDynamicTableHeader('zerto', cols);
+
         const matchBadge = document.getElementById('zertoFilteredMatchBadge');
         if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${drBase.length}`;
 
@@ -2135,32 +2178,17 @@
         const selectAllEl = document.getElementById('zertoSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'];
-        const activeKeys = getColOrder('zerto', defaultKeys);
-        applyHeaderOrderAndVisibility('zerto', activeKeys);
-
         if (visibleList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="${cols.length}" class="p-6 text-center text-slate-400">No DR servers match the selected filters.</td></tr>`;
           return;
         }
 
         visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            drStatus: createCell(`<span class="font-mono font-bold text-amber-300">${s.drStatus}</span>`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            subnet: createCell(`<span class="font-mono text-slate-300">${s.subnet || calculateSubnet(s.ip)}</span>`, "p-3"),
-            vpg: createCell(`<input type="text" id="dr-vpg-${idx}" value="${(s.vpg || 'VPG-' + s.serverName).replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            site: createCell(`<input type="text" id="dr-site-${idx}" value="${(s.drSite || 'Harbor Solutions DRaaS').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            ip: createCell(`<span class="font-mono text-cyan-300">${s.ip || '-'}</span>`, "p-3")
-          };
-
-          reorderTableHeaderAndRow('zerto', activeKeys, tr, cellMap);
+          cols.forEach(colKey => {
+            tr.appendChild(buildUniversalCell('zerto', colKey, s, idx));
+          });
           tbody.appendChild(tr);
         });
       }
@@ -2178,8 +2206,10 @@
       const drBase = servers.filter(isValidDRServer);
       const visibleList = getFilteredTabServers('zerto', drBase);
       visibleList.forEach((s, idx) => {
-        s.vpg = document.getElementById(`dr-vpg-${idx}`)?.value.trim();
-        s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
+        const vpgEl = document.getElementById(`dr-vpg-${idx}`);
+        const siteEl = document.getElementById(`dr-site-${idx}`);
+        if (vpgEl) s.vpg = vpgEl.value.trim();
+        if (siteEl) s.drSite = siteEl.value.trim();
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       notifyUser("Zerto DR saved");
@@ -2295,6 +2325,8 @@
       if (tbody) {
         tbody.innerHTML = '';
         const visibleList = getFilteredTabServers('veeam');
+        const cols = getTabColumns('veeam');
+        renderDynamicTableHeader('veeam', cols);
 
         const matchBadge = document.getElementById('veeamFilteredMatchBadge');
         if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${servers.length}`;
@@ -2303,34 +2335,20 @@
         const selectAllEl = document.getElementById('veeamSelectAll');
         if (selectAllEl) selectAllEl.checked = allChecked;
 
-        const defaultKeys = ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamSecondary', 'veeamRetention'];
-        const activeKeys = getColOrder('veeam', defaultKeys);
-        applyHeaderOrderAndVisibility('veeam', activeKeys);
-
-        const jobDatalistHtml = `<datalist id="veeamJobCatalogDatalist">${veeamJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}"></option>`).join('')}</datalist>`;
+        const jobOptionsHtml = veeamJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}"></option>`).join('');
         if (!document.getElementById('veeamJobCatalogDatalist')) {
-          document.body.insertAdjacentHTML('beforeend', jobDatalistHtml);
+          document.body.insertAdjacentHTML('beforeend', `<datalist id="veeamJobCatalogDatalist">${jobOptionsHtml}</datalist>`);
         } else {
-          document.getElementById('veeamJobCatalogDatalist').innerHTML = veeamJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}"></option>`).join('');
+          document.getElementById('veeamJobCatalogDatalist').innerHTML = jobOptionsHtml;
         }
 
         visibleList.forEach((s, idx) => {
-          const isChecked = selectedServerNames.has(s.serverName) ? 'checked' : '';
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-700/50";
           tr.setAttribute('data-veeam-name', s.serverName);
-
-          const cellMap = {
-            select: createCell(`<input type="checkbox" ${isChecked} onchange="toggleServerSelection('${s.serverName.replace(/'/g, "\\'")}', this)" class="rounded text-cyan-600 cursor-pointer">`, "p-3"),
-            serverName: createCell(`<span class="font-bold text-white cursor-pointer hover:text-cyan-300" onclick="editServer('${s.serverName.replace(/'/g, "\\'")}')">${s.serverName}</span>`, "p-3"),
-            system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
-            veeamJob: createCell(`<input type="text" id="veeam-job-${idx}" list="veeamJobCatalogDatalist" onchange="onVeeamRowJobPick(${idx}, this.value)" value="${(s.veeamJob || 'Central Services - App and File Backup 01').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3"),
-            veeamTime: createCell(`<input type="text" id="veeam-time-${idx}" value="${(s.veeamTime || 'Periodically every 6 Hours').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-full font-mono">`, "p-3"),
-            veeamSecondary: createCell(`<input type="text" id="veeam-sec-${idx}" value="${(s.veeamSecondary || 'CatalystCopy4_v2 (Daily 06:00)').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-300 text-xs w-full">`, "p-3"),
-            veeamRetention: createCell(`<input type="number" id="veeam-ret-${idx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-20 font-mono">`, "p-3")
-          };
-
-          reorderTableHeaderAndRow('veeam', activeKeys, tr, cellMap);
+          cols.forEach(colKey => {
+            tr.appendChild(buildUniversalCell('veeam', colKey, s, idx));
+          });
           tbody.appendChild(tr);
         });
       }
@@ -2365,10 +2383,14 @@
     function saveVeeamChanges() {
       const visibleList = getFilteredTabServers('veeam');
       visibleList.forEach((s, idx) => {
-        s.veeamJob = document.getElementById(`veeam-job-${idx}`)?.value.trim();
-        s.veeamTime = document.getElementById(`veeam-time-${idx}`)?.value.trim();
-        s.veeamSecondary = document.getElementById(`veeam-sec-${idx}`)?.value.trim();
-        s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
+        const jobEl = document.getElementById(`veeam-job-${idx}`);
+        const timeEl = document.getElementById(`veeam-time-${idx}`);
+        const secEl = document.getElementById(`veeam-sec-${idx}`);
+        const retEl = document.getElementById(`veeam-ret-${idx}`);
+        if (jobEl) s.veeamJob = jobEl.value.trim();
+        if (timeEl) s.veeamTime = timeEl.value.trim();
+        if (secEl) s.veeamSecondary = secEl.value.trim();
+        if (retEl) s.veeamRetention = parseInt(retEl.value) || 30;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       notifyUser("Veeam settings saved");
@@ -2538,9 +2560,9 @@
     }
 
     function exportToCSV() {
-      let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus,VPG,DrTargetSite,VeeamJob,VeeamSchedule,VeeamSecondary,VeeamRetention\n";
+      let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus,VPG,DrTargetSite,VeeamJob,VeeamSchedule,VeeamSecondary,VeeamRetention,Dependencies\n";
       servers.forEach(s => {
-        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}","${s.vpg||''}","${s.drSite||''}","${s.veeamJob||''}","${s.veeamTime||''}","${s.veeamSecondary||''}","${s.veeamRetention||30}"\n`;
+        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}","${s.vpg||''}","${s.drSite||''}","${s.veeamJob||''}","${s.veeamTime||''}","${s.veeamSecondary||''}","${s.veeamRetention||30}","${s.dependencies||''}"\n`;
       });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
