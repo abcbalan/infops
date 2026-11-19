@@ -1,4 +1,5 @@
 <!-- 20261118 v78 - Works. Fixed top slide bar scale -->
+<!-- 20261119 v79 - Trying to add back upload how many device --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -757,6 +758,25 @@
     </div>
   </div>
 
+<!-- CUSTOM IMPORT / INFO MODAL (No browser domain header) -->
+  <div id="infoPromptModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
+    <div class="bg-slate-800 w-full max-w-md rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center gap-3 border-b border-slate-700 pb-3">
+        <div id="infoPromptIcon" class="w-9 h-9 rounded-xl bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center shrink-0">
+          <i class="fas fa-check-circle text-base"></i>
+        </div>
+        <div>
+          <h3 id="infoPromptTitle" class="font-bold text-white text-sm">Import Complete</h3>
+          <p id="infoPromptSubtitle" class="text-[11px] text-slate-400">Summary of imported records</p>
+        </div>
+      </div>
+      <div id="infoPromptBody" class="text-xs text-slate-200 space-y-2 bg-slate-900/80 border border-slate-700/80 rounded-xl p-4"></div>
+      <div class="flex justify-end">
+        <button onclick="closeInfoPrompt()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow cursor-pointer">OK</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- SCRIPT LOGIC -->
 <script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
@@ -778,7 +798,7 @@
 
     let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
 
-    function notifyUser(msg, isError = false) {
+function notifyUser(msg, isError = false) {
       if (isError) console.error(msg);
       else console.log(msg);
       const badge = document.getElementById('lastSavedBadge');
@@ -791,6 +811,30 @@
       }
     }
 
+    // Paste showInfoPrompt and closeInfoPrompt right here:
+    function showInfoPrompt(title, subtitle, bodyHtml, isError = false) {
+      const modal = document.getElementById('infoPromptModal');
+      const iconBox = document.getElementById('infoPromptIcon');
+      document.getElementById('infoPromptTitle').innerText = title;
+      document.getElementById('infoPromptSubtitle').innerText = subtitle;
+      document.getElementById('infoPromptBody').innerHTML = bodyHtml;
+
+      if (isError) {
+        iconBox.className = "w-9 h-9 rounded-xl bg-red-950 border border-red-700 text-red-400 flex items-center justify-center shrink-0";
+        iconBox.innerHTML = '<i class="fas fa-exclamation-triangle text-base"></i>';
+      } else {
+        iconBox.className = "w-9 h-9 rounded-xl bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center shrink-0";
+        iconBox.innerHTML = '<i class="fas fa-check-circle text-base"></i>';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeInfoPrompt() {
+      document.getElementById('infoPromptModal').classList.add('hidden');
+    }
+
+
+  
     function getColOrder(tabName, defaultKeys) {
       if (columnOrders[tabName]) return columnOrders[tabName];
       return defaultKeys;
@@ -2047,7 +2091,7 @@
       result.push(current.trim()); return result;
     }
 
-    function previewCSVImport(e) {
+function previewCSVImport(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
@@ -2085,6 +2129,8 @@
         const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
 
         let importedCount = 0;
+        let addedCount = 0;
+        let updatedCount = 0;
 
         for (let i = headerRowIdx + 1; i < lines.length; i++) {
           const line = lines[i].trim(); if (!line) continue;
@@ -2125,6 +2171,7 @@
               cutoverStatus: 'Not Started',
               dependencies: ''
             });
+            addedCount++;
           } else {
             const s = servers[existingIdx];
             if (domainVal) s.domain = domainVal;
@@ -2140,6 +2187,7 @@
             if (!isNaN(diskVal)) s.totalDiskGB = diskVal;
             if (dsVal) s.datastore = dsVal;
             if (waveVal) s.wave = waveVal;
+            updatedCount++;
           }
           importedCount++;
         }
@@ -2148,6 +2196,29 @@
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
         notifyUser(`Imported ${importedCount} CSV rows`);
+
+        showInfoPrompt(
+          "CSV Import Complete",
+          file.name,
+          `
+            <div class="flex justify-between py-1 border-b border-slate-800">
+              <span class="text-slate-400">Total Devices Processed:</span>
+              <span class="font-mono font-bold text-cyan-300">${importedCount}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-800">
+              <span class="text-slate-400">New Devices Added:</span>
+              <span class="font-mono font-bold text-emerald-400">${addedCount}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-800">
+              <span class="text-slate-400">Existing Devices Updated:</span>
+              <span class="font-mono font-bold text-amber-300">${updatedCount}</span>
+            </div>
+            <div class="flex justify-between pt-1">
+              <span class="text-slate-400">Total Inventory Count:</span>
+              <span class="font-mono font-bold text-white">${servers.length}</span>
+            </div>
+          `
+        );
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -2453,7 +2524,7 @@
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([encrypted], { type: 'application/json' })); a.download = `ca-migration-secure-backup.json`; a.click();
     }
 
-    function importEncryptedJSON(e) {
+function importEncryptedJSON(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
@@ -2467,9 +2538,27 @@
           localStorage.setItem('infops_servers', JSON.stringify(servers));
           renderInventoryTable();
           notifyUser(`Loaded ${servers.length} servers`);
+
+          showInfoPrompt(
+            "Database Backup Loaded",
+            file.name,
+            `
+              <div class="flex justify-between py-1">
+                <span class="text-slate-400">Total Devices Loaded:</span>
+                <span class="font-mono font-bold text-emerald-400">${servers.length}</span>
+              </div>
+            `
+          );
         } catch (err) {
           notifyUser("Decryption failed", true);
+          showInfoPrompt(
+            "Import Failed",
+            file.name,
+            `<p class="text-red-300">Could not decrypt or parse this JSON file. Check your encryption passphrase and try again.</p>`,
+            true
+          );
         }
+        e.target.value = '';
       };
       reader.readAsText(file);
     }
