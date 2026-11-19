@@ -1,4 +1,5 @@
 <!-- 20261118 v77 - Works. Change save DB location -->
+<!-- 20261118 v27 - Trying to fix top slide bar scale -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,64 +27,61 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col overflow-hidden" onclick="closeAllMultiSelects(event)">
 
-  <!-- TOP HEADER NAVBAR -->
-  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 shadow-md gap-4 relative z-50 pointer-events-auto">
-    <div class="flex items-center space-x-3 shrink-0 pointer-events-auto">
-      <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50">
+<!-- TOP HEADER NAVBAR -->
+  <header class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0 shadow-md relative z-50 pointer-events-auto">
+    <div class="flex items-center space-x-2.5 min-w-0 pointer-events-auto">
+      <div class="w-9 h-9 rounded-xl bg-cyan-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-900/50 shrink-0">
         <i class="fas fa-network-wired"></i>
       </div>
-      <div>
-        <h1 class="font-extrabold text-lg text-white tracking-wide flex items-center gap-2">
+      <div class="min-w-0">
+        <h1 class="font-extrabold text-base sm:text-lg text-white tracking-wide flex items-center gap-2 truncate">
           <span id="brandName">InfOps</span> 
-          <span id="brandBadge" class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium">CS Infra Hub</span>
+          <span id="brandBadge" class="text-[10px] sm:text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-medium shrink-0">CS Infra Hub</span>
         </h1>
-        <p id="brandSubtitle" class="text-xs text-slate-400">Multi-Domain Migration / Zerto DR / Veeam Backup / Migration Tracker</p>
+        <p id="brandSubtitle" class="text-xs text-slate-400 hidden"></p>
       </div>
     </div>
 
     <!-- UNIVERSAL GLOBAL SEARCH -->
-    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 w-64 md:w-80 shadow-inner pointer-events-auto">
-      <i class="fas fa-search text-slate-400 mr-2 text-xs"></i>
-      <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere..." class="bg-transparent text-xs text-white focus:outline-none w-full">
-      <span id="globalSearchCount" class="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded ml-1 font-mono">0</span>
+    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 w-full sm:w-44 md:w-60 lg:w-72 min-w-0 shadow-inner pointer-events-auto order-3 lg:order-2">
+      <i class="fas fa-search text-slate-400 mr-2 text-xs shrink-0"></i>
+      <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Global search anywhere..." class="bg-transparent text-xs text-white focus:outline-none w-full min-w-0">
+      <span id="globalSearchCount" class="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded ml-1 font-mono shrink-0">0</span>
     </div>
 
     <!-- NAV TABS -->
-    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 overflow-x-auto shrink-0 pointer-events-auto">
-      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow shrink-0 cursor-pointer">
+    <div class="flex flex-wrap items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700 min-w-0 pointer-events-auto order-4 xl:order-3 w-full xl:w-auto justify-start xl:justify-center">
+      <button onclick="switchTab('canvas')" id="tabBtn-canvas" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white transition shadow cursor-pointer">
         <i class="fas fa-draw-polygon mr-1"></i> Topology <span id="counter-canvas" class="ml-1 bg-cyan-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-server mr-1"></i> Inventory <span id="counter-inventory" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('waves')" id="tabBtn-waves" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-flag-checkered mr-1"></i> Migration Tracker <span id="counter-waves" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('zerto')" id="tabBtn-zerto" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-shield-alt mr-1"></i> Zerto DR <span id="counter-zerto" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('veeam')" id="tabBtn-veeam" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-database mr-1"></i> Veeam <span id="counter-veeam" class="ml-1 bg-slate-700 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
       </button>
-      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-calculator mr-1"></i> Calc
       </button>
-      <button onclick="switchTab('health')" id="tabBtn-health" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0 cursor-pointer">
+      <button onclick="switchTab('health')" id="tabBtn-health" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
         <i class="fas fa-stethoscope mr-1"></i> Health
       </button>
     </div>
 
-<!-- UTILITY ACTIONS -->
-    <div class="flex items-center space-x-2 shrink-0 pointer-events-auto">
-      <!-- Last Saved Timestamp Badge -->
-      <span id="lastSavedBadge" class="text-[10px] bg-slate-900 text-slate-400 border border-slate-700 px-2 py-1 rounded-lg font-mono hidden md:inline-block">Not Saved Yet</span>
+    <!-- UTILITY ACTIONS -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 pointer-events-auto order-2 lg:order-4">
+      <span id="lastSavedBadge" class="text-[10px] bg-slate-900 text-slate-400 border border-slate-700 px-2 py-1 rounded-lg font-mono hidden 2xl:inline-block">Not Saved Yet</span>
 
       <button onclick="openSettingsModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 border border-slate-600 transition cursor-pointer" title="Settings"><i class="fas fa-cog"></i></button>
       <button onclick="openEncryptionModal()" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-cyan-300 border border-cyan-800 transition cursor-pointer" title="Encryption Key"><i class="fas fa-key"></i></button>
       <label class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-amber-300 border border-amber-800/60 cursor-pointer transition" title="Import JSON"><i class="fas fa-upload"></i><input type="file" accept=".json" class="hidden" onchange="importEncryptedJSON(event)"></label>
-      
-      <!-- Dynamic Save File Button -->
-      <button onclick="saveDirectToTemp()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded-lg text-xs font-semibold text-white transition shadow cursor-pointer" title="Save directly to your chosen file location"><i class="fas fa-save"></i> Save Local DB</button>
+      <button onclick="saveDirectToTemp()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded-lg text-xs font-semibold text-white transition shadow cursor-pointer" title="Save directly to your chosen file location"><i class="fas fa-save"></i> <span class="hidden sm:inline">Save Local DB</span></button>
     </div>
   </header>
   
@@ -730,7 +728,7 @@
       <h3 class="font-bold text-white text-sm border-b border-slate-700 pb-2">Project Settings</h3>
       <div class="flex flex-col gap-3 text-xs">
         <div><label class="font-semibold text-slate-300 mb-1 block">App Name:</label><input type="text" id="settingsBrandName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="InfOps"></div>
-        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Multi-Domain Migration / Zerto DR / Veeam Backup"></div>
+        <div><label class="font-semibold text-slate-300 mb-1 block">Subtitle:</label><input type="text" id="settingsSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value=""></div>
         
         <!-- Local Save Location Picker -->
         <div class="pt-2 border-t border-slate-700/80">
@@ -740,7 +738,6 @@
             <button onclick="reselectSaveLocation()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-xl text-xs font-semibold cursor-pointer whitespace-nowrap"><i class="fas fa-folder-open mr-1"></i> Browse...</button>
           </div>
         </div>
-
       </div>
       <div class="flex gap-2 justify-end mt-2">
         <button onclick="closeSettingsModal()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Cancel</button>
@@ -762,9 +759,9 @@
   </div>
 
   <!-- SCRIPT LOGIC -->
-  <script>
+<script>
     let ENCRYPTION_KEY = localStorage.getItem('infops_secret') || 'InfOpsSecure2026!';
-    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "Multi-Domain Migration / Zerto DR / Veeam Backup" }));
+    let appSettings = JSON.parse(localStorage.getItem('infops_settings') || JSON.stringify({ brandName: "InfOps", subtitle: "" }));
     const ALLOWED_IPS = ["89.38.120.106", "89.38.120.110","81.105.235.139"];
     let selectedServerNames = new Set();
     let currentTopoMode = 'visual';
@@ -781,6 +778,19 @@
     };
 
     let columnOrders = JSON.parse(localStorage.getItem('infops_col_orders') || '{}');
+
+    function notifyUser(msg, isError = false) {
+      if (isError) console.error(msg);
+      else console.log(msg);
+      const badge = document.getElementById('lastSavedBadge');
+      if (badge) {
+        badge.innerText = msg;
+        badge.classList.remove('hidden');
+        badge.className = isError
+          ? "text-[10px] bg-red-950 text-red-300 border border-red-800 px-2 py-1 rounded-lg font-mono inline-block"
+          : "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono inline-block";
+      }
+    }
 
     function getColOrder(tabName, defaultKeys) {
       if (columnOrders[tabName]) return columnOrders[tabName];
@@ -871,27 +881,21 @@
       });
     }
 
-let cachedFileHandle = null;
+    let cachedFileHandle = null;
 
-// --- TIMESTAMP BADGE HELPER ---
     function updateLastSavedTimestamp() {
       const badge = document.getElementById('lastSavedBadge');
       if (!badge) return;
       const now = new Date();
       const dateStr = now.toLocaleDateString();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
       badge.innerText = `Last Saved: ${dateStr} ${timeStr}`;
-      badge.className = "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono hidden md:inline-block";
+      badge.className = "text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg font-mono inline-block";
     }
 
-// --- AUTO-SAVE & BEFOREUNLOAD PROTECTION ---  
-    // 1. Automatically sync to localStorage on any data change (already handled)
-    // 2. Optional: Periodic background auto-save ticker (every 2 minutes)
     setInterval(async () => {
       if (servers.length > 0) {
         localStorage.setItem('infops_servers', JSON.stringify(servers));
-        // If a direct file handle is active, silently sync to disk
         if (cachedFileHandle) {
           try {
             const jsonStr = JSON.stringify(servers, null, 2);
@@ -900,42 +904,38 @@ let cachedFileHandle = null;
             await writableStream.write(encrypted);
             await writableStream.close();
             updateLastSavedTimestamp();
-          } catch (err) {
-            // Ignore background write errors if permissions expire
-          }
+          } catch (err) {}
         }
       }
-    }, 120000); // Runs every 2 minutes
+    }, 120000);
 
-    // 3. Warn user if they attempt to close the tab with unsaved modifications
     window.addEventListener('beforeunload', (e) => {
       e.preventDefault();
-      e.returnValue = ''; // Triggers native browser confirmation dialog
+      e.returnValue = '';
     });
 
-async function reselectSaveLocation() {
-  try {
-    const options = {
-      suggestedName: 'infops_backup.json',
-      types: [{
-        description: 'JSON Backup Files',
-        accept: { 'application/json': ['.json'] }
-      }]
-    };
-    cachedFileHandle = await window.showSaveFilePicker(options);
-    document.getElementById('settingsFilePathDisplay').value = cachedFileHandle.name;
-    alert("Target save file updated successfully!");
-  } catch (err) {
-    console.log("Folder selection cancelled.");
-  }
-}
-    
-async function saveDirectToTemp() {
+    async function reselectSaveLocation() {
+      try {
+        const options = {
+          suggestedName: 'infops_backup.json',
+          types: [{
+            description: 'JSON Backup Files',
+            accept: { 'application/json': ['.json'] }
+          }]
+        };
+        cachedFileHandle = await window.showSaveFilePicker(options);
+        document.getElementById('settingsFilePathDisplay').value = cachedFileHandle.name;
+        notifyUser("Target save file updated");
+      } catch (err) {
+        console.log("Folder selection cancelled.");
+      }
+    }
+
+    async function saveDirectToTemp() {
       try {
         const jsonStr = JSON.stringify(servers, null, 2);
         let encrypted = "INFENC:" + btoa(jsonStr.split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join(''));
 
-        // If no file has been chosen yet this session, open the system picker for the user to choose
         if (!cachedFileHandle) {
           const options = {
             suggestedName: 'infops_backup.json',
@@ -944,27 +944,21 @@ async function saveDirectToTemp() {
               accept: { 'application/json': ['.json'] }
             }]
           };
-          // Opens native browser save dialog where the user can pick any folder/path
           cachedFileHandle = await window.showSaveFilePicker(options);
         }
 
-        // Overwrite the chosen file directly
         const writableStream = await cachedFileHandle.createWritable();
         await writableStream.write(encrypted);
         await writableStream.close();
 
-        // Update the timestamp badge in the header
         updateLastSavedTimestamp();
-
-        alert("Successfully saved to your chosen location!");
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.warn("File System Access API failed or unsupported, falling back to standard download:", err);
           exportEncryptedJSON();
         }
       }
     }
-    
+
     async function verifyClientIP() {
       try {
         const response = await fetch('https://api.ipify.org?format=json');
@@ -1003,7 +997,11 @@ async function saveDirectToTemp() {
     function applySettings() {
       document.getElementById('brandName').innerText = appSettings.brandName;
       document.getElementById('pageTitle').innerText = `${appSettings.brandName} - Command Center`;
-      document.getElementById('brandSubtitle').innerText = appSettings.subtitle;
+      const subEl = document.getElementById('brandSubtitle');
+      if (subEl) {
+        subEl.innerText = appSettings.subtitle || '';
+        subEl.classList.toggle('hidden', !appSettings.subtitle);
+      }
       updateGlobalCounters();
     }
 
@@ -1015,7 +1013,7 @@ async function saveDirectToTemp() {
     function updateGlobalCounters() {
       const total = servers.length;
       const drCount = servers.filter(isValidDRServer).length;
-      
+
       ['canvas', 'inventory', 'waves', 'calculator', 'health'].forEach(t => {
         const el = document.getElementById(`counter-${t}`);
         if (el) el.innerText = total;
@@ -1026,7 +1024,7 @@ async function saveDirectToTemp() {
       if (vCounter) vCounter.innerText = total;
 
       document.getElementById('inventoryCountBadge').innerText = `${total} servers`;
-      
+
       document.querySelectorAll('.selectedCountBadge-el').forEach(el => {
         el.innerText = `${selectedServerNames.size} selected`;
       });
@@ -1260,7 +1258,7 @@ async function saveDirectToTemp() {
       document.getElementById('topoModeVisual').className = mode === 'visual' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
       document.getElementById('topoModeTree').className = mode === 'tree' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
       document.getElementById('topoModeList').className = mode === 'list' ? "px-2.5 py-1 rounded text-xs font-semibold bg-cyan-600 text-white cursor-pointer" : "px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:text-white cursor-pointer";
-      
+
       document.getElementById('canvasArea').classList.toggle('hidden', mode !== 'visual');
       document.getElementById('svgConnectors').classList.toggle('hidden', mode !== 'visual');
       document.getElementById('canvasTreeView').classList.toggle('hidden', mode !== 'tree');
@@ -1288,14 +1286,14 @@ async function saveDirectToTemp() {
 
     function deleteSelectedServers() {
       if (selectedServerNames.size === 0) {
-        return alert("Please select at least one server using the checkboxes first.");
+        return notifyUser("Select at least one server first", true);
       }
-      if (confirm(`Are you sure you want to delete ${selectedServerNames.size} selected server(s)?`)) {
+      if (confirm(`Delete ${selectedServerNames.size} selected server(s)?`)) {
         servers = servers.filter(s => !selectedServerNames.has(s.serverName));
         selectedServerNames.clear();
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
-        alert("Selected servers deleted successfully.");
+        notifyUser("Selected servers deleted");
       }
     }
 
@@ -1315,7 +1313,7 @@ async function saveDirectToTemp() {
 
       const defaultKeys = ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'];
       const activeKeys = getColOrder('inventory', defaultKeys);
-      
+
       visibleList.forEach(s => {
         const sDom = s.domain || 'Becketts';
         const domBadge = sDom.includes('UK') ? 'text-amber-300 bg-amber-950/60 border-amber-800' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800';
@@ -1334,7 +1332,7 @@ async function saveDirectToTemp() {
           memoryGB: createCell(`<span class="font-mono text-emerald-400 font-bold">${s.memoryGB || 4} GB</span>`, "p-3"),
           totalDiskGB: createCell(`<span class="font-mono text-cyan-400 font-bold">${diskSize} GB</span>`, "p-3"),
           osFamily: createCell(`<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono text-[10px]">${osFam}</span>`, "p-3"),
-          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),         
+          datastore: createCell(`<span class="text-slate-300 truncate max-w-[140px]" title="${cleanDs}">${cleanDs}</span>`, "p-3"),
           domain: createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3"),
           dept: createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3"),
           system: createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3"),
@@ -1569,7 +1567,7 @@ async function saveDirectToTemp() {
       tierBuckets.forEach((arr) => {
         arr.sort((a, b) => (a.visioOrder || 0) - (b.visioOrder || 0));
       });
-      
+
       const totalLanes = Math.max(maxTier, 2);
       const tierMeta = {
         1: { title: 'Tier 1:', icon: 'fa-crown text-amber-400', border: 'border-amber-500/80' },
@@ -1624,25 +1622,25 @@ async function saveDirectToTemp() {
         </div>`;
     }
 
-    function onTreeCardDragStart(e, serverName) { 
-      draggedTreeServerName = serverName; 
-      e.dataTransfer.setData('text/plain', serverName); 
+    function onTreeCardDragStart(e, serverName) {
+      draggedTreeServerName = serverName;
+      e.dataTransfer.setData('text/plain', serverName);
     }
 
     function onTreeTierDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
     function onTreeTierDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 
     function onTreeTierDrop(e, targetTierNum) {
-      e.preventDefault(); 
+      e.preventDefault();
       e.currentTarget.classList.remove('drag-over');
       const name = draggedTreeServerName || e.dataTransfer.getData('text/plain');
       const srv = servers.find(s => s.serverName === name);
-      if (srv) { 
-        srv.visioTier = `Tier ${targetTierNum}`; 
+      if (srv) {
+        srv.visioTier = `Tier ${targetTierNum}`;
         const tierServers = servers.filter(s => computeServerTier(s, new Map()) === targetTierNum);
         srv.visioOrder = tierServers.length > 0 ? Math.max(...tierServers.map(s => s.visioOrder || 0)) + 10 : 10;
-        localStorage.setItem('infops_servers', JSON.stringify(servers)); 
-        renderVisioTreeView(getFilteredServers()); 
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        renderVisioTreeView(getFilteredServers());
       }
       draggedTreeServerName = null;
     }
@@ -1853,7 +1851,7 @@ async function saveDirectToTemp() {
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderCutoverWavesTab();
-      alert("Migration Tracker progress saved successfully!");
+      notifyUser("Wave progress saved");
     }
 
     function renderZertoTable() {
@@ -1863,7 +1861,7 @@ async function saveDirectToTemp() {
       if (tbody) {
         tbody.innerHTML = '';
         let drBase = servers.filter(isValidDRServer);
-        
+
         const sortMode = document.getElementById('zertoSortMode')?.value || 'dr_then_name';
         drBase.sort((a, b) => {
           const stA = (a.drStatus || '').trim().toUpperCase();
@@ -1937,7 +1935,7 @@ async function saveDirectToTemp() {
         s.drSite = document.getElementById(`dr-site-${idx}`)?.value.trim();
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Zerto DR settings saved successfully!");
+      notifyUser("Zerto DR saved");
     }
 
     function renderVeeamTable() {
@@ -1981,7 +1979,7 @@ async function saveDirectToTemp() {
     }
 
     function applyVeeamPreset() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server using the checkboxes first.");
+      if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
       const preset = document.getElementById('veeamPresetSelect').value;
       let jobName = "Daily-App-Job", timeStr = "02:00 AM", retDays = 30;
 
@@ -2000,7 +1998,7 @@ async function saveDirectToTemp() {
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderVeeamTable();
-      alert(`Applied preset '${preset}' to ${selectedServerNames.size} selected server(s)! Click 'Save Backup Changes' when finalized.`);
+      notifyUser(`Applied ${preset} to ${selectedServerNames.size} server(s)`);
     }
 
     function toggleVeeamSelectAll(master) {
@@ -2018,7 +2016,7 @@ async function saveDirectToTemp() {
         s.veeamRetention = parseInt(document.getElementById(`veeam-ret-${idx}`)?.value) || 30;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
-      alert("Veeam settings saved successfully!");
+      notifyUser("Veeam settings saved");
     }
 
     function renderCalculatorTab() {
@@ -2081,18 +2079,18 @@ async function saveDirectToTemp() {
         const idxDs = getColIdx(['datastore']);
         const idxDomain = getColIdx(['domain']);
         const idxDept = getColIdx(['dept', 'department']);
-        const idxSys = getColIdx(['system', 'app', 'application']);       
+        const idxSys = getColIdx(['system', 'app', 'application']);
         const idxIp = getColIdx(['ip', 'address']);
         const idxSubnet = getColIdx(['subnet']);
         const idxWave = getColIdx(['wave']);
         const idxDr = getColIdx(['dr', 'replication', 'p00', 'p01']);
-       
+
         let importedCount = 0;
 
         for (let i = headerRowIdx + 1; i < lines.length; i++) {
           const line = lines[i].trim(); if (!line) continue;
           const cols = parseCSVRow(line);
-          
+
           const serverName = (idxServer !== -1 ? cols[idxServer] : cols[0]) || '';
           if (!serverName) continue;
 
@@ -2120,7 +2118,7 @@ async function saveDirectToTemp() {
               datastore: dsVal || 'VM_Datastore01',
               domain: domainVal || 'Becketts',
               dept: deptVal || 'INF',
-              system: sysVal || 'General',            
+              system: sysVal || 'General',
               ip: ipVal || '',
               subnet: subVal || calculateSubnet(ipVal || ''),
               drStatus: drVal || '',
@@ -2150,7 +2148,7 @@ async function saveDirectToTemp() {
         servers.sort((a, b) => a.serverName.localeCompare(b.serverName));
         localStorage.setItem('infops_servers', JSON.stringify(servers));
         renderInventoryTable();
-        alert(`Successfully imported/merged ${importedCount} servers dynamically from CSV while preserving your manual entries!`);
+        notifyUser(`Imported ${importedCount} CSV rows`);
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -2305,10 +2303,10 @@ async function saveDirectToTemp() {
       const data = {
         serverName: document.getElementById('modalServerName').value.trim(),
         numCpu: parseInt(document.getElementById('modalNumCpu').value) || 2,
-        memoryGB: parseInt(document.getElementById('modalMemoryGB').value) || 4,        
+        memoryGB: parseInt(document.getElementById('modalMemoryGB').value) || 4,
         totalDiskGB: parseInt(document.getElementById('modalTotalDisk').value) || 100,
         osFamily: document.getElementById('modalOsFamily').value.trim() || 'Windows',
-        diskBreakdown: document.getElementById('modalDiskBreakdown').value.trim(),  
+        diskBreakdown: document.getElementById('modalDiskBreakdown').value.trim(),
         datastore: document.getElementById('modalDatastore').value.trim() || 'VM_Datastore01',
         domain: document.getElementById('modalDomain').value.trim(),
         dept: document.getElementById('modalDept').value.trim(),
@@ -2318,7 +2316,7 @@ async function saveDirectToTemp() {
         drStatus: document.getElementById('modalDrStatus').value.trim(),
         dependencies: cleanDeps
       };
-      if (!data.serverName) return alert("Server Name is required.");
+      if (!data.serverName) return notifyUser("Server Name is required", true);
       if (origName) {
         const idx = servers.findIndex(x => x.serverName === origName);
         if (idx !== -1) servers[idx] = Object.assign({}, servers[idx], data);
@@ -2385,7 +2383,7 @@ async function saveDirectToTemp() {
     }
 
     function openBulkEditModal() {
-      if (selectedServerNames.size === 0) return alert("Please select at least one server first.");
+      if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
       document.getElementById('bulkModalCount').innerText = selectedServerNames.size;
       document.getElementById('bulkEditModal').classList.remove('hidden');
       onBulkFieldChange();
@@ -2395,18 +2393,18 @@ async function saveDirectToTemp() {
     function commitBulkEdit() {
       const field = document.getElementById('bulkField').value;
       let val = document.getElementById('bulkValue').value.trim();
-      if (!val) return alert("Enter a value.");
+      if (!val) return notifyUser("Enter a value", true);
 
       if (field === 'dependencies') {
         val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
       }
 
-      servers.forEach(s => { 
+      servers.forEach(s => {
         if (selectedServerNames.has(s.serverName)) {
           if (field === 'totalDiskGB' || field === 'veeamRetention') {
             s[field] = parseInt(val) || 0;
           } else {
-            s[field] = val; 
+            s[field] = val;
           }
         }
       });
@@ -2414,25 +2412,29 @@ async function saveDirectToTemp() {
       closeBulkEditModal();
       const activeTab = document.querySelector('section:not(.hidden)[id^="tabContent-"]');
       if (activeTab) switchTab(activeTab.id.replace('tabContent-', ''));
-      alert("Bulk update successful!");
+      notifyUser("Bulk update complete");
     }
 
     function exportToCSV() {
       let csv = "ServerName,NumCPU,MemoryGB,TotalDiskGB,DiskBreakdown,OSFamily,Datastore,Domain,Department,System,IPAddress,Subnet,DrStatus\n";
-      servers.forEach(s => { 
-        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`; 
+      servers.forEach(s => {
+        csv += `"${s.serverName}","${s.numCpu||2}","${s.memoryGB||4}","${s.totalDiskGB||100}","${s.diskBreakdown||''}","${s.osFamily||'Windows'}","${s.datastore||''}","${s.domain}","${s.dept}","${s.system}","${s.ip}","${s.subnet}","${s.drStatus||''}"\n`;
       });
-      const a = document.createElement('a'); 
-      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
-      a.download = `inventory_export.csv`; 
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `inventory_export.csv`;
       a.click();
     }
 
-    function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
+    function openSettingsModal() {
+      document.getElementById('settingsBrandName').value = appSettings.brandName || 'InfOps';
+      document.getElementById('settingsSubtitle').value = appSettings.subtitle || '';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
     function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
     function saveProjectSettings() {
       appSettings.brandName = document.getElementById('settingsBrandName').value.trim() || "InfOps";
-      appSettings.subtitle = document.getElementById('settingsSubtitle').value.trim() || "Multi-Domain Migration / Zerto DR / Veeam Backup";
+      appSettings.subtitle = document.getElementById('settingsSubtitle').value.trim();
       localStorage.setItem('infops_settings', JSON.stringify(appSettings));
       applySettings();
       closeSettingsModal();
@@ -2443,7 +2445,7 @@ async function saveDirectToTemp() {
       ENCRYPTION_KEY = document.getElementById('secretPassInput').value;
       localStorage.setItem('infops_secret', ENCRYPTION_KEY);
       closeEncryptionModal();
-      alert("Passphrase saved.");
+      notifyUser("Passphrase saved");
     }
 
     function exportEncryptedJSON() {
@@ -2460,13 +2462,15 @@ async function saveDirectToTemp() {
           let content = evt.target.result;
           if (content.startsWith("INFENC:")) {
             const raw = content.replace("INFENC:", "");
-            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');  
+            content = atob(raw).split('').map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length))).join('');
           }
           servers = JSON.parse(content);
           localStorage.setItem('infops_servers', JSON.stringify(servers));
           renderInventoryTable();
-          alert(`Decrypted and loaded ${servers.length} servers!`);
-        } catch (err) { alert("Decryption failed."); }
+          notifyUser(`Loaded ${servers.length} servers`);
+        } catch (err) {
+          notifyUser("Decryption failed", true);
+        }
       };
       reader.readAsText(file);
     }
@@ -2478,11 +2482,11 @@ async function saveDirectToTemp() {
 
     document.getElementById('globalSearchInput').addEventListener('click', (e) => e.stopPropagation());
 
-    document.addEventListener('DOMContentLoaded', () => { 
-      applySettings(); 
+    document.addEventListener('DOMContentLoaded', () => {
+      applySettings();
       verifyClientIP();
-      renderInventoryTable(); 
-      switchTab('inventory'); 
+      renderInventoryTable();
+      switchTab('inventory');
     });
   </script>
 </body>
