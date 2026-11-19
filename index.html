@@ -1,4 +1,5 @@
 <!-- 20261119 v82 - Works. Export picture -->
+<!-- 20261119 v83 - Migration tracker modify -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,13 +91,20 @@
     <section id="tabContent-canvas" class="flex-1 flex flex-col relative overflow-hidden">
       <div class="bg-slate-800/90 border-b border-slate-700 p-3 flex flex-wrap items-center justify-between z-20 shrink-0 gap-3">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="relative">
-            <button onclick="toggleMultiSelectDropdown('canvas-domain', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
-              <span>Domain: <strong id="lbl-canvas-domain" class="text-cyan-300">All</strong></span>
-              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
-            </button>
-            <div id="drop-canvas-domain" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
-          </div>
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-subnet', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>Subnet: <strong id="lbl-waves-subnet" class="text-cyan-300 font-mono">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <button onclick="toggleMultiSelectDropdown('waves-wave', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+                <span>Wave: <strong id="lbl-waves-wave" class="text-emerald-300">All</strong></span>
+                <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              </button>
+              <div id="drop-waves-wave" class="absolute left-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
+            </div>
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('canvas-wave', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Wave: <strong id="lbl-canvas-wave" class="text-cyan-300">All</strong></span>
@@ -328,7 +336,6 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="waveSummaryCards"></div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4 flex-1 flex flex-col overflow-hidden">
           <h3 class="font-bold text-white text-sm shrink-0">Server Cutover & Verification Matrix</h3>
           <div class="overflow-auto flex-1">
@@ -884,7 +891,7 @@
     let multiFilters = {
       'canvas-domain': new Set(), 'canvas-wave': new Set(), 'canvas-system': new Set(),
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
-      'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(),
+      'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(), 'waves-wave': new Set(),
       'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
       'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
     };
@@ -1208,15 +1215,14 @@ function toggleColPickerDropdown(tabName, event) {
         case 'wave': {
           const wVal = s.wave || 'Unassigned';
           if (tabName === 'waves') {
+            const waveOpts = getAllWaveOptions();
+            const optsHtml = waveOpts.map(opt =>
+              `<option value="${opt.replace(/"/g, '&quot;')}" ${wVal === opt ? 'selected' : ''}>${opt}</option>`
+            ).join('');
             return createCell(`
-              <select id="wave-name-${rowIdx}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
-                <option value="Unassigned" ${wVal === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
-                <option value="Pilot / Test" ${wVal === 'Pilot / Test' ? 'selected' : ''}>Pilot / Test</option>
-                <option value="Wave 1" ${wVal === 'Wave 1' ? 'selected' : ''}>Wave 1</option>
-                <option value="Wave 2" ${wVal === 'Wave 2' ? 'selected' : ''}>Wave 2</option>
-                <option value="Wave 3" ${wVal === 'Wave 3' ? 'selected' : ''}>Wave 3</option>
-                <option value="Wave 4" ${wVal === 'Wave 4' ? 'selected' : ''}>Wave 4</option>
-                <option value="Completed / Live" ${wVal === 'Completed / Live' ? 'selected' : ''}>Completed / Live</option>
+              <select id="wave-name-${rowIdx}" onchange="onWaveSelectChange(this, '${safeName}')" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs">
+                ${optsHtml}
+                <option value="__ADD_NEW_WAVE__">+ Add New Wave...</option>
               </select>
             `, "p-3");
           }
@@ -1475,10 +1481,39 @@ function toggleColPickerDropdown(tabName, event) {
       }
     }
 
+function getAllWaveOptions() {
+      const waveSet = new Set([
+        'Unassigned',
+        'Pilot / Test',
+        'Wave 1',
+        'Wave 2',
+        'Wave 3',
+        'Wave 4',
+        'Wave 5',
+        'Wave 6',
+        'Wave 7',
+        'Wave 8',
+        'Completed / Live'
+      ]);
+      servers.forEach(s => {
+        const w = (s.wave || '').trim();
+        if (w) waveSet.add(w);
+      });
+      return Array.from(waveSet).sort((a, b) => {
+        if (a === 'Unassigned') return -1;
+        if (b === 'Unassigned') return 1;
+        if (a === 'Pilot / Test') return -1;
+        if (b === 'Pilot / Test') return 1;
+        if (a === 'Completed / Live') return 1;
+        if (b === 'Completed / Live') return -1;
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+      });
+    }
+    
     function getOptionsForFilter(filterKey) {
       const field = filterKey.split('-')[1];
       if (field === 'domain') return [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
-      if (field === 'wave') return ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'];
+      if (field === 'wave') return getAllWaveOptions();
       if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
       if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
       if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
@@ -2289,22 +2324,6 @@ if (svgEl) {
       const matchBadge = document.getElementById('wavesFilteredMatchBadge');
       if (matchBadge) matchBadge.innerText = `Showing ${visibleList.length} of ${servers.length}`;
 
-      const waveSummary = document.getElementById('waveSummaryCards');
-      if (waveSummary) {
-        waveSummary.innerHTML = '';
-        ["Pilot / Test", "Wave 1", "Wave 2", "Wave 3"].forEach(wName => {
-          let wServers = visibleList.filter(s => (s.wave || 'Unassigned') === wName);
-          let migratedCount = wServers.filter(s => s.cutoverStatus === 'Migrated & Verified').length;
-          let pct = wServers.length ? Math.round((migratedCount / wServers.length) * 100) : 0;
-          waveSummary.innerHTML += `
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg space-y-3">
-              <div class="flex justify-between items-center"><span class="font-bold text-cyan-400 text-sm">${wName}</span><span class="text-xs font-mono text-slate-400">${wServers.length} VMs</span></div>
-              <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700"><div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div></div>
-              <div class="flex justify-between items-center text-[11px] text-slate-400"><span>Progress:</span><span class="font-semibold text-emerald-400">${pct}%</span></div>
-            </div>`;
-        });
-      }
-
       const tbody = document.getElementById('wavesTableBody');
       if (tbody) {
         tbody.innerHTML = '';
@@ -2355,6 +2374,21 @@ if (svgEl) {
       notifyUser("Wave progress saved");
     }
 
+    function onWaveSelectChange(selectEl, serverName) {
+      if (selectEl.value !== '__ADD_NEW_WAVE__') return;
+      const customWave = prompt("Enter new migration wave name (e.g., Wave 9, Wave 10):", "Wave 9");
+      const srv = servers.find(s => s.serverName === serverName);
+      if (customWave && customWave.trim()) {
+        const cleanWave = customWave.trim();
+        if (srv) srv.wave = cleanWave;
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        renderCutoverWavesTab();
+        notifyUser(`Added & assigned "${cleanWave}"`);
+      } else {
+        selectEl.value = srv?.wave || 'Unassigned';
+      }
+    }
+    
     /* ================= ZERTO DR TAB ================= */
     function renderZertoTable() {
       updateDropdownLabels();
@@ -2971,19 +3005,7 @@ if (svgEl) {
 
       let uniqueVals = new Set();
       if (field === 'wave') {
-        ['Pilot / Test', 'Wave 1', 'Wave 2', 'Wave 3', 'Wave 4', 'Completed / Live', 'Unassigned'].forEach(w => uniqueVals.add(w));
-      } else if (field === 'drStatus') {
-        ['P00', 'P01', 'P02', 'No', 'None'].forEach(d => uniqueVals.add(d));
-      } else if (field === 'drSite') {
-        uniqueVals.add('Harbor Solutions DRaaS');
-      } else if (field === 'veeamJob') {
-        veeamJobs.forEach(j => uniqueVals.add(j.name));
-      } else if (field === 'veeamTime') {
-        veeamJobs.forEach(j => { if (j.schedule) uniqueVals.add(j.schedule); });
-      } else if (field === 'veeamSecondary') {
-        veeamJobs.forEach(j => { if (j.secondary) uniqueVals.add(j.secondary); });
-      } else if (field === 'dependencies') {
-        servers.forEach(s => { if (s.serverName) uniqueVals.add(s.serverName); });
+        getAllWaveOptions().forEach(w => uniqueVals.add(w));
       }
 
       servers.forEach(s => {
