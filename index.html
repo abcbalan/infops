@@ -1,5 +1,4 @@
-<!-- 20261119 v81 - Works. Any-Column-in-Any-Tab Picker -->
-<!-- 20261119 v82 - Trying to export picture -->
+<!-- 20261119 v82 - Works. Export Picture -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2106,15 +2105,56 @@ async function exportTopologyPNG() {
   const allCards = Array.from(container.querySelectorAll('.node-card'));
   const hasExplicitSelection = selectedServerNames.size > 0;
 
+  // Build expanded set of server names (selected + upstream dependencies + downstream dependents)
+  const exportNamesLower = new Set();
+  if (hasExplicitSelection) {
+    selectedServerNames.forEach(n => exportNamesLower.add(n.toLowerCase()));
+
+    const visibleServers = getFilteredServers();
+    const serverByLower = new Map(visibleServers.map(s => [s.serverName.toLowerCase(), s]));
+
+    // 1) Walk upstream dependencies
+    let addedUpstream = true;
+    while (addedUpstream) {
+      addedUpstream = false;
+      Array.from(exportNamesLower).forEach(nameLow => {
+        const srv = serverByLower.get(nameLow);
+        if (!srv) return;
+        parseDepList(srv.dependencies).forEach(dep => {
+          const depLow = dep.toLowerCase();
+          if (serverByLower.has(depLow) && !exportNamesLower.has(depLow)) {
+            exportNamesLower.add(depLow);
+            addedUpstream = true;
+          }
+        });
+      });
+    }
+
+    // 2) Walk downstream dependents
+    let addedDownstream = true;
+    while (addedDownstream) {
+      addedDownstream = false;
+      visibleServers.forEach(srv => {
+        const srvLow = srv.serverName.toLowerCase();
+        if (exportNamesLower.has(srvLow)) return;
+        const depsLow = parseDepList(srv.dependencies).map(d => d.toLowerCase());
+        if (depsLow.some(d => exportNamesLower.has(d))) {
+          exportNamesLower.add(srvLow);
+          addedDownstream = true;
+        }
+      });
+    }
+  }
+
   const targetCards = allCards.filter((card) => {
     if (!hasExplicitSelection) return true;
     const nameAttr = card.getAttribute('data-tree-server');
     if (nameAttr) {
-      return Array.from(selectedServerNames).some(n => n.toLowerCase() === nameAttr);
+      return exportNamesLower.has(nameAttr.toLowerCase());
     }
     const titleEl = card.querySelector('[title]');
-    const cardName = titleEl ? titleEl.getAttribute('title') : '';
-    return selectedServerNames.has(cardName);
+    const cardName = (titleEl ? titleEl.getAttribute('title') : '').toLowerCase();
+    return exportNamesLower.has(cardName);
   });
 
   if (targetCards.length === 0) {
@@ -2181,8 +2221,13 @@ async function exportTopologyPNG() {
     const w = r.width;
     const h = r.height;
 
+    const cardServerName = (card.getAttribute('data-tree-server') || card.querySelector('[title]')?.getAttribute('title') || '').toLowerCase();
+    const isDirectlySelected = selectedServerNames.has(
+      Array.from(selectedServerNames).find(n => n.toLowerCase() === cardServerName) || ''
+    );
+
     ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = hasExplicitSelection ? '#fbbf24' : '#06b6d4';
+    ctx.strokeStyle = isDirectlySelected ? '#fbbf24' : '#06b6d4';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, 10);
@@ -2207,12 +2252,12 @@ async function exportTopologyPNG() {
   });
 
   const link = document.createElement('a');
-  const scopeLabel = hasExplicitSelection ? 'selected' : 'all';
+  const scopeLabel = hasExplicitSelection ? 'selected-chain' : 'all';
   const modeLabel = isTree ? 'visio-tree' : 'topology-visual';
   link.download = `infops-${modeLabel}-${scopeLabel}-${new Date().toISOString().slice(0, 10)}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
-  notifyUser(`Exported ${targetCards.length} ${scopeLabel} card(s) as PNG`);
+  notifyUser(`Exported ${targetCards.length} card(s) as PNG`);
 }
     
     /* ================= MIGRATION TRACKER TAB ================= */
