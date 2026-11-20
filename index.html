@@ -1,4 +1,5 @@
 <!-- 20261119 v84 - Works Migration tracker modified -->
+<!-- 20261120 v85 - Trying Default dept/wave & centralized Veeam job editor with auto-sync -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -711,65 +712,107 @@
     </div>
   </div>
 
-  <!-- VEEAM JOB CATALOG MODAL -->
+  <!-- VEEAM JOB CATALOG & AUTO-SYNC MODAL -->
   <div id="veeamJobsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 pointer-events-auto">
-    <div class="bg-slate-800 w-full max-w-4xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-hidden">
+    <div class="bg-slate-800 w-full max-w-5xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col gap-4 max-h-[92vh] overflow-hidden">
       <div class="flex justify-between items-center border-b border-slate-700 pb-3">
         <div>
-          <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-database text-cyan-400"></i> Veeam Backup Job Catalog & Schedules</h3>
-          <p class="text-[11px] text-slate-400">Define your Veeam backup jobs (periodic, chained after another job, secondary copy targets) for easy assignment.</p>
+          <h3 class="font-bold text-white text-sm flex items-center gap-2">
+            <i class="fas fa-database text-cyan-400"></i> Veeam Backup Job Catalog & Auto-Sync Editor
+          </h3>
+          <p class="text-[11px] text-slate-400">
+            Update primary schedule & restore points, plus secondary copy restore points and GFS (Weekly / Monthly / Yearly). Saving automatically syncs all servers assigned to that job.
+          </p>
         </div>
         <button onclick="closeVeeamJobsModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
       </div>
 
-      <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+      <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 space-y-4 text-xs overflow-y-auto">
         <input type="hidden" id="editVeeamJobIdx" value="-1">
-        <div class="lg:col-span-2">
-          <label class="font-semibold text-slate-300 mb-1 block">Veeam Job Name:</label>
-          <input type="text" id="vjName" placeholder="e.g. Central Services - App and File Backup 01" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+
+        <!-- Primary Job & Schedule -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="lg:col-span-2">
+            <label class="font-semibold text-slate-300 mb-1 block">Veeam Job Name:</label>
+            <input type="text" id="vjName" placeholder="e.g. Central Services - App and File Backup 01" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-300 mb-1 block">Job Type:</label>
+            <select id="vjType" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+              <option value="VMware Backup">VMware Backup</option>
+              <option value="Windows Agent Backup">Windows Agent Backup</option>
+              <option value="Backup Copy">Backup Copy</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-semibold text-slate-300 mb-1 block">Primary Restore Points (Retention):</label>
+            <input type="number" id="vjRetention" min="1" value="120" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class="font-semibold text-slate-300 mb-1 block">Backup Schedule / Trigger:</label>
+            <input type="text" id="vjSchedule" list="vjScheduleExamples" placeholder="e.g. Periodically every 6 Hours" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-amber-300 font-mono">
+            <datalist id="vjScheduleExamples">
+              <option value="Periodically every 6 Hours"></option>
+              <option value="Periodically every 12 Hours"></option>
+              <option value="After CS App & File Backup 01"></option>
+              <option value="Daily at 22:00 (Everyday)"></option>
+              <option value="Daily at 06:00 (Everyday)"></option>
+            </datalist>
+          </div>
+          <div class="lg:col-span-2">
+            <label class="font-semibold text-slate-300 mb-1 block">Secondary Copy Target / Repository:</label>
+            <input type="text" id="vjSecondaryTarget" placeholder="e.g. CatalystCopy4_v2 (Catalyst_Moat_01)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-emerald-300">
+          </div>
         </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Job Type:</label>
-          <select id="vjType" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
-            <option value="VMware Backup">VMware Backup</option>
-            <option value="Windows Agent Backup">Windows Agent Backup</option>
-            <option value="Backup Copy">Backup Copy</option>
-          </select>
+
+        <!-- Secondary Backup Restore Points & GFS Retention -->
+        <div class="bg-slate-800/70 border border-slate-700/90 rounded-xl p-3 space-y-3">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+            <i class="fas fa-copy"></i> Secondary Backup Retention & GFS Policy
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="font-semibold text-slate-300 mb-1 block">Secondary Restore Points:</label>
+              <input type="number" id="vjSecRetention" min="0" value="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-300 mb-1 block">Weekly Fulls (Weeks):</label>
+              <input type="number" id="vjGfsWeekly" min="0" value="6" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-300 mb-1 block">Monthly Fulls (Months):</label>
+              <input type="number" id="vjGfsMonthly" min="0" value="12" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-300 mb-1 block">Yearly Fulls (Years):</label>
+              <input type="number" id="vjGfsYearly" min="0" value="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 font-mono">
+            Live Summary Preview: <span id="vjSummaryPreview" class="text-cyan-300">-</span>
+          </div>
         </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Schedule / Trigger:</label>
-          <input type="text" id="vjSchedule" list="vjScheduleExamples" placeholder="e.g. Periodically every 6h" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
-          <datalist id="vjScheduleExamples">
-            <option value="Periodically every 6 Hours"></option>
-            <option value="After: Central Services - App and File Backup 01"></option>
-            <option value="Daily at 22:00 (Everyday)"></option>
-            <option value="Daily at 06:00 (Everyday)"></option>
-            <option value="Monthly 4th Saturday 22:00"></option>
-          </datalist>
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Secondary Copy / Target:</label>
-          <input type="text" id="vjSecondary" placeholder="e.g. CatalystCopy4_v2 (06:00)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
-        </div>
-        <div>
-          <label class="font-semibold text-slate-300 mb-1 block">Retention (Days):</label>
-          <input type="number" id="vjRetention" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono">
-        </div>
-        <div class="sm:col-span-2 lg:col-span-4 flex items-end justify-end gap-2">
-          <button onclick="resetVeeamJobForm()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-semibold cursor-pointer">Clear</button>
-          <button onclick="saveVeeamJobTemplate()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold shadow cursor-pointer"><i class="fas fa-plus mr-1"></i> Save Job Profile</button>
+
+        <div class="flex items-center justify-end gap-2">
+          <button onclick="resetVeeamJobForm()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-semibold cursor-pointer">Clear / New Job</button>
+          <button onclick="saveVeeamJobTemplate()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold shadow cursor-pointer">
+            <i class="fas fa-sync-alt mr-1"></i> Save Job & Auto-Sync Servers
+          </button>
         </div>
       </div>
 
+      <!-- Preset Jobs Table -->
       <div class="flex-1 overflow-y-auto border border-slate-700 rounded-xl bg-slate-900/50">
         <table class="w-full text-left border-collapse text-xs">
           <thead class="bg-slate-900 sticky top-0 text-slate-400 uppercase tracking-wider border-b border-slate-700">
             <tr>
               <th class="p-3">Job Name</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Schedule / Trigger</th>
-              <th class="p-3">Secondary Target</th>
-              <th class="p-3">Retention</th>
+              <th class="p-3">Schedule</th>
+              <th class="p-3">Primary RP</th>
+              <th class="p-3">Secondary Target & RP</th>
+              <th class="p-3">GFS (W / M / Y)</th>
+              <th class="p-3">Assigned VMs</th>
               <th class="p-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -849,32 +892,52 @@
 
     const DEFAULT_VEEAM_JOBS = [
       {
+        id: "veeam-job-1",
         name: "Central Services - App and File Backup 01",
         type: "VMware Backup",
         schedule: "Periodically every 6 Hours",
-        secondary: "CatalystCopy4_v2 (Daily 06:00)",
-        retention: 120
+        retention: 120,
+        secondaryTarget: "CatalystCopy4_v2",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
       },
       {
+        id: "veeam-job-2",
         name: "Central Services - App and File Backup 02",
         type: "VMware Backup",
         schedule: "After CS App & File Backup 01",
-        secondary: "CatalystCopy6 (Daily 06:00)",
-        retention: 120
+        retention: 120,
+        secondaryTarget: "CatalystCopy6",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
       },
       {
+        id: "veeam-job-3",
         name: "Central Services - Failover Cluster",
         type: "Windows Agent Backup",
         schedule: "Periodically every 6 Hours",
-        secondary: "CatalystCopy7 (Daily 06:00)",
-        retention: 120
+        retention: 120,
+        secondaryTarget: "CatalystCopy7",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
       },
       {
+        id: "veeam-job-4",
         name: "Central Services - SQL Backup",
         type: "VMware Backup",
         schedule: "Periodically every 12 Hours",
-        secondary: "CatalystCopy5 (After CS SQL Backup)",
-        retention: 90
+        retention: 90,
+        secondaryTarget: "CatalystCopy5",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
       }
     ];
 
@@ -1158,7 +1221,7 @@ function toggleColPickerDropdown(tabName, event) {
         case 'domain':
           return createCell(`<span class="px-2 py-0.5 rounded border text-[10px] font-mono ${domBadge}">${sDom}</span>`, "p-3");
         case 'dept':
-          return createCell(`<span class="font-semibold text-amber-300">${s.dept || ''}</span>`, "p-3");
+          return createCell(`<span class="font-semibold text-amber-300">${s.dept || 'Unassigned'}</span>`, "p-3");
         case 'system':
           return createCell(`<span class="text-cyan-200">${s.system || 'General'}</span>`, "p-3");
         case 'ip':
@@ -1186,22 +1249,22 @@ function toggleColPickerDropdown(tabName, event) {
           return createCell(`<span class="text-slate-300">${s.drSite || '-'}</span>`, "p-3");
         case 'veeamJob':
           if (tabName === 'veeam') {
-            return createCell(`<input type="text" id="veeam-job-${rowIdx}" list="veeamJobCatalogDatalist" onchange="onVeeamRowJobPick(${rowIdx}, this.value)" value="${(s.veeamJob || 'Central Services - App and File Backup 01').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3");
+            return createCell(`<input type="text" id="veeam-job-${rowIdx}" list="veeamJobCatalogDatalist" onchange="onVeeamRowJobPick(${rowIdx}, this.value)" value="${(s.veeamJob || '').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-full">`, "p-3");
           }
           return createCell(`<span class="text-slate-200 truncate max-w-[180px] block" title="${(s.veeamJob || '').replace(/"/g, '&quot;')}">${s.veeamJob || '-'}</span>`, "p-3");
         case 'veeamTime':
           if (tabName === 'veeam') {
-            return createCell(`<input type="text" id="veeam-time-${rowIdx}" value="${(s.veeamTime || 'Periodically every 6 Hours').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-full font-mono">`, "p-3");
+            return createCell(`<input type="text" id="veeam-time-${rowIdx}" value="${(s.veeamTime || '').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 text-xs w-full font-mono">`, "p-3");
           }
           return createCell(`<span class="font-mono text-amber-300 text-[11px]">${s.veeamTime || '-'}</span>`, "p-3");
         case 'veeamSecondary':
           if (tabName === 'veeam') {
-            return createCell(`<input type="text" id="veeam-sec-${rowIdx}" value="${(s.veeamSecondary || 'CatalystCopy4_v2 (Daily 06:00)').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-300 text-xs w-full">`, "p-3");
+            return createCell(`<input type="text" id="veeam-sec-${rowIdx}" value="${(s.veeamSecondary || '').replace(/"/g, '&quot;')}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-300 text-xs w-full">`, "p-3");
           }
           return createCell(`<span class="text-emerald-300 text-[11px]">${s.veeamSecondary || '-'}</span>`, "p-3");
         case 'veeamRetention':
           if (tabName === 'veeam') {
-            return createCell(`<input type="number" id="veeam-ret-${rowIdx}" value="${s.veeamRetention || 30}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-20 font-mono">`, "p-3");
+            return createCell(`<input type="number" id="veeam-ret-${rowIdx}" value="${s.veeamRetention || 120}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-20 font-mono">`, "p-3");
           }
           return createCell(`<span class="font-mono text-slate-300">${s.veeamRetention ? s.veeamRetention + 'd' : '-'}</span>`, "p-3");
         case 'wave': {
@@ -1641,7 +1704,7 @@ function getAllWaveOptions() {
         const dom = s.domain || 'Becketts';
         const wv = s.wave || 'Unassigned';
         const sys = s.system || 'General';
-        const dep = s.dept || 'INF';
+        const dep = s.dept || 'Unassigned';
         const sub = s.subnet || calculateSubnet(s.ip);
 
         if (!matchesMultiFilter(dom, `${prefix}-domain`)) return false;
@@ -1714,6 +1777,7 @@ function toggleServerSelection(name, chk) {
   } else {
     selectedServerNames.delete(name);
   }
+  triggerActiveTabRender();
   updateGlobalCounters();
 }
 
@@ -1868,7 +1932,7 @@ el.innerHTML = `
   <div class="text-[10px] text-cyan-200 font-medium truncate">${s.system || 'General'}</div>
   <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono pt-1 border-t border-slate-700/80">
     <span class="text-cyan-300 truncate">${s.ip || 'No IP'}</span>
-    <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || 'INF'}</span>
+    <span class="text-amber-400 font-sans font-semibold truncate max-w-[90px]">${s.dept || 'Unassigned'}</span>
   </div>
 `;
         makeDraggable(el, s);
@@ -2015,7 +2079,7 @@ function renderTreeNodeCard(s, borderClass) {
       <div class="text-xs text-slate-300 font-medium truncate">${s.system || 'General'}</div>
       <div class="pt-2 border-t border-slate-700/80 flex justify-between items-center text-xs font-mono">
         <span class="text-cyan-300">${s.ip || 'No IP'}</span>
-        <span class="text-slate-400 font-sans font-semibold">${s.dept || 'INF'}</span>
+        <span class="text-slate-400 font-sans font-semibold">${s.dept || 'Unassigned'}</span>
       </div>
     </div>`;
 }
@@ -2456,16 +2520,76 @@ if (svgEl) {
     }
 
     /* ================= VEEAM JOB CATALOG & TABLE ================= */
+    function formatVeeamSecondarySummary(job) {
+      const target = (job.secondaryTarget || job.secondary || 'None').trim();
+      const rp = parseInt(job.secondaryRetention) || 0;
+      const w = parseInt(job.gfsWeekly) || 0;
+      const m = parseInt(job.gfsMonthly) || 0;
+      const y = parseInt(job.gfsYearly) || 0;
+      return `${target} (RP:${rp} | W:${w}w M:${m}m Y:${y}y)`;
+    }
+
+    function updateVeeamSummaryPreview() {
+      const previewEl = document.getElementById('vjSummaryPreview');
+      if (!previewEl) return;
+      const draft = {
+        schedule: document.getElementById('vjSchedule')?.value.trim() || '-',
+        retention: parseInt(document.getElementById('vjRetention')?.value) || 0,
+        secondaryTarget: document.getElementById('vjSecondaryTarget')?.value.trim() || 'None',
+        secondaryRetention: parseInt(document.getElementById('vjSecRetention')?.value) || 0,
+        gfsWeekly: parseInt(document.getElementById('vjGfsWeekly')?.value) || 0,
+        gfsMonthly: parseInt(document.getElementById('vjGfsMonthly')?.value) || 0,
+        gfsYearly: parseInt(document.getElementById('vjGfsYearly')?.value) || 0
+      };
+      previewEl.innerText = `${draft.schedule} • Primary RP: ${draft.retention} • Secondary: ${formatVeeamSecondarySummary(draft)}`;
+    }
+
+    function syncServersWithVeeamJob(jobObj, previousJobName = '') {
+      let syncedCount = 0;
+      const prevLow = (previousJobName || '').toLowerCase();
+      const newLow = (jobObj.name || '').toLowerCase();
+
+      servers.forEach(s => {
+        const srvJobIdMatch = jobObj.id && s.veeamJobId === jobObj.id;
+        const srvJobNameLow = (s.veeamJob || '').trim().toLowerCase();
+        const srvJobNameMatch = srvJobNameLow === newLow || (prevLow && srvJobNameLow === prevLow);
+
+        if (srvJobIdMatch || srvJobNameMatch) {
+          s.veeamJobId = jobObj.id;
+          s.veeamJob = jobObj.name;
+          s.veeamTime = jobObj.schedule;
+          s.veeamRetention = jobObj.retention;
+          s.veeamSecondary = formatVeeamSecondarySummary(jobObj);
+          s.veeamSecondaryTarget = jobObj.secondaryTarget;
+          s.veeamSecondaryRetention = jobObj.secondaryRetention;
+          s.veeamGfsWeekly = jobObj.gfsWeekly;
+          s.veeamGfsMonthly = jobObj.gfsMonthly;
+          s.veeamGfsYearly = jobObj.gfsYearly;
+          syncedCount++;
+        }
+      });
+
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      return syncedCount;
+    }
+
     function populateVeeamPresetSelect() {
       const sel = document.getElementById('veeamPresetSelect');
       if (!sel) return;
-      sel.innerHTML = veeamJobs.map((j, idx) => `<option value="${idx}">${j.name} (${j.schedule})</option>`).join('');
+      sel.innerHTML = veeamJobs.map((j, idx) =>
+        `<option value="${idx}">${j.name} (${j.schedule} | RP:${j.retention ?? 120})</option>`
+      ).join('');
     }
 
     function openVeeamJobsModal() {
       resetVeeamJobForm();
       renderVeeamJobCatalogTable();
       document.getElementById('veeamJobsModal').classList.remove('hidden');
+      ['vjSchedule', 'vjRetention', 'vjSecondaryTarget', 'vjSecRetention', 'vjGfsWeekly', 'vjGfsMonthly', 'vjGfsYearly'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.oninput = updateVeeamSummaryPreview;
+      });
+      updateVeeamSummaryPreview();
     }
 
     function closeVeeamJobsModal() {
@@ -2479,31 +2603,49 @@ if (svgEl) {
       document.getElementById('editVeeamJobIdx').value = '-1';
       document.getElementById('vjName').value = '';
       document.getElementById('vjType').value = 'VMware Backup';
-      document.getElementById('vjSchedule').value = '';
-      document.getElementById('vjSecondary').value = '';
-      document.getElementById('vjRetention').value = 30;
+      document.getElementById('vjSchedule').value = 'Periodically every 6 Hours';
+      document.getElementById('vjRetention').value = 120;
+      document.getElementById('vjSecondaryTarget').value = 'CatalystCopy4_v2';
+      document.getElementById('vjSecRetention').value = 2;
+      document.getElementById('vjGfsWeekly').value = 6;
+      document.getElementById('vjGfsMonthly').value = 12;
+      document.getElementById('vjGfsYearly').value = 2;
+      updateVeeamSummaryPreview();
     }
 
     function saveVeeamJobTemplate() {
       const name = document.getElementById('vjName').value.trim();
       if (!name) return notifyUser("Job Name is required", true);
+
+      const editIdx = parseInt(document.getElementById('editVeeamJobIdx').value);
+      const existingJob = (editIdx >= 0 && editIdx < veeamJobs.length) ? veeamJobs[editIdx] : null;
+      const previousName = existingJob ? existingJob.name : '';
+
       const jobObj = {
+        id: existingJob?.id || `veeam-job-${Date.now()}`,
         name: name,
         type: document.getElementById('vjType').value,
         schedule: document.getElementById('vjSchedule').value.trim() || 'Daily at 22:00',
-        secondary: document.getElementById('vjSecondary').value.trim() || 'None',
-        retention: parseInt(document.getElementById('vjRetention').value) || 30
+        retention: parseInt(document.getElementById('vjRetention').value) || 120,
+        secondaryTarget: document.getElementById('vjSecondaryTarget').value.trim() || 'None',
+        secondaryRetention: parseInt(document.getElementById('vjSecRetention').value) || 0,
+        gfsWeekly: parseInt(document.getElementById('vjGfsWeekly').value) || 0,
+        gfsMonthly: parseInt(document.getElementById('vjGfsMonthly').value) || 0,
+        gfsYearly: parseInt(document.getElementById('vjGfsYearly').value) || 0
       };
-      const editIdx = parseInt(document.getElementById('editVeeamJobIdx').value);
-      if (editIdx >= 0 && editIdx < veeamJobs.length) veeamJobs[editIdx] = jobObj;
+
+      if (existingJob) veeamJobs[editIdx] = jobObj;
       else veeamJobs.push(jobObj);
 
       localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
+      const syncedServers = syncServersWithVeeamJob(jobObj, previousName);
+
       resetVeeamJobForm();
       renderVeeamJobCatalogTable();
       populateVeeamPresetSelect();
       updateGlobalCounters();
-      notifyUser("Veeam job profile saved");
+      renderVeeamTable();
+      notifyUser(`Saved "${jobObj.name}" & synced ${syncedServers} server(s)`);
     }
 
     function editVeeamJobTemplate(idx) {
@@ -2513,8 +2655,13 @@ if (svgEl) {
       document.getElementById('vjName').value = j.name;
       document.getElementById('vjType').value = j.type || 'VMware Backup';
       document.getElementById('vjSchedule').value = j.schedule || '';
-      document.getElementById('vjSecondary').value = j.secondary || '';
-      document.getElementById('vjRetention').value = j.retention || 30;
+      document.getElementById('vjRetention').value = j.retention ?? 120;
+      document.getElementById('vjSecondaryTarget').value = j.secondaryTarget || j.secondary || '';
+      document.getElementById('vjSecRetention').value = j.secondaryRetention ?? 2;
+      document.getElementById('vjGfsWeekly').value = j.gfsWeekly ?? 6;
+      document.getElementById('vjGfsMonthly').value = j.gfsMonthly ?? 12;
+      document.getElementById('vjGfsYearly').value = j.gfsYearly ?? 2;
+      updateVeeamSummaryPreview();
     }
 
     function deleteVeeamJobTemplate(idx) {
@@ -2530,19 +2677,25 @@ if (svgEl) {
     function renderVeeamJobCatalogTable() {
       const tbody = document.getElementById('veeamJobCatalogTbody');
       if (!tbody) return;
-      tbody.innerHTML = veeamJobs.map((j, idx) => `
-        <tr class="hover:bg-slate-800/80">
-          <td class="p-3 font-bold text-cyan-300">${j.name}</td>
-          <td class="p-3 text-slate-300">${j.type}</td>
-          <td class="p-3 font-mono text-amber-300">${j.schedule}</td>
-          <td class="p-3 text-emerald-300">${j.secondary || 'None'}</td>
-          <td class="p-3 font-mono text-white">${j.retention}d</td>
-          <td class="p-3 text-right">
-            <button onclick="editVeeamJobTemplate(${idx})" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer"><i class="fas fa-pen"></i></button>
-            <button onclick="deleteVeeamJobTemplate(${idx})" class="text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = veeamJobs.map((j, idx) => {
+        const assignedCount = servers.filter(s =>
+          (j.id && s.veeamJobId === j.id) || ((s.veeamJob || '').trim().toLowerCase() === j.name.toLowerCase())
+        ).length;
+        return `
+          <tr class="hover:bg-slate-800/80">
+            <td class="p-3 font-bold text-cyan-300">${j.name}</td>
+            <td class="p-3 font-mono text-amber-300">${j.schedule}</td>
+            <td class="p-3 font-mono text-white">${j.retention ?? 120}</td>
+            <td class="p-3 text-emerald-300">${j.secondaryTarget || j.secondary || 'None'} <span class="font-mono text-slate-300">(RP: ${j.secondaryRetention ?? 2})</span></td>
+            <td class="p-3 font-mono text-slate-200">${j.gfsWeekly ?? 6}w / ${j.gfsMonthly ?? 12}m / ${j.gfsYearly ?? 2}y</td>
+            <td class="p-3 font-mono text-cyan-400">${assignedCount}</td>
+            <td class="p-3 text-right">
+              <button onclick="editVeeamJobTemplate(${idx})" class="text-cyan-400 hover:text-cyan-300 mr-2 cursor-pointer" title="Edit & Auto-Sync"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteVeeamJobTemplate(${idx})" class="text-red-400 hover:text-red-300 cursor-pointer" title="Delete Job"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function onVeeamRowJobPick(idx, selectedJobName) {
@@ -2552,8 +2705,8 @@ if (svgEl) {
         const secEl = document.getElementById(`veeam-sec-${idx}`);
         const retEl = document.getElementById(`veeam-ret-${idx}`);
         if (timeEl) timeEl.value = found.schedule;
-        if (secEl) secEl.value = found.secondary || 'None';
-        if (retEl) retEl.value = found.retention || 30;
+        if (secEl) secEl.value = formatVeeamSecondarySummary(found);
+        if (retEl) retEl.value = found.retention ?? 120;
       }
     }
 
@@ -2602,10 +2755,16 @@ if (svgEl) {
 
       servers.forEach(s => {
         if (selectedServerNames.has(s.serverName)) {
+          s.veeamJobId = job.id;
           s.veeamJob = job.name;
           s.veeamTime = job.schedule;
-          s.veeamSecondary = job.secondary || 'None';
-          s.veeamRetention = job.retention || 30;
+          s.veeamRetention = job.retention ?? 120;
+          s.veeamSecondary = formatVeeamSecondarySummary(job);
+          s.veeamSecondaryTarget = job.secondaryTarget;
+          s.veeamSecondaryRetention = job.secondaryRetention;
+          s.veeamGfsWeekly = job.gfsWeekly;
+          s.veeamGfsMonthly = job.gfsMonthly;
+          s.veeamGfsYearly = job.gfsYearly;
         }
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
@@ -2627,10 +2786,14 @@ if (svgEl) {
         const timeEl = document.getElementById(`veeam-time-${idx}`);
         const secEl = document.getElementById(`veeam-sec-${idx}`);
         const retEl = document.getElementById(`veeam-ret-${idx}`);
-        if (jobEl) s.veeamJob = jobEl.value.trim();
+        if (jobEl) {
+          s.veeamJob = jobEl.value.trim();
+          const matchedJob = veeamJobs.find(j => j.name.toLowerCase() === s.veeamJob.toLowerCase());
+          s.veeamJobId = matchedJob ? matchedJob.id : undefined;
+        }
         if (timeEl) s.veeamTime = timeEl.value.trim();
         if (secEl) s.veeamSecondary = secEl.value.trim();
-        if (retEl) s.veeamRetention = parseInt(retEl.value) || 30;
+        if (retEl) s.veeamRetention = parseInt(retEl.value) || 120;
       });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       notifyUser("Veeam settings saved");
@@ -2737,7 +2900,7 @@ if (svgEl) {
               diskBreakdown: idxDiskBreakdown !== -1 ? cols[idxDiskBreakdown] : '',
               datastore: dsVal || 'VM_Datastore01',
               domain: domainVal || 'Becketts',
-              dept: deptVal || 'INF',
+              dept: deptVal || 'Unassigned',
               system: sysVal || 'General',
               ip: ipVal || '',
               subnet: subVal || calculateSubnet(ipVal || ''),
@@ -2832,7 +2995,7 @@ if (svgEl) {
              class="px-3 py-2 hover:bg-cyan-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
           <div>
             <div class="font-bold text-cyan-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
+            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'Unassigned'}</div>
           </div>
           <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
         </div>
@@ -2879,7 +3042,7 @@ if (svgEl) {
              class="px-3 py-2 hover:bg-amber-900/60 cursor-pointer flex items-center justify-between border-b border-slate-800/80 last:border-0 transition">
           <div>
             <div class="font-bold text-amber-300 font-mono text-xs">${s.serverName}</div>
-            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'INF'}</div>
+            <div class="text-[10px] text-slate-400">${s.system || 'General'} • ${s.dept || 'Unassigned'}</div>
           </div>
           <span class="text-[10px] font-mono text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${s.ip || 'No IP'}</span>
         </div>
@@ -3050,9 +3213,10 @@ if (svgEl) {
           } else {
             s[field] = val;
             if (matchedVeeamJob) {
+              s.veeamJobId = matchedVeeamJob.id;
               s.veeamTime = matchedVeeamJob.schedule;
-              s.veeamSecondary = matchedVeeamJob.secondary || 'None';
-              s.veeamRetention = matchedVeeamJob.retention || 30;
+              s.veeamSecondary = formatVeeamSecondarySummary(matchedVeeamJob);
+              s.veeamRetention = matchedVeeamJob.retention ?? 120;
             }
           }
         }
