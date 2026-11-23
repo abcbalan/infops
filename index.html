@@ -1,5 +1,5 @@
 <!-- 20261123 v88 - Works Modify Veeam job update, filter display -->
-<!-- 20261123 v89 - Try to indiviual auto fill for some more field -->
+<!-- 20261123 v89v2 - Try to add back Veeam backup filter view -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -496,6 +496,13 @@
             </button>
             <div id="drop-veeam-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-job', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Job: <strong id="lbl-veeam-job" class="text-cyan-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-job" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
+          </div>      
           <span id="veeamFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
         <div class="flex items-center gap-2">
@@ -965,6 +972,7 @@
       'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(), 'waves-wave': new Set(),
       'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
       'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
+      'veeam-job': new Set()
     };
 
     /* ================= UNIVERSAL MASTER COLUMN DEFINITIONS (ALL TABS) ================= */
@@ -1594,15 +1602,30 @@ function getAllWaveOptions() {
       });
     }
     
-    function getOptionsForFilter(filterKey) {
-      const field = filterKey.split('-')[1];
-      if (field === 'domain') return [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
-      if (field === 'wave') return getAllWaveOptions();
-      if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
-      if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
-      if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      return [];
-    }
+function getOptionsForFilter(filterKey) {
+  const field = filterKey.split('-')[1];
+  if (field === 'domain') return [...new Set(servers.map(s => s.domain).filter(Boolean))].sort();
+  if (field === 'wave') return getAllWaveOptions();
+  if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
+  if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
+  if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+  if (field === 'job') {
+    const jobSet = new Set(['Unassigned']);
+    (veeamJobs || []).forEach(j => {
+      if (j && j.name && j.name.trim()) jobSet.add(j.name.trim());
+    });
+    servers.forEach(s => {
+      const jName = (s.veeamJob || '').trim();
+      if (jName) jobSet.add(jName);
+    });
+    return Array.from(jobSet).sort((a, b) => {
+      if (a === 'Unassigned') return -1;
+      if (b === 'Unassigned') return 1;
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }
+  return [];
+}
 
     function populateMultiSelectContent(filterKey) {
       const box = document.getElementById(`drop-${filterKey}`);
@@ -1735,12 +1758,14 @@ function getAllWaveOptions() {
         const sys = s.system || 'General';
         const dep = s.dept || 'Unassigned';
         const sub = s.subnet || calculateSubnet(s.ip);
+        const vJob = (s.veeamJob || '').trim() || 'Unassigned';
 
         if (!matchesMultiFilter(dom, `${prefix}-domain`)) return false;
         if (!matchesMultiFilter(wv, `${prefix}-wave`)) return false;
         if (!matchesMultiFilter(sys, `${prefix}-system`)) return false;
         if (!matchesMultiFilter(dep, `${prefix}-dept`)) return false;
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
+        if (prefix === 'veeam' && !matchesMultiFilter(vJob, 'veeam-job')) return false;
 
         if (localQ) {
           const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
