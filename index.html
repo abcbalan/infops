@@ -1,5 +1,5 @@
 <!-- 20261120 v85 - Works Default dept/wave & centralized Veeam job editor with auto-sync -->
-<!-- 20261123 v86v2 - Trying to modify Veeam and Unassigned defaults & Veeam Job Auto-Sync -->
+<!-- 20261123 v86v3 - Trying to add Central Services - X3V12 SQL Cluster -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -917,7 +917,19 @@
       },
       {
         id: "veeam-job-3",
-        name: "Central Services - Failover Cluster",
+        name: "Central Services - SQL Backup",
+        type: "VMware Backup",
+        schedule: "Periodically every 12 Hours",
+        retention: 90,
+        secondaryTarget: "CatalystCopy5",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
+      },
+      {
+        id: "veeam-job-4",
+        name: "Central Services - X3V12 Failover Cluster",
         type: "Windows Agent Backup",
         schedule: "Periodically every 6 Hours",
         retention: 120,
@@ -928,12 +940,12 @@
         gfsYearly: 2
       },
       {
-        id: "veeam-job-4",
-        name: "Central Services - SQL Backup",
+        id: "veeam-job-5",
+        name: "Central Services - X3V12 SQL Cluster",
         type: "VMware Backup",
         schedule: "Periodically every 12 Hours",
-        retention: 90,
-        secondaryTarget: "CatalystCopy5",
+        retention: 60,
+        secondaryTarget: "CatalystCopy8",
         secondaryRetention: 2,
         gfsWeekly: 6,
         gfsMonthly: 12,
