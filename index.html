@@ -1,4 +1,5 @@
 <!-- 20261123 v88 - Works Modify Veeam job update, filter display -->
+<!-- 20261123 v89 - Try to indiviual auto fill for some more field -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -495,13 +496,6 @@
             </button>
             <div id="drop-veeam-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
-          <div class="relative">
-            <button onclick="toggleMultiSelectDropdown('veeam-job', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
-              <span>Veeam Job: <strong id="lbl-veeam-job" class="text-emerald-300">All</strong></span>
-              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
-            </button>
-            <div id="drop-veeam-job" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
-          </div>
           <span id="veeamFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
         <div class="flex items-center gap-2">
@@ -648,11 +642,13 @@
         </div> 
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">OS Family:</label>
-          <input type="text" id="modalOsFamily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+          <input type="text" id="modalOsFamily" list="modalOsFamilyList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="Windows">
+          <datalist id="modalOsFamilyList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Datastore:</label>
-          <input type="text" id="modalDatastore" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
+          <input type="text" id="modalDatastore" list="modalDatastoreList" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono" value="VM_Datastore01">
+          <datalist id="modalDatastoreList"></datalist>
         </div>
         <div class="col-span-2">
           <label class="font-semibold text-slate-300 mb-1 block">Disk Breakdown (Details):</label>
@@ -694,11 +690,13 @@
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Zerto VPG Name:</label>
-          <input type="text" id="modalVpg" placeholder="e.g. VPG-SERVER01" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <input type="text" id="modalVpg" list="modalVpgList" autocomplete="off" placeholder="e.g. VPG-SERVER01" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono">
+          <datalist id="modalVpgList"></datalist>
         </div>
         <div>
           <label class="font-semibold text-slate-300 mb-1 block">Zerto Target Site / Notes:</label>
-          <input type="text" id="modalDrSite" placeholder="e.g. Harbor Solutions DRaaS" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <input type="text" id="modalDrSite" list="modalDrSiteList" autocomplete="off" placeholder="e.g. Harbor Solutions DRaaS" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          <datalist id="modalDrSiteList"></datalist>
         </div>
         <div class="relative col-span-2">
           <label class="font-semibold text-slate-300 mb-1 block">Upstream Dependencies:</label>
@@ -966,7 +964,7 @@
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
       'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(), 'waves-wave': new Set(),
       'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
-      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set(), 'veeam-job': new Set()
+      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
     };
 
     /* ================= UNIVERSAL MASTER COLUMN DEFINITIONS (ALL TABS) ================= */
@@ -1603,19 +1601,6 @@ function getAllWaveOptions() {
       if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
       if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
       if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      if (field === 'job') {
-        const jobSet = new Set(['Unassigned']);
-        veeamJobs.forEach(j => { if (j.name) jobSet.add(j.name); });
-        servers.forEach(s => {
-          const jName = (s.veeamJob || '').trim();
-          if (jName) jobSet.add(jName);
-        });
-        return Array.from(jobSet).sort((a, b) => {
-          if (a === 'Unassigned') return -1;
-          if (b === 'Unassigned') return 1;
-          return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-        });
-      }
       return [];
     }
 
@@ -1756,10 +1741,6 @@ function getAllWaveOptions() {
         if (!matchesMultiFilter(sys, `${prefix}-system`)) return false;
         if (!matchesMultiFilter(dep, `${prefix}-dept`)) return false;
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
-        if (prefix === 'veeam') {
-          const jobLabel = (s.veeamJob || '').trim() || 'Unassigned';
-          if (!matchesMultiFilter(jobLabel, 'veeam-job')) return false;
-        }
 
         if (localQ) {
           const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
@@ -2647,7 +2628,7 @@ if (svgEl) {
       const sel = document.getElementById('veeamPresetSelect');
       if (!sel) return;
       const sorted = getSortedVeeamJobs();
-      sel.innerHTML = `<option value="__UNASSIGN__">[None / No Backup Job - Unassign]</option>` + sorted.map((j) => {
+      sel.innerHTML = sorted.map((j) => {
         const realIdx = veeamJobs.findIndex(item => item.id === j.id || item.name === j.name);
         return `<option value="${realIdx}">${j.name} (${j.schedule} | RP:${j.retention ?? ''})</option>`;
       }).join('');
@@ -2828,27 +2809,7 @@ if (svgEl) {
 
     function applyVeeamPreset() {
       if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
-      const rawSel = document.getElementById('veeamPresetSelect').value;
-      if (rawSel === '__UNASSIGN__') {
-        servers.forEach(s => {
-          if (selectedServerNames.has(s.serverName)) {
-            s.veeamJobId = '';
-            s.veeamJob = '';
-            s.veeamTime = '';
-            s.veeamSecondary = '';
-            s.veeamSecondaryTarget = '';
-            s.veeamSecondaryRetention = 0;
-            s.veeamGfsWeekly = 0;
-            s.veeamGfsMonthly = 0;
-            s.veeamGfsYearly = 0;
-            s.veeamRetention = '';
-          }
-        });
-        localStorage.setItem('infops_servers', JSON.stringify(servers));
-        renderVeeamTable();
-        return notifyUser(`Unassigned backup job from ${selectedServerNames.size} server(s)`);
-      }
-      const idx = parseInt(rawSel);
+      const idx = parseInt(document.getElementById('veeamPresetSelect').value);
       const job = veeamJobs[idx];
       if (!job) return notifyUser("No job selected", true);
 
@@ -3197,8 +3158,30 @@ if (svgEl) {
       if (box) box.classList.add('hidden');
     }
 
+    function populateServerModalDatalists() {
+      const fillList = (listId, values) => {
+        const el = document.getElementById(listId);
+        if (!el) return;
+        const unique = [...new Set(values.map(v => (v || '').trim()).filter(Boolean))].sort((a, b) =>
+          a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+        );
+        el.innerHTML = unique.map(v => `<option value="${v.replace(/"/g, '&quot;')}"></option>`).join('');
+      };
+
+      fillList('modalDomainList', servers.map(s => s.domain));
+      fillList('modalDeptList', servers.map(s => s.dept));
+      fillList('modalSystemList', servers.map(s => s.system));
+      fillList('modalSubnetList', servers.map(s => s.subnet || calculateSubnet(s.ip)));
+      fillList('modalDrList', ['P00', 'P01', 'P02', 'No', ...servers.map(s => s.drStatus)]);
+      fillList('modalOsFamilyList', ['Windows', 'Linux', ...servers.map(s => s.osFamily)]);
+      fillList('modalDatastoreList', servers.map(s => s.datastore));
+      fillList('modalVpgList', servers.map(s => s.vpg));
+      fillList('modalDrSiteList', servers.map(s => s.drSite));
+    }
+
     function openServerModal(serverName = null) {
       updateDropdownLabels();
+      populateServerModalDatalists();
       hideDepSuggestions();
       document.getElementById('serverModal').classList.remove('hidden');
       if (serverName) {
@@ -3300,23 +3283,14 @@ if (svgEl) {
           veeamSelect.innerHTML = `<option value="">-- Select Existing Veeam Job (${sortedJobs.length}) --</option>` +
             sortedJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}">${j.name}</option>`).join('');
 
-          veeamSelect.innerHTML = `<option value="">-- Select Existing Veeam Job (${sortedJobs.length}) --</option>` +
-            `<option value="__UNASSIGN_VEEAM__">[None / No Backup Job - Unassign]</option>` +
-            sortedJobs.map(j => `<option value="${j.name.replace(/"/g, '&quot;')}">${j.name}</option>`).join('');
-
-          const selectedJobVals = [...new Set(selectedObjects.map(s => (s.veeamJob || '').trim()))];
+          const selectedJobVals = [...new Set(selectedObjects.map(s => (s.veeamJob || '').trim()).filter(Boolean))];
           if (selectedJobVals.length === 1) {
-            if (selectedJobVals[0] === '') {
-              veeamSelect.value = '__UNASSIGN_VEEAM__';
-              if (hintEl) hintEl.innerText = 'Currently unassigned (no backup job)';
-            } else {
-              const match = sortedJobs.find(j => j.name.toLowerCase() === selectedJobVals[0].toLowerCase());
-              veeamSelect.value = match ? match.name : '';
-              if (hintEl) hintEl.innerText = match ? 'Prefilled from selection (Schedule, Secondary & Retention auto-linked)' : 'Pick an existing Veeam job or Unassign';
-            }
+            const match = sortedJobs.find(j => j.name.toLowerCase() === selectedJobVals[0].toLowerCase());
+            veeamSelect.value = match ? match.name : '';
+            if (hintEl) hintEl.innerText = match ? 'Prefilled from selection (Schedule, Secondary & Retention auto-linked)' : 'Pick an existing Veeam job';
           } else {
             veeamSelect.value = '';
-            if (hintEl) hintEl.innerText = 'Select existing job or [None / No Backup Job - Unassign]';
+            if (hintEl) hintEl.innerText = 'Select existing job (Schedule, Secondary & Retention auto-linked)';
           }
         }
         return;
@@ -3376,12 +3350,11 @@ if (svgEl) {
         val = val.split(',').map(d => d.trim()).filter(Boolean).join(', ');
       }
 
-      const isUnassignVeeam = field === 'veeamJob' && val === '__UNASSIGN_VEEAM__';
-      const matchedVeeamJob = (field === 'veeamJob' && !isUnassignVeeam)
+      const matchedVeeamJob = field === 'veeamJob'
         ? veeamJobs.find(j => j.name.toLowerCase() === val.toLowerCase())
         : null;
 
-      if (field === 'veeamJob' && !isUnassignVeeam && !matchedVeeamJob) {
+      if (field === 'veeamJob' && !matchedVeeamJob) {
         return notifyUser("Invalid Veeam job selection", true);
       }
 
@@ -3389,17 +3362,6 @@ if (svgEl) {
         if (selectedServerNames.has(s.serverName)) {
           if (field === 'totalDiskGB') {
             s[field] = parseInt(val) || 0;
-          } else if (isUnassignVeeam) {
-            s.veeamJobId = '';
-            s.veeamJob = '';
-            s.veeamTime = '';
-            s.veeamSecondary = '';
-            s.veeamSecondaryTarget = '';
-            s.veeamSecondaryRetention = 0;
-            s.veeamGfsWeekly = 0;
-            s.veeamGfsMonthly = 0;
-            s.veeamGfsYearly = 0;
-            s.veeamRetention = '';
           } else if (field === 'veeamJob' && matchedVeeamJob) {
             s.veeamJobId = matchedVeeamJob.id;
             s.veeamJob = matchedVeeamJob.name;
