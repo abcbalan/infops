@@ -1,5 +1,4 @@
-<!-- 20261123 v89 - Works add back Veeam backup filter -->
-<!-- 20261123 v90 - Try to fix csv select export all -->
+<!-- 20261123 v90 - Works fixed csv select export all -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1014,7 +1013,7 @@
       inventory: ['select', 'serverName', 'numCpu', 'memoryGB', 'totalDiskGB', 'osFamily', 'datastore', 'domain', 'dept', 'system', 'ip', 'subnet', 'actions'],
       waves: ['select', 'serverName', 'dept', 'system', 'wave', 'ip', 'subnet', 'cutoverStatus', 'dns', 'fw', 'sync', 'sign'],
       zerto: ['select', 'drStatus', 'serverName', 'system', 'subnet', 'vpg', 'site', 'ip'],
-      veeam: ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamSecondary', 'veeamRetention']
+      veeam: ['select', 'serverName', 'system', 'veeamJob', 'veeamTime', 'veeamRetention', 'veeamSecondary']
     };
 
     // Stores exact ordered list of visible column keys per tab
