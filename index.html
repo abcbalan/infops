@@ -1,4 +1,5 @@
 <!-- 20261123 v87 - Works Veeam Backup Job filter & removed Assign Job toolbar control -->
+<!-- 20261123 v88 - Trying to modify Veeam on screen individual update -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -438,7 +439,7 @@
             Veeam Backup Job & Retention Management
             <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-0.5 rounded-full font-mono">0 selected</span>
           </h2>
-          <p class="text-xs text-slate-400">Filter VMs by backup job, manage reusable Veeam backup jobs, and update individually or in bulk.</p>
+          <p class="text-xs text-slate-400">Manage reusable Veeam backup jobs (periodic, chained, secondary copy), assign to servers, and add any extra columns.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
@@ -451,6 +452,11 @@
           <button onclick="openVeeamJobsModal()" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold shadow transition cursor-pointer">
             <i class="fas fa-tasks mr-1"></i> Manage Jobs (<span id="veeamJobCatalogCount">0</span>)
           </button>
+          <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-xl">
+            <span class="text-xs text-cyan-300 font-semibold"><i class="fas fa-magic mr-1"></i> Assign Job:</span>
+            <select id="veeamPresetSelect" class="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 focus:outline-none max-w-[230px]"></select>
+            <button onclick="applyVeeamPreset()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold cursor-pointer">Apply to Selected</button>
+          </div>
           <button onclick="openBulkEditModal()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5 cursor-pointer">
             <i class="fas fa-edit"></i> Bulk Update 
             <span class="selectedCountBadge-el bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[10px] border border-amber-700">0 selected</span>
@@ -462,13 +468,6 @@
 
       <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="relative">
-            <button onclick="toggleMultiSelectDropdown('veeam-job', event)" class="bg-slate-900 border border-cyan-800/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
-              <span>Backup Job: <strong id="lbl-veeam-job" class="text-cyan-300">All</strong></span>
-              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
-            </button>
-            <div id="drop-veeam-job" class="absolute left-0 mt-1 w-72 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-64 overflow-y-auto"></div>
-          </div>
           <div class="relative">
             <button onclick="toggleMultiSelectDropdown('veeam-dept', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
               <span>Department: <strong id="lbl-veeam-dept" class="text-amber-300">All</strong></span>
@@ -961,7 +960,7 @@
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
       'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(), 'waves-wave': new Set(),
       'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
-      'veeam-job': new Set(), 'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
+      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
     };
 
     /* ================= UNIVERSAL MASTER COLUMN DEFINITIONS (ALL TABS) ================= */
@@ -1262,12 +1261,11 @@ function toggleColPickerDropdown(tabName, event) {
           return createCell(`<span class="text-slate-300">${s.drSite || '-'}</span>`, "p-3");
         case 'veeamJob':
           if (tabName === 'veeam') {
-            const sortedJobs = getSortedVeeamJobs();
             const curJob = (s.veeamJob || '').trim();
-            const opts = `<option value="">-- Select Job --</option>` + sortedJobs.map(j =>
-              `<option value="${j.name.replace(/"/g, '&quot;')}" ${curJob.toLowerCase() === j.name.toLowerCase() ? 'selected' : ''}>${j.name}</option>`
-            ).join('');
-            return createCell(`<select id="veeam-job-${rowIdx}" onchange="onVeeamRowJobPick(${rowIdx}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-200 text-xs w-full cursor-pointer">${opts}</select>`, "p-3");
+            if (!curJob) {
+              return createCell(`<span class="text-slate-500 italic text-xs">Unassigned</span>`, "p-3");
+            }
+            return createCell(`<span class="text-cyan-200 font-medium truncate max-w-[240px] block" title="${curJob.replace(/"/g, '&quot;')}">${curJob}</span>`, "p-3");
           }
           return createCell(`<span class="text-slate-200 truncate max-w-[180px] block" title="${(s.veeamJob || '').replace(/"/g, '&quot;')}">${s.veeamJob || ''}</span>`, "p-3");
         case 'veeamTime': {
@@ -1599,18 +1597,6 @@ function getAllWaveOptions() {
       if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
       if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
       if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
-      if (field === 'job') {
-        const jobSet = new Set(veeamJobs.map(j => j.name).filter(Boolean));
-        let hasUnassigned = false;
-        servers.forEach(s => {
-          const jName = (s.veeamJob || '').trim();
-          if (jName) jobSet.add(jName);
-          else hasUnassigned = true;
-        });
-        const list = Array.from(jobSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-        if (hasUnassigned) list.unshift('Unassigned');
-        return list;
-      }
       return [];
     }
 
@@ -1745,14 +1731,12 @@ function getAllWaveOptions() {
         const sys = s.system || 'General';
         const dep = s.dept || 'Unassigned';
         const sub = s.subnet || calculateSubnet(s.ip);
-        const vJob = (s.veeamJob || '').trim() || 'Unassigned';
 
         if (!matchesMultiFilter(dom, `${prefix}-domain`)) return false;
         if (!matchesMultiFilter(wv, `${prefix}-wave`)) return false;
         if (!matchesMultiFilter(sys, `${prefix}-system`)) return false;
         if (!matchesMultiFilter(dep, `${prefix}-dept`)) return false;
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
-        if (prefix === 'veeam' && !matchesMultiFilter(vJob, 'veeam-job')) return false;
 
         if (localQ) {
           const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
@@ -2636,6 +2620,16 @@ if (svgEl) {
       if (changed) localStorage.setItem('infops_servers', JSON.stringify(servers));
     }
 
+    function populateVeeamPresetSelect() {
+      const sel = document.getElementById('veeamPresetSelect');
+      if (!sel) return;
+      const sorted = getSortedVeeamJobs();
+      sel.innerHTML = sorted.map((j) => {
+        const realIdx = veeamJobs.findIndex(item => item.id === j.id || item.name === j.name);
+        return `<option value="${realIdx}">${j.name} (${j.schedule} | RP:${j.retention ?? ''})</option>`;
+      }).join('');
+    }
+
     function openVeeamJobsModal() {
       resetVeeamJobForm();
       renderVeeamJobCatalogTable();
@@ -2649,6 +2643,7 @@ if (svgEl) {
 
     function closeVeeamJobsModal() {
       document.getElementById('veeamJobsModal').classList.add('hidden');
+      populateVeeamPresetSelect();
       updateGlobalCounters();
       renderVeeamTable();
     }
@@ -2697,6 +2692,7 @@ if (svgEl) {
 
       resetVeeamJobForm();
       renderVeeamJobCatalogTable();
+      populateVeeamPresetSelect();
       updateGlobalCounters();
       renderVeeamTable();
       notifyUser(`Saved "${jobObj.name}" & synced ${syncedServers} server(s)`);
@@ -2723,6 +2719,7 @@ if (svgEl) {
         veeamJobs.splice(idx, 1);
         localStorage.setItem('infops_veeam_jobs', JSON.stringify(veeamJobs));
         renderVeeamJobCatalogTable();
+        populateVeeamPresetSelect();
         updateGlobalCounters();
       }
     }
@@ -2772,6 +2769,7 @@ if (svgEl) {
     function renderVeeamTable() {
       updateDropdownLabels();
       updateGlobalCounters();
+      populateVeeamPresetSelect();
       const tbody = document.getElementById('veeamTableBody');
       if (tbody) {
         tbody.innerHTML = '';
@@ -2805,6 +2803,31 @@ if (svgEl) {
       }
     }
 
+    function applyVeeamPreset() {
+      if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
+      const idx = parseInt(document.getElementById('veeamPresetSelect').value);
+      const job = veeamJobs[idx];
+      if (!job) return notifyUser("No job selected", true);
+
+      servers.forEach(s => {
+        if (selectedServerNames.has(s.serverName)) {
+          s.veeamJobId = job.id;
+          s.veeamJob = job.name;
+          s.veeamTime = job.schedule;
+          s.veeamRetention = job.retention ?? 120;
+          s.veeamSecondary = formatVeeamSecondarySummary(job);
+          s.veeamSecondaryTarget = job.secondaryTarget;
+          s.veeamSecondaryRetention = job.secondaryRetention;
+          s.veeamGfsWeekly = job.gfsWeekly;
+          s.veeamGfsMonthly = job.gfsMonthly;
+          s.veeamGfsYearly = job.gfsYearly;
+        }
+      });
+      localStorage.setItem('infops_servers', JSON.stringify(servers));
+      renderVeeamTable();
+      notifyUser(`Assigned "${job.name}" to ${selectedServerNames.size} server(s)`);
+    }
+
     function toggleVeeamSelectAll(master) {
       const visibleList = getFilteredTabServers('veeam');
       if (master.checked) visibleList.forEach(s => selectedServerNames.add(s.serverName));
@@ -2813,35 +2836,9 @@ if (svgEl) {
     }
 
     function saveVeeamChanges() {
-      const visibleList = getFilteredTabServers('veeam');
-      visibleList.forEach((s, idx) => {
-        const jobEl = document.getElementById(`veeam-job-${idx}`);
-        if (jobEl) {
-          const chosenJobName = jobEl.value.trim();
-          const matchedJob = veeamJobs.find(j => j.name.toLowerCase() === chosenJobName.toLowerCase());
-          if (matchedJob) {
-            s.veeamJobId = matchedJob.id;
-            s.veeamJob = matchedJob.name;
-            s.veeamTime = matchedJob.schedule || '';
-            s.veeamSecondary = formatVeeamSecondarySummary(matchedJob);
-            s.veeamSecondaryTarget = matchedJob.secondaryTarget || '';
-            s.veeamSecondaryRetention = matchedJob.secondaryRetention ?? 0;
-            s.veeamGfsWeekly = matchedJob.gfsWeekly ?? 0;
-            s.veeamGfsMonthly = matchedJob.gfsMonthly ?? 0;
-            s.veeamGfsYearly = matchedJob.gfsYearly ?? 0;
-            s.veeamRetention = matchedJob.retention ?? '';
-          } else {
-            s.veeamJobId = '';
-            s.veeamJob = '';
-            s.veeamTime = '';
-            s.veeamSecondary = '';
-            s.veeamRetention = '';
-          }
-        }
-      });
       localStorage.setItem('infops_servers', JSON.stringify(servers));
       renderVeeamTable();
-      notifyUser("Veeam job assignments saved");
+      notifyUser("Veeam backup state saved");
     }
 
     /* ================= CALCULATOR & HEALTH ================= */
@@ -3456,6 +3453,7 @@ if (svgEl) {
       normalizeUnassignedVeeamServers();
       applySettings();
       verifyClientIP();
+      populateVeeamPresetSelect();
       renderInventoryTable();
       switchTab('inventory');
     });
