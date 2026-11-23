@@ -1,5 +1,5 @@
 <!-- 20261123 v87 - Works Veeam Backup Job filter & removed Assign Job toolbar control -->
-<!-- 20261123 v88 - Trying to modify Veeam on screen individual update -->
+<!-- 20261123 v88v2 - Trying to modify Veeam on screen individual update -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -894,7 +894,7 @@
       {
         id: "veeam-job-1",
         name: "Central Services - App and File Backup 01",
-        type: "VMware Backup",
+        type: "Windows Agent Backup",
         schedule: "Periodically every 6 Hours",
         retention: 120,
         secondaryTarget: "CatalystCopy4_v2",
@@ -906,7 +906,7 @@
       {
         id: "veeam-job-2",
         name: "Central Services - App and File Backup 02",
-        type: "VMware Backup",
+        type: "Windows Agent Backup",
         schedule: "After CS App & File Backup 01",
         retention: 120,
         secondaryTarget: "CatalystCopy6",
@@ -917,7 +917,19 @@
       },
       {
         id: "veeam-job-3",
-        name: "Central Services - Failover Cluster",
+        name: "Central Services - SQL Backup",
+        type: "Windows Agent Backup",
+        schedule: "Periodically every 12 Hours",
+        retention: 60,
+        secondaryTarget: "CatalystCopy5",
+        secondaryRetention: 2,
+        gfsWeekly: 6,
+        gfsMonthly: 12,
+        gfsYearly: 2
+      },
+      {
+        id: "veeam-job-4",
+        name: "Central Services - X3V12 Failover Cluster",
         type: "Windows Agent Backup",
         schedule: "Periodically every 6 Hours",
         retention: 120,
@@ -928,12 +940,12 @@
         gfsYearly: 2
       },
       {
-        id: "veeam-job-4",
-        name: "Central Services - SQL Backup",
-        type: "VMware Backup",
+        id: "veeam-job-5",
+        name: "Central Services - X3V12 SQL Cluster",
+        type: "Windows Agent Backup",
         schedule: "Periodically every 12 Hours",
-        retention: 90,
-        secondaryTarget: "CatalystCopy5",
+        retention: 60,
+        secondaryTarget: "CatalystCopy8",
         secondaryRetention: 2,
         gfsWeekly: 6,
         gfsMonthly: 12,
