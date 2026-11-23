@@ -1,5 +1,5 @@
 <!-- 20261123 v87 - Works Veeam Backup Job filter & removed Assign Job toolbar control -->
-<!-- 20261123 v88v2 - Trying to modify Veeam on screen individual update -->
+<!-- 20261123 v88v3 - Trying to modify Veeam on screen individual update -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -496,6 +496,13 @@
             </button>
             <div id="drop-veeam-subnet" class="absolute left-0 mt-1 w-56 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
           </div>
+          <div class="relative">
+            <button onclick="toggleMultiSelectDropdown('veeam-job', event)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 flex items-center gap-2 cursor-pointer">
+              <span>Veeam Job: <strong id="lbl-veeam-job" class="text-emerald-300">All</strong></span>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+            <div id="drop-veeam-job" class="absolute left-0 mt-1 w-64 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 hidden space-y-1 max-h-56 overflow-y-auto"></div>
+          </div>
           <span id="veeamFilteredMatchBadge" class="text-xs bg-slate-900 border border-cyan-800/70 text-cyan-300 px-2.5 py-1 rounded-lg font-mono">Showing 0 of 0</span>
         </div>
         <div class="flex items-center gap-2">
@@ -960,7 +967,7 @@
       'inv-dept': new Set(), 'inv-system': new Set(), 'inv-domain': new Set(), 'inv-subnet': new Set(),
       'waves-dept': new Set(), 'waves-system': new Set(), 'waves-domain': new Set(), 'waves-subnet': new Set(), 'waves-wave': new Set(),
       'zerto-dept': new Set(), 'zerto-system': new Set(), 'zerto-domain': new Set(), 'zerto-subnet': new Set(),
-      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set()
+      'veeam-dept': new Set(), 'veeam-system': new Set(), 'veeam-domain': new Set(), 'veeam-subnet': new Set(), 'veeam-job': new Set()
     };
 
     /* ================= UNIVERSAL MASTER COLUMN DEFINITIONS (ALL TABS) ================= */
@@ -1597,6 +1604,19 @@ function getAllWaveOptions() {
       if (field === 'system') return [...new Set(servers.map(s => s.system).filter(Boolean))].sort();
       if (field === 'dept') return [...new Set(servers.map(s => s.dept).filter(Boolean))].sort();
       if (field === 'subnet') return [...new Set(servers.map(s => s.subnet).filter(Boolean))].sort();
+      if (field === 'job') {
+        const jobSet = new Set(['Unassigned']);
+        veeamJobs.forEach(j => { if (j.name) jobSet.add(j.name); });
+        servers.forEach(s => {
+          const jName = (s.veeamJob || '').trim();
+          if (jName) jobSet.add(jName);
+        });
+        return Array.from(jobSet).sort((a, b) => {
+          if (a === 'Unassigned') return -1;
+          if (b === 'Unassigned') return 1;
+          return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        });
+      }
       return [];
     }
 
@@ -1737,6 +1757,10 @@ function getAllWaveOptions() {
         if (!matchesMultiFilter(sys, `${prefix}-system`)) return false;
         if (!matchesMultiFilter(dep, `${prefix}-dept`)) return false;
         if (!matchesMultiFilter(sub, `${prefix}-subnet`)) return false;
+        if (prefix === 'veeam') {
+          const jobLabel = (s.veeamJob || '').trim() || 'Unassigned';
+          if (!matchesMultiFilter(jobLabel, 'veeam-job')) return false;
+        }
 
         if (localQ) {
           const combinedLocal = `${s.serverName} ${s.dept} ${s.system} ${s.domain} ${s.ip} ${s.subnet} ${s.wave} ${s.drStatus} ${s.drSite} ${s.vpg} ${s.veeamJob} ${s.veeamSecondary} ${s.dependencies}`.toLowerCase();
@@ -2624,7 +2648,7 @@ if (svgEl) {
       const sel = document.getElementById('veeamPresetSelect');
       if (!sel) return;
       const sorted = getSortedVeeamJobs();
-      sel.innerHTML = sorted.map((j) => {
+      sel.innerHTML = `<option value="__UNASSIGN__">[None / No Backup Job - Unassign]</option>` + sorted.map((j) => {
         const realIdx = veeamJobs.findIndex(item => item.id === j.id || item.name === j.name);
         return `<option value="${realIdx}">${j.name} (${j.schedule} | RP:${j.retention ?? ''})</option>`;
       }).join('');
@@ -2805,7 +2829,27 @@ if (svgEl) {
 
     function applyVeeamPreset() {
       if (selectedServerNames.size === 0) return notifyUser("Select at least one server first", true);
-      const idx = parseInt(document.getElementById('veeamPresetSelect').value);
+      const rawSel = document.getElementById('veeamPresetSelect').value;
+      if (rawSel === '__UNASSIGN__') {
+        servers.forEach(s => {
+          if (selectedServerNames.has(s.serverName)) {
+            s.veeamJobId = '';
+            s.veeamJob = '';
+            s.veeamTime = '';
+            s.veeamSecondary = '';
+            s.veeamSecondaryTarget = '';
+            s.veeamSecondaryRetention = 0;
+            s.veeamGfsWeekly = 0;
+            s.veeamGfsMonthly = 0;
+            s.veeamGfsYearly = 0;
+            s.veeamRetention = '';
+          }
+        });
+        localStorage.setItem('infops_servers', JSON.stringify(servers));
+        renderVeeamTable();
+        return notifyUser(`Unassigned backup job from ${selectedServerNames.size} server(s)`);
+      }
+      const idx = parseInt(rawSel);
       const job = veeamJobs[idx];
       if (!job) return notifyUser("No job selected", true);
 
