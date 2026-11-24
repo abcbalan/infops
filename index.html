@@ -1,4 +1,5 @@
 <!-- 20261123 v90 - Works fixed csv select export all -->
+<!-- 20261124 v91 - Trying to modify drawTreeConnectors -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2190,43 +2191,107 @@ function renderTreeNodeCard(s, borderClass) {
       draggedTreeServerName = null;
     }
 
-    function drawTreeConnectors(visibleServers) {
-      const svg = document.getElementById('svgTreeConnectors');
-      const container = document.getElementById('canvasTreeView');
-      if (!svg || !container || container.classList.contains('hidden')) return;
-      Array.from(svg.querySelectorAll('path')).forEach(p => p.remove());
+function drawTreeConnectors(visibleServers) {
+  const svg = document.getElementById('svgTreeConnectors');
+  const container = document.getElementById('canvasTreeView');
+  if (!svg || !container || container.classList.contains('hidden')) return;
+  Array.from(svg.querySelectorAll('path')).forEach(p => p.remove());
 
-      const cardMap = new Map();
-      container.querySelectorAll('[data-tree-server]').forEach(el => cardMap.set(el.getAttribute('data-tree-server'), el));
-      const containerRect = container.getBoundingClientRect();
-      svg.style.width = `${Math.max(container.scrollWidth, 1200)}px`;
-      svg.style.height = `${Math.max(container.scrollHeight, 900)}px`;
+  const visibleMap = new Map();
+  visibleServers.forEach(s => visibleMap.set(s.serverName.toLowerCase(), s));
 
-      visibleServers.forEach(child => {
-        const childEl = cardMap.get(child.serverName.toLowerCase());
-        if (!childEl) return;
-        const cRect = childEl.getBoundingClientRect();
-        const x2 = cRect.left - containerRect.left + container.scrollLeft + cRect.width / 2;
-        const y2 = cRect.top - containerRect.top + container.scrollTop;
+  const cardMap = new Map();
+  container.querySelectorAll('[data-tree-server]').forEach(el => cardMap.set(el.getAttribute('data-tree-server'), el));
 
-        parseDepList(child.dependencies).forEach(depName => {
-          const parentEl = cardMap.get(depName.toLowerCase());
-          if (!parentEl) return;
-          const pRect = parentEl.getBoundingClientRect();
-          const x1 = pRect.left - containerRect.left + container.scrollLeft + pRect.width / 2;
-          const y1 = pRect.top - containerRect.top + container.scrollTop + pRect.height;
-          const midY = (y1 + y2) / 2;
+  const containerRect = container.getBoundingClientRect();
+  svg.style.width = `${Math.max(container.scrollWidth, 1200)}px`;
+  svg.style.height = `${Math.max(container.scrollHeight, 900)}px`;
 
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2 - 3}`);
-          path.setAttribute('stroke', '#06b6d4');
-          path.setAttribute('stroke-width', '2');
-          path.setAttribute('fill', 'none');
-          path.setAttribute('marker-end', 'url(#treeArrow)');
-          svg.appendChild(path);
-        });
+  // Helper to get card box in SVG/container coordinates
+  const getBox = (el) => {
+    const r = el.getBoundingClientRect();
+    const left = r.left - containerRect.left + container.scrollLeft;
+    const top = r.top - containerRect.top + container.scrollTop;
+    return { left, top, right: left + r.width, bottom: top + r.height, cx: left + r.width / 2, cy: top + r.height / 2, w: r.width, h: r.height };
+  };
+
+  // Collect all card boxes so we can route around them when needed
+  const allBoxes = Array.from(cardMap.values()).map(getBox);
+
+  // Track horizontal channel usage so parallel lines don't overlap on the exact same y
+  let laneIndex = 0;
+
+  visibleServers.forEach(child => {
+    const childEl = cardMap.get(child.serverName.toLowerCase());
+    if (!childEl) return;
+    const cBox = getBox(childEl);
+    const childTier = computeServerTier(child, visibleMap);
+
+    parseDepList(child.dependencies).forEach(depName => {
+      const parentSrv = visibleMap.get(depName.toLowerCase());
+      const parentEl = cardMap.get(depName.toLowerCase());
+      if (!parentEl) return;
+      const pBox = getBox(parentEl);
+      const parentTier = parentSrv ? computeServerTier(parentSrv, visibleMap) : childTier;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('stroke', '#06b6d4');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('marker-end', 'url(#treeArrow)');
+
+      // 1) Same-tier connection: use a clean horizontal/stepped line at mid-height
+      if (parentTier === childTier) {
+        const goRight = pBox.cx <= cBox.cx;
+        const x1 = goRight ? pBox.right : pBox.left;
+        const x2 = goRight ? cBox.left - 6 : cBox.right + 6;
+        const y = pBox.cy + ((laneIndex % 3) - 1) * 8;
+        laneIndex++;
+
+        // Straight line between cards in the same tier
+        path.setAttribute('d', `M ${x1} ${y} L ${x2} ${y}`);
+        svg.appendChild(path);
+        return;
+      }
+
+      // 2) Cross-tier connection: route cleanly through the gap between tiers
+      const x1 = pBox.cx;
+      const y1 = pBox.bottom;
+      const x2 = cBox.cx;
+      const y2 = cBox.top - 4;
+
+      // Place laneY in the gap between parent bottom and child top, slightly staggered
+      const rawMidY = (y1 + y2) / 2;
+      const offset = ((laneIndex % 5) - 2) * 7;
+      laneIndex++;
+      let laneY = rawMidY + offset;
+
+      // Nudge laneY clear of any card vertically overlapping [min(x1,x2), max(x1,x2)]
+      const minX = Math.min(x1, x2);
+      const maxX = Math.max(x1, x2);
+      allBoxes.forEach(b => {
+        const horizOverlap = b.right > minX && b.left < maxX;
+        if (horizOverlap && laneY > b.top - 10 && laneY < b.bottom + 10) {
+          laneY = Math.min(y2 - 12, Math.max(y1 + 12, b.bottom + 14));
+        }
       });
-    }
+
+      const r = 8; // small corner radius for clean orthogonal routing
+      const dirX = x2 >= x1 ? 1 : -1;
+      const d = [
+        `M ${x1} ${y1}`,
+        `L ${x1} ${laneY - r}`,
+        `Q ${x1} ${laneY} ${x1 + dirX * r} ${laneY}`,
+        `L ${x2 - dirX * r} ${laneY}`,
+        `Q ${x2} ${laneY} ${x2} ${laneY + r}`,
+        `L ${x2} ${y2}`
+      ].join(' ');
+
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+    });
+  });
+}
 
     function renderTopologyListView(filtered) {
       const tbody = document.getElementById('topologyListTbody');
