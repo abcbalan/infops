@@ -1,4 +1,5 @@
 <!-- 20261126 v91 - Works Change backgroud color or server card -->
+<!-- 20261126 v92 - Trying to Max server card when copy out -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2406,21 +2407,82 @@ async function buildCardCanvases() {
     ctx.roundRect(1, 1, w - 2, h - 2, 10);
     ctx.stroke();
 
-    const lines = Array.from(card.querySelectorAll('span, div'))
+    // Gather structured card fields so text fills the card cleanly with zero wasted whitespace
+    const cardTitleEl = card.querySelector('[title]');
+    const serverTitle = (cardTitleEl ? cardTitleEl.getAttribute('title') : '') ||
+      Array.from(card.querySelectorAll('span'))
+        .map((el) => el.textContent.trim())
+        .find((txt) => txt.length > 0) || '';
+
+    const bottomRow = card.querySelector('.border-t');
+    const bottomSpans = bottomRow
+      ? Array.from(bottomRow.querySelectorAll('span')).map((el) => el.textContent.trim()).filter(Boolean)
+      : [];
+
+    const allLeafTexts = Array.from(card.querySelectorAll('span, div'))
+      .filter((el) => el.children.length === 0)
       .map((el) => el.textContent.trim())
       .filter((txt, i, arr) => txt && arr.indexOf(txt) === i);
 
+    const ipText = bottomSpans[0] || allLeafTexts.find((t) => /^\d{1,3}(\.\d{1,3}){3}$/.test(t)) || '';
+    const deptText = bottomSpans[1] || '';
+    const systemText = allLeafTexts.find((t) =>
+      t !== serverTitle && t !== ipText && t !== deptText
+    ) || '';
+
+    const padX = Math.max(12, Math.round(w * 0.055));
+    const padY = Math.max(10, Math.round(h * 0.13));
+    const maxTextWidth = w - padX * 2;
+
+    function fitFontSize(text, weight, family, startSize, minSize, allowedWidth) {
+      if (!text) return startSize;
+      let size = startSize;
+      ctx.font = `${weight} ${size}px ${family}`;
+      while (size > minSize && ctx.measureText(text).width > allowedWidth) {
+        size -= 0.5;
+        ctx.font = `${weight} ${size}px ${family}`;
+      }
+      return size;
+    }
+
+    // 1) Server Name near top, sized generously to fill width
+    const titleSize = fitFontSize(serverTitle, 'bold', 'sans-serif', Math.min(20, Math.round(h * 0.24)), 12, maxTextWidth);
     ctx.fillStyle = '#000000';
-    ctx.font = 'bold 12px sans-serif';
-    if (lines[0]) ctx.fillText(lines[0], 14, 24);
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    ctx.font = `bold ${titleSize}px sans-serif`;
+    if (serverTitle) ctx.fillText(serverTitle, padX, padY, maxTextWidth);
+
+    // 2) System / Role in the middle area, scaled to use available space
+    const sysSize = fitFontSize(systemText, '500', 'sans-serif', Math.min(16, Math.round(h * 0.19)), 11, maxTextWidth);
+    const titleBottomY = padY + titleSize + Math.max(4, Math.round(h * 0.05));
+    const bottomBaselineY = h - padY;
+    const footerSize = Math.min(15, Math.max(11, Math.round(h * 0.17)));
+    const midAvailableY = bottomBaselineY - footerSize - titleBottomY - 4;
+    const sysY = titleBottomY + Math.max(0, Math.round((midAvailableY - sysSize) * 0.45));
 
     ctx.fillStyle = '#111827';
-    ctx.font = '11px sans-serif';
-    if (lines[1]) ctx.fillText(lines[1], 14, 42);
+    ctx.font = `500 ${sysSize}px sans-serif`;
+    if (systemText) ctx.fillText(systemText, padX, sysY, maxTextWidth);
 
-    ctx.fillStyle = '#1f2937';
-    ctx.font = '11px monospace';
-    if (lines[2]) ctx.fillText(lines[2], 14, h - 14);
+    // 3) Bottom row: IP on left, Department on right, filling the full card width
+    ctx.textBaseline = 'bottom';
+    const deptSize = fitFontSize(deptText, '600', 'sans-serif', footerSize, 10, maxTextWidth * 0.48);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = `600 ${deptSize}px sans-serif`;
+    let deptWidth = 0;
+    if (deptText) {
+      ctx.textAlign = 'right';
+      ctx.fillText(deptText, w - padX, bottomBaselineY, maxTextWidth * 0.48);
+      deptWidth = Math.min(maxTextWidth * 0.48, ctx.measureText(deptText).width) + 10;
+    }
+
+    const ipMaxWidth = Math.max(40, maxTextWidth - deptWidth);
+    const ipSize = fitFontSize(ipText, '600', 'monospace', footerSize, 10, ipMaxWidth);
+    ctx.fillStyle = '#111827';
+    ctx.textAlign = 'left';
+    ctx.font = `600 ${ipSize}px monospace`;
+    if (ipText) ctx.fillText(ipText, padX, bottomBaselineY, ipMaxWidth);
 
     const rawName = (card.getAttribute('data-tree-server') || card.querySelector('[title]')?.getAttribute('title') || lines[0] || 'server')
       .replace(/[^a-zA-Z0-9_-]+/g, '-');
