@@ -1,5 +1,4 @@
-<!-- 20261123 v90 - Works fixed csv select export all -->
-<!-- 20261124 v91v2 - Trying to modify drawTreeConnectors -->
+<!-- 20261126 v91v3 - Trying to modify drawTreeConnectors -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -127,7 +126,10 @@
           </div>
           <button onclick="exportTopologyPNG()" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer" title="Export selected Topology cards (or all visible if none selected) as PNG">
             <i class="fas fa-camera mr-1"></i> Export PNG
-          </button>         
+          </button>  
+		  <button onclick="copyTopologyToClipboard()" class="px-2.5 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-semibold transition shadow cursor-pointer" title="Copy selected cards (or all visible if none selected) to clipboard for PowerPoint / Word / Visio">
+  			<i class="fas fa-copy mr-1"></i> Copy Image
+		  </button>	
           <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
             <label class="text-[11px] font-semibold text-slate-400">Density:</label>
             <select id="canvasDensity" onchange="renderTopologyCanvas()" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-xs text-slate-200 focus:outline-none">
@@ -2346,12 +2348,202 @@ function drawTreeConnectors(visibleServers) {
       });
     }
 
-async function exportTopologyPNG() {
+async function buildTopologyCanvas() {
   const isTree = currentTopoMode === 'tree';
   const isVisual = currentTopoMode === 'visual';
   if (!isTree && !isVisual) {
-    return notifyUser("Switch to Visual or Visio Tree to export a diagram PNG", true);
+    notifyUser("Switch to Visual or Visio Tree to copy/export a diagram", true);
+    return null;
   }
+
+  const container = isTree
+    ? document.getElementById('canvasTreeView')
+    : document.getElementById('canvasArea');
+  const svgEl = isTree
+    ? document.getElementById('svgTreeConnectors')
+    : document.getElementById('svgConnectors');
+  if (!container) return null;
+
+  const allCards = Array.from(container.querySelectorAll('.node-card'));
+  const hasExplicitSelection = selectedServerNames.size > 0;
+
+  const exportNamesLower = new Set();
+  if (hasExplicitSelection) {
+    selectedServerNames.forEach(n => exportNamesLower.add(n.toLowerCase()));
+  }
+
+  const targetCards = allCards.filter((card) => {
+    if (!hasExplicitSelection) return true;
+    const nameAttr = card.getAttribute('data-tree-server');
+    if (nameAttr) return exportNamesLower.has(nameAttr.toLowerCase());
+    const titleEl = card.querySelector('[title]');
+    const cardName = (titleEl ? titleEl.getAttribute('title') : '').toLowerCase();
+    return exportNamesLower.has(cardName);
+  });
+
+  if (targetCards.length === 0) {
+    notifyUser("No matching cards in current view", true);
+    return null;
+  }
+
+  const containerRect = container.getBoundingClientRect();
+  const pad = 32;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  targetCards.forEach((card) => {
+    const r = card.getBoundingClientRect();
+    const x = r.left - containerRect.left + container.scrollLeft;
+    const y = r.top - containerRect.top + container.scrollTop;
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + r.width);
+    maxY = Math.max(maxY, y + r.height);
+  });
+
+  const cropX = Math.max(0, minX - pad);
+  const cropY = Math.max(0, minY - pad);
+  const width = Math.max(300, (maxX - minX) + pad * 2);
+  const height = Math.max(200, (maxY - minY) + pad * 2);
+
+  const scale = 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, width, height);
+
+  if (svgEl) {
+    const svgClone = svgEl.cloneNode(true);
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgClone.setAttribute('width', container.scrollWidth || 3500);
+    svgClone.setAttribute('height', container.scrollHeight || 2500);
+
+    if (hasExplicitSelection) {
+      const cardAnchors = targetCards.map((card) => {
+        const r = card.getBoundingClientRect();
+        const left = r.left - containerRect.left + container.scrollLeft;
+        const top = r.top - containerRect.top + container.scrollTop;
+        return { cx: left + r.width / 2, top, bottom: top + r.height };
+      });
+
+      const nearAnyCardAnchor = (x, y) =>
+        cardAnchors.some(
+          (a) => Math.abs(x - a.cx) <= 24 && (Math.abs(y - a.top) <= 16 || Math.abs(y - a.bottom) <= 16)
+        );
+
+      svgClone.querySelectorAll('path').forEach((pathEl) => {
+        const d = pathEl.getAttribute('d') || '';
+        const startMatch = d.match(/M\s*([-\d.]+)[,\s]+([-\d.]+)/i);
+        const endMatches = [...d.matchAll(/([-\d.]+)[,\s]+([-\d.]+)\s*$/g)];
+        if (!startMatch || endMatches.length === 0) {
+          pathEl.remove();
+          return;
+        }
+        const x1 = parseFloat(startMatch[1]);
+        const y1 = parseFloat(startMatch[2]);
+        const lastPt = endMatches[endMatches.length - 1];
+        const x2 = parseFloat(lastPt[1]);
+        const y2 = parseFloat(lastPt[2]);
+        if (!nearAnyCardAnchor(x1, y1) || !nearAnyCardAnchor(x2, y2)) {
+          pathEl.remove();
+        }
+      });
+    }
+
+    const svgBlob = new Blob([new XMLSerializer().serializeToString(svgClone)], {
+      type: 'image/svg+xml;charset=utf-8'
+    });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, -cropX, -cropY);
+        URL.revokeObjectURL(svgUrl);
+        resolve();
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(svgUrl);
+        resolve();
+      };
+      img.src = svgUrl;
+    });
+  }
+
+  targetCards.forEach((card) => {
+    const r = card.getBoundingClientRect();
+    const x = (r.left - containerRect.left + container.scrollLeft) - cropX;
+    const y = (r.top - containerRect.top + container.scrollTop) - cropY;
+    const w = r.width;
+    const h = r.height;
+
+    const cardServerName = (card.getAttribute('data-tree-server') || card.querySelector('[title]')?.getAttribute('title') || '').toLowerCase();
+    const isDirectlySelected = selectedServerNames.has(
+      Array.from(selectedServerNames).find(n => n.toLowerCase() === cardServerName) || ''
+    );
+
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = isDirectlySelected ? '#fbbf24' : '#06b6d4';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    const lines = Array.from(card.querySelectorAll('span, div'))
+      .map((el) => el.textContent.trim())
+      .filter((txt, i, arr) => txt && arr.indexOf(txt) === i);
+
+    ctx.fillStyle = '#67e8f9';
+    ctx.font = 'bold 12px sans-serif';
+    if (lines[0]) ctx.fillText(lines[0], x + 12, y + 22);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '11px sans-serif';
+    if (lines[1]) ctx.fillText(lines[1], x + 12, y + 40);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    if (lines[2]) ctx.fillText(lines[2], x + 12, y + h - 12);
+  });
+
+  return { canvas, count: targetCards.length, hasExplicitSelection, isTree };
+}
+
+async function copyTopologyToClipboard() {
+  const built = await buildTopologyCanvas();
+  if (!built) return;
+
+  if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+    notifyUser("Clipboard image unsupported here—downloading PNG instead", true);
+    return exportTopologyPNG();
+  }
+
+  built.canvas.toBlob(async (blob) => {
+    if (!blob) return exportTopologyPNG();
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      notifyUser(`Copied ${built.count} card(s) to clipboard—paste into PowerPoint, Word, or Visio`);
+    } catch (err) {
+      notifyUser("Clipboard blocked by browser/file://—downloading PNG instead", true);
+      exportTopologyPNG();
+    }
+  }, 'image/png');
+}
+
+async function exportTopologyPNG() {
+  const built = await buildTopologyCanvas();
+  if (!built) return;
+  const link = document.createElement('a');
+  const scopeLabel = built.hasExplicitSelection ? 'selected' : 'all';
+  const modeLabel = built.isTree ? 'visio-tree' : 'topology-visual';
+  link.download = `infops-${modeLabel}-${scopeLabel}-${new Date().toISOString().slice(0, 10)}.png`;
+  link.href = built.canvas.toDataURL('image/png');
+  link.click();
+  notifyUser(`Exported ${built.count} card(s) as PNG`);
+}
 
   const container = isTree
     ? document.getElementById('canvasTreeView')
@@ -3616,14 +3808,33 @@ function exportTabToCSV(tabName) {
 
     document.getElementById('globalSearchInput').addEventListener('click', (e) => e.stopPropagation());
 
+// 2) Paste the Ctrl+C keydown listener right here:
+    document.addEventListener('keydown', (e) => {
+      const isCopyShortcut = (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'c';
+      if (!isCopyShortcut) return;
+
+      const active = document.activeElement;
+      if (
+        active &&
+        (active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'SELECT' ||
+          active.isContentEditable)
+      ) {
+        return;
+      }
+
+      const topoSection = document.getElementById('tabContent-canvas');
+      const isTopoVisible = topoSection && !topoSection.classList.contains('hidden');
+      if (isTopoVisible && (currentTopoMode === 'visual' || currentTopoMode === 'tree')) {
+        e.preventDefault();
+        copyTopologyToClipboard();
+      }
+    });
+
+    // Existing DOMContentLoaded listener already at the bottom of <script>:
     document.addEventListener('DOMContentLoaded', () => {
-      veeamJobs.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }));
-      normalizeUnassignedVeeamServers();
-      applySettings();
-      verifyClientIP();
-      populateVeeamPresetSelect();
-      renderInventoryTable();
-      switchTab('inventory');
+      ...
     });
   </script>
 </body>
