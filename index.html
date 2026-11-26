@@ -1,4 +1,5 @@
-<!-- 20261126 v91v6 - Trying to modify drawTreeConnectors -->
+<!-- 20261126 v91v6 - Works with copy image out-->
+<!-- 20261126 v91v7 - Trying to change backgroud color or server card -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2359,9 +2360,6 @@ async function buildCardCanvases() {
   const container = isTree
     ? document.getElementById('canvasTreeView')
     : document.getElementById('canvasArea');
-					  
-												  
-											   
   if (!container) return null;
 
   const allCards = Array.from(container.querySelectorAll('.node-card'));
@@ -2388,103 +2386,11 @@ async function buildCardCanvases() {
     return null;
   }
 
-														  
-				 
-
-																		   
-								 
-										   
-																 
-															  
-							 
-							 
-									   
-										
-	 
-
-										
-										
-													   
-														
-
   const scale = 2;
-												  
-							   
-								 
-									  
-						  
-
-							
-									
-
-			  
-										   
-																 
-																  
-																	
-
-							   
   const items = targetCards.map((card) => {
-											   
-																		
-																	
-				
-								 
-				   
-								
-		  
-		 
-
-										 
-						 
-																										
-		  
-
-															 
-												 
-																	
-																			
-													 
-						  
-				 
-		 
-											 
-											 
-														 
-										 
-										 
-
-																	   
-						  
-		 
-		 
-	 
-
-																				 
-										 
-	   
-												
-									
-							  
-						  
-										   
-									
-				  
-		
-						   
-									
-				  
-		
-					   
-	   
-   
-
-								 
     const r = card.getBoundingClientRect();
     const w = Math.max(120, Math.round(r.width));
     const h = Math.max(60, Math.round(r.height));
-					  
-					   
 
     const canvas = document.createElement('canvas');
     canvas.width = w * scale;
@@ -2492,27 +2398,28 @@ async function buildCardCanvases() {
     const ctx = canvas.getContext('2d');
     ctx.scale(scale, scale);
 
-    ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = '#06b6d4';
+    // Transparent background (no dark fill) so no toner is wasted on paper or light slides,
+    // with a crisp dark border and dark high-contrast text that reads easily on white/light backgrounds.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(1, 1, w - 2, h - 2, 10);
-    ctx.fill();
     ctx.stroke();
 
     const lines = Array.from(card.querySelectorAll('span, div'))
       .map((el) => el.textContent.trim())
       .filter((txt, i, arr) => txt && arr.indexOf(txt) === i);
 
-    ctx.fillStyle = '#67e8f9';
+    ctx.fillStyle = '#000000';
     ctx.font = 'bold 12px sans-serif';
     if (lines[0]) ctx.fillText(lines[0], 14, 24);
 
-    ctx.fillStyle = '#cbd5e1';
+    ctx.fillStyle = '#111827';
     ctx.font = '11px sans-serif';
     if (lines[1]) ctx.fillText(lines[1], 14, 42);
 
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = '#1f2937';
     ctx.font = '11px monospace';
     if (lines[2]) ctx.fillText(lines[2], 14, h - 14);
 
@@ -2524,7 +2431,6 @@ async function buildCardCanvases() {
 
   return {
     items,
-							  
     hasExplicitSelection,
     isTree
   };
@@ -2543,7 +2449,6 @@ async function exportTopologyPNG() {
   const built = await buildCardCanvases();
   if (!built) return;
   const dateStamp = new Date().toISOString().slice(0, 10);
-																	 
   const modeLabel = built.isTree ? 'visio-tree' : 'topology-visual';
 
   for (let i = 0; i < built.items.length; i++) {
@@ -2599,7 +2504,6 @@ async function copyTopologyToClipboard() {
   }
 }
 
-   
     /* ================= MIGRATION TRACKER TAB ================= */
     function renderCutoverWavesTab() {
       updateDropdownLabels();
