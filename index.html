@@ -1,4 +1,5 @@
 <!-- 20261126 v92 - Works Max server card when copy out -->
+<!-- 20261126 v93 - Trying to add unselect all in topology -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,6 +112,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <span class="selectedCountBadge-el text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-1.5 rounded-lg font-mono">0 selected</span>
+          <button onclick="clearServerSelection()" title="Unselect all selected servers" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-amber-300 border border-slate-600 rounded-lg text-xs font-semibold transition cursor-pointer">
+            <i class="fas fa-times-circle mr-1"></i> Unselect All
+          </button>
           <!-- Universal Column Picker for Line List -->
           <div class="relative">
             <button onclick="toggleColPickerDropdown('topoList', event)" class="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg text-xs font-semibold transition cursor-pointer" title="Add / Remove / Reorder Columns">
@@ -1816,6 +1821,14 @@ function getOptionsForFilter(filterKey) {
       else visibleFiltered.forEach(s => selectedServerNames.delete(s.serverName));
       renderInventoryTable();
     }
+
+function clearServerSelection() {
+  if (selectedServerNames.size === 0) return;
+  selectedServerNames.clear();
+  triggerActiveTabRender();
+  updateGlobalCounters();
+  notifyUser("Cleared all selected servers");
+}
 
 function toggleServerSelection(name, chk) {
   if (chk.checked) {
